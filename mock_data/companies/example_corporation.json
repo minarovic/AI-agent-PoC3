@@ -1,0 +1,18 @@
+{
+  "id": "comp-001",
+  "name": "Example Corporation",
+  "country": "Czech Republic",
+  "industry": "Technology",
+  "founded": 2010,
+  "description": "Example Corporation je technologická společnost zaměřená na vývoj softwarových řešení pro firemní zákazníky v oblasti datové analýzy a umělé inteligence.",
+  "website": "https://example.com",
+  "size": "medium",
+  "employees": 250,
+  "headquarters": "Prague, Czech Republic",
+  "public": false,
+  "key_products": [
+    "DataAnalyzer Pro",
+    "AI Business Suite",
+    "CloudSync"
+  ]
+}

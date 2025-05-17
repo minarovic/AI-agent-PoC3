@@ -1,0 +1,16 @@
+{
+  "company": "mb tool",
+  "company_profile": {
+    "tier_classification": "TIER1",
+    "hs_codes": [
+      "8708",
+      "3920"
+    ],
+    "business_activities": [
+      "Product Development",
+      "Mold Making",
+      "Plastic Part Production"
+    ],
+    "geographic_presence": []
+  }
+}

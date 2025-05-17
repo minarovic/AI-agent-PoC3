@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_11112",
+  "relationships": [
+    {
+      "id": "rel_11112",
+      "source": {
+        "id": "entity_11111",
+        "label": "MB Tool"
+      },
+      "target": {
+        "id": "entity_11112",
+        "label": "MB Tool Development"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "85%"
+      }
+    }
+  ]
+}

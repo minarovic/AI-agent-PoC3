@@ -1,0 +1,40 @@
+{
+  "company_id": "entity_mb_tool_001",
+  "relationships": [
+    {
+      "entity_id": "entity_skoda_auto_001",
+      "entity_name": "ŠKODA AUTO a.s.",
+      "relationship_type": "customer",
+      "relationship_strength": "primary",
+      "description": "Hlavní odběratel, více než 60% produkce dodáváno do Škoda Auto"
+    },
+    {
+      "entity_id": "entity_vw_001",
+      "entity_name": "Volkswagen AG",
+      "relationship_type": "customer",
+      "relationship_strength": "significant",
+      "description": "Významný odběratel pro exportní trhy"
+    },
+    {
+      "entity_id": "entity_flakenberg_001",
+      "entity_name": "Flakenberg GmbH",
+      "relationship_type": "supplier",
+      "relationship_strength": "primary",
+      "description": "Hlavní dodavatel speciálních ocelových slitin pro výrobu nástrojů"
+    },
+    {
+      "entity_id": "entity_adis_tachov_001",
+      "entity_name": "ADIS TACHOV",
+      "relationship_type": "supplier",
+      "relationship_strength": "minor",
+      "description": "Dodavatel plastových součástek pro některé specializované nástroje"
+    },
+    {
+      "entity_id": "entity_flídr_plast_001",
+      "entity_name": "FLÍDR plast s.r.o.",
+      "relationship_type": "competitor",
+      "relationship_strength": "moderate",
+      "description": "Konkurent v oblasti výroby vstřikovacích forem pro automobilový průmysl"
+    }
+  ]
+}

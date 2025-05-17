@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_44446",
+  "relationships": [
+    {
+      "id": "rel_44446",
+      "source": {
+        "id": "entity_44444",
+        "label": "LyondellBasell"
+      },
+      "target": {
+        "id": "entity_44446",
+        "label": "Peter Vanacker"
+      },
+      "type": "has_officer",
+      "metadata": {
+        "position": "CEO"
+      }
+    }
+  ]
+}

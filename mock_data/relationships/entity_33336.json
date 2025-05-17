@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_33336",
+  "relationships": [
+    {
+      "id": "rel_33336",
+      "source": {
+        "id": "entity_33333",
+        "label": "Fuyao Group"
+      },
+      "target": {
+        "id": "entity_33336",
+        "label": "Cho Tak Wong"
+      },
+      "type": "has_officer",
+      "metadata": {
+        "position": "Chairman, Founder"
+      }
+    }
+  ]
+}

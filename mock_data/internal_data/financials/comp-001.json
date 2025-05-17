@@ -1,0 +1,50 @@
+{
+  "company_id": "comp-001",
+  "company_name": "Example Corporation",
+  "financial_data": [
+    {
+      "year": 2022,
+      "currency": "CZK",
+      "revenue": 150000000,
+      "profit": 25000000,
+      "assets": 85000000,
+      "liabilities": 35000000,
+      "equity": 50000000,
+      "employees": 250,
+      "growth_rate": 0.15,
+      "cash_flow": 18000000
+    },
+    {
+      "year": 2021,
+      "currency": "CZK",
+      "revenue": 130000000,
+      "profit": 20000000,
+      "assets": 70000000,
+      "liabilities": 30000000,
+      "equity": 40000000,
+      "employees": 220,
+      "growth_rate": 0.12,
+      "cash_flow": 15000000
+    },
+    {
+      "year": 2020,
+      "currency": "CZK",
+      "revenue": 115000000,
+      "profit": 17000000,
+      "assets": 60000000,
+      "liabilities": 28000000,
+      "equity": 32000000,
+      "employees": 200,
+      "growth_rate": 0.08,
+      "cash_flow": 12000000
+    }
+  ],
+  "key_ratios": {
+    "profit_margin": 0.17,
+    "return_on_equity": 0.5,
+    "debt_to_equity": 0.7,
+    "current_ratio": 2.1
+  },
+  "financial_health": "strong",
+  "last_updated": "2023-03-15"
+}

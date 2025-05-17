@@ -1,0 +1,40 @@
+{
+  "id": "per-001",
+  "name": "Jan Novák",
+  "nationality": "Czech",
+  "date_of_birth": "1975-05-12",
+  "positions": [
+    {
+      "company_id": "comp-001",
+      "company_name": "Example Corporation",
+      "title": "CEO",
+      "start_date": "2010-01-01",
+      "end_date": null
+    },
+    {
+      "company_id": "comp-002",
+      "company_name": "MB TOOL",
+      "title": "Board Member",
+      "start_date": "2018-03-15",
+      "end_date": null
+    }
+  ],
+  "education": [
+    {
+      "institution": "Czech Technical University",
+      "degree": "Master's in Computer Science",
+      "year": 2000
+    },
+    {
+      "institution": "Harvard Business School",
+      "degree": "MBA",
+      "year": 2005
+    }
+  ],
+  "expertise": [
+    "Software Development",
+    "Business Strategy",
+    "AI Technology",
+    "Corporate Management"
+  ]
+}

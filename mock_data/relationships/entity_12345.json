@@ -1,0 +1,35 @@
+{
+  "entity_id": "entity_12345",
+  "relationships": [
+    {
+      "id": "rel_12345",
+      "source": {
+        "id": "entity_12345",
+        "label": "Acme Corporation"
+      },
+      "target": {
+        "id": "entity_67890",
+        "label": "Acme International Ltd"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "100%"
+      }
+    },
+    {
+      "id": "rel_67890",
+      "source": {
+        "id": "entity_12345",
+        "label": "Acme Corporation"
+      },
+      "target": {
+        "id": "entity_24680",
+        "label": "John Smith"
+      },
+      "type": "has_officer",
+      "metadata": {
+        "position": "CEO"
+      }
+    }
+  ]
+}

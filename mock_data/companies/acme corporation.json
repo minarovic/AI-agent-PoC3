@@ -1,0 +1,144 @@
+{
+  "id": "entity_12345",
+  "label": "Acme Corporation",
+  "type": "company",
+  "entity_url": "https://sayari.com/entity/entity_12345",
+  "countries": [
+    "USA"
+  ],
+  "sanctioned": false,
+  "pep": false,
+  "num_documents": 78,
+  "degree": 5,
+  "closed": null,
+  "risk": {
+    "sanctioned": {
+      "value": false,
+      "level": "relevant"
+    }
+  },
+  "risk_factors": {
+    "sanctioned": {
+      "value": false,
+      "metadata": {
+        "sources": [
+          "OFAC",
+          "EU Sanctions List"
+        ],
+        "last_update": [
+          "2023-12-01"
+        ]
+      }
+    },
+    "pep": {
+      "value": false,
+      "metadata": {
+        "sources": [
+          "Government Officials Database"
+        ]
+      }
+    },
+    "state_owned": {
+      "value": false,
+      "metadata": {
+        "sources": [
+          "Corporate Registry"
+        ]
+      }
+    },
+    "export_controls": {
+      "value": false,
+      "metadata": {
+        "sources": [
+          "BIS Entity List"
+        ]
+      }
+    },
+    "forced_labor_xinjiang_geospatial": {
+      "value": false,
+      "metadata": {
+        "last_check": [
+          "2023-07-22"
+        ]
+      }
+    }
+  },
+  "attributes": {
+    "name": {
+      "data": [
+        {
+          "value": "Acme Corporation",
+          "type": "primary"
+        },
+        {
+          "value": "ACME Corp.",
+          "type": "alternative"
+        }
+      ],
+      "limit": 10,
+      "size": {
+        "count": 2,
+        "qualifier": "eq"
+      }
+    },
+    "identifier": {
+      "data": [
+        {
+          "value": "123456789",
+          "type": "registration_number",
+          "label": "Registration Number"
+        },
+        {
+          "value": "ACM123456",
+          "type": "tax_id",
+          "label": "Tax ID"
+        }
+      ],
+      "limit": 10,
+      "size": {
+        "count": 2,
+        "qualifier": "eq"
+      }
+    },
+    "address": {
+      "data": [
+        {
+          "value": "123 Main St, Anytown, USA",
+          "type": "business"
+        }
+      ],
+      "limit": 10,
+      "size": {
+        "count": 1,
+        "qualifier": "eq"
+      }
+    }
+  },
+  "relationship_count": {
+    "has_subsidiary": 1,
+    "has_officer": 1,
+    "has_shareholder": 2
+  },
+  "edge_counts": {
+    "has_subsidiary": {
+      "in": 0,
+      "out": 1,
+      "total": 1
+    },
+    "has_officer": {
+      "in": 0,
+      "out": 1,
+      "total": 1
+    },
+    "has_shareholder": {
+      "in": 0,
+      "out": 2,
+      "total": 2
+    },
+    "subsidiary_of": {
+      "in": 1,
+      "out": 0,
+      "total": 1
+    }
+  }
+}

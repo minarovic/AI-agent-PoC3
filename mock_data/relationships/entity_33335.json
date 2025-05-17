@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_33335",
+  "relationships": [
+    {
+      "id": "rel_33335",
+      "source": {
+        "id": "entity_33333",
+        "label": "Fuyao Group"
+      },
+      "target": {
+        "id": "entity_33335",
+        "label": "Fuyao Glass Europe"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "100%"
+      }
+    }
+  ]
+}

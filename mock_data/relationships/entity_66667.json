@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_66667",
+  "relationships": [
+    {
+      "id": "rel_66667",
+      "source": {
+        "id": "entity_66666",
+        "label": "Rehau"
+      },
+      "target": {
+        "id": "entity_66667",
+        "label": "Rehau Automotive"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "100%"
+      }
+    }
+  ]
+}

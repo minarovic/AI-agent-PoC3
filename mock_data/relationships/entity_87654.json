@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_87654",
+  "relationships": [
+    {
+      "id": "rel_54321",
+      "source": {
+        "id": "entity_54321",
+        "label": "BOS"
+      },
+      "target": {
+        "id": "entity_87654",
+        "label": "BOS Components GmbH"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "100%"
+      }
+    }
+  ]
+}

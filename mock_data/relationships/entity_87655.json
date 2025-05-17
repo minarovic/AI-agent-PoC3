@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_87655",
+  "relationships": [
+    {
+      "id": "rel_54322",
+      "source": {
+        "id": "entity_54321",
+        "label": "BOS"
+      },
+      "target": {
+        "id": "entity_87655",
+        "label": "BOS Automotive Products"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "100%"
+      }
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_33334",
+  "relationships": [
+    {
+      "id": "rel_33334",
+      "source": {
+        "id": "entity_33333",
+        "label": "Fuyao Group"
+      },
+      "target": {
+        "id": "entity_33334",
+        "label": "Fuyao Glass North America"
+      },
+      "type": "has_subsidiary",
+      "metadata": {
+        "share": "100%"
+      }
+    }
+  ]
+}

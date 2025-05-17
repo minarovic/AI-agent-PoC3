@@ -1,0 +1,30 @@
+{
+  "company_id": "entity_mb_tool_001",
+  "internal_rating": "B+",
+  "credit_score": 78,
+  "payment_history": {
+    "average_delay_days": 4,
+    "invoices_paid_on_time_percent": 92,
+    "late_payments_last_year": 3
+  },
+  "relationship_status": "Aktivní dodavatel",
+  "contract_status": "Dlouhodobá smlouva do 2028",
+  "last_audit": {
+    "date": "2024-11-15",
+    "score": "88/100",
+    "findings": [
+      "Splňuje všechny klíčové kvalitativní požadavky",
+      "Menší problémy s dokumentací procesu kontroly kvality",
+      "Doporučeno častější testování materiálů"
+    ]
+  },
+  "strategic_importance": "Vysoká - jediný dodavatel některých kritických komponentů",
+  "performance_metrics": {
+    "quality": 4.6,
+    "delivery": 4.8,
+    "price_competitiveness": 3.9,
+    "innovation": 4.2,
+    "flexibility": 4.4
+  },
+  "notes": "Spolehlivý dlouhodobý dodavatel s výbornou kvalitou. Navýšení kapacity plánované na Q3 2025 pro podporu našich nových projektů."
+}

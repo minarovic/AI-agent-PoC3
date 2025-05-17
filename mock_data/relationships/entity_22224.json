@@ -1,0 +1,20 @@
+{
+  "entity_id": "entity_22224",
+  "relationships": [
+    {
+      "id": "rel_22224",
+      "source": {
+        "id": "entity_22222",
+        "label": "Flidr Plast"
+      },
+      "target": {
+        "id": "entity_22224",
+        "label": "Petr Flidr"
+      },
+      "type": "has_officer",
+      "metadata": {
+        "position": "Chairman"
+      }
+    }
+  ]
+}
