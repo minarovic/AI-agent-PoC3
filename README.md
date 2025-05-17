@@ -80,6 +80,30 @@ curl -X POST http://127.0.0.1:2024/agents/agent/invoke \
   }'
 ```
 
+## Nasazení
+
+Projekt je možné nasadit dvěma způsoby:
+
+### Lokální nasazení
+
+```bash
+# Sestavit projekt
+langgraph build
+
+# Spustit lokálně
+langgraph up
+```
+
+### Nasazení na LangGraph Platform
+
+1. **Automatizované nasazení přes GitHub CI/CD**:
+   - Nastavte v repozitáři GitHub Secrets: `OPENAI_API_KEY` a `LANGSMITH_API_KEY`
+   - Push do větve `main` automaticky spustí workflow pro sestavení a vytvoření artefaktu
+   - Stáhněte vygenerovaný artefakt a následujte instrukce v [Manuálu pro ruční nasazení](./doc/manual_langgraph_deployment.md)
+
+2. **Ruční nasazení**:
+   - Postupujte podle pokynů v [Návodu na nasazení](./doc/deployment_guide.md) a [Manuálu pro ruční nasazení](./doc/manual_langgraph_deployment.md)
+
 ## Dokumentace
 
 Detailní dokumentace je dostupná v adresáři `/doc`:
@@ -88,6 +112,7 @@ Detailní dokumentace je dostupná v adresáři `/doc`:
 - [API a struktura serveru](./doc/api_server_structure.md)
 - [Příklady implementace](./doc/code_examples.md)
 - [Návod na nasazení](./doc/deployment_guide.md)
+- [Manuál pro ruční nasazení](./doc/manual_langgraph_deployment.md)
 - [Struktura projektu a roadmapa](./doc/project_structure.md)
 - [Popis workflow](./doc/workflow.md)
 
