@@ -100,12 +100,24 @@ Při pokusu o spuštění příkazu `langgraph platform build --local` nastala c
    ```
 
 3. Sledovat průběh GitHub Actions workflow:
-   - Otevřít repozitář na GitHub
-   - Přejít na záložku "Actions"
-   - Zkontrolovat, zda workflow proběhl úspěšně
+   - **Přímo v VS Code**:
+     - Stiskněte `Cmd+Shift+P` a vyberte "GitHub Actions: View Workflow Runs"
+     - Nebo klikněte na ikonu GitHub v levém postranním panelu
+     - Vyberte nejnovější běh workflow "AI-agent-Ntier CI/CD"
+   - **Alternativně na webu**:
+     - Otevřít repozitář na GitHub
+     - Přejít na záložku "Actions"
+     - Zkontrolovat, zda workflow proběhl úspěšně
 
 4. Stáhnout vygenerovaný artefakt:
-   - Po úspěšném dokončení workflow
+   - **Přímo v VS Code**:
+     - V panelu GitHub Actions klikněte na úspěšně dokončený workflow
+     - Rozbalte sekci "Artifacts"
+     - Klikněte na "Download" u artefaktu "langgraph-package"
+   - **Alternativně na webu**:
+     - Po úspěšném dokončení workflow na stránce Actions
+     - Klikněte na konkrétní běh workflow
+     - Stáhněte artefakt ze sekce "Artifacts"
    - Artefakt obsahuje soubory potřebné pro ruční nasazení na LangGraph Platform
 
 5. Nasazení na LangGraph Platform:
