@@ -144,3 +144,30 @@ Při pokusu o spuštění příkazu `langgraph platform build --local` nastala c
 ### Očekávané výsledky:
 - CI/CD pipeline by nyní měl proběhnout úspěšně
 - Měl by být vytvořen artefakt `langgraph-package` pro nasazení na LangGraph Platform
+
+## [Timestamp: 2025-05-17 - Finalizace nasazení]
+
+### Ověření výsledků CI/CD:
+- Push nových změn do GitHub repozitáře proběhl úspěšně
+- Workflow v GitHub Actions by měl nyní běžet bez problémů
+- Již byla připravena podrobná dokumentace v souboru `doc/manual_langgraph_deployment.md`
+
+### Zbývající kroky:
+1. **Ověřit výsledek GitHub Actions workflow**:
+   - Zkontrolovat, zda workflow proběhl úspěšně
+   - Stáhnout a zkontrolovat vytvořený artefakt
+
+2. **Nasadit na LangGraph Platform**:
+   - Následovat instrukce v souboru `doc/manual_langgraph_deployment.md`
+   - Použít buď LangGraph Platform UI nebo GitHub integraci
+
+3. **Dokumentace pro uživatele**:
+   - Aktualizovat hlavní README.md s informacemi o nasazení
+   - Přidat odkaz na vytvořenou dokumentaci
+
+### Shrnutí procesu nasazení:
+- Původní problém byl v neexistujícím příkazu `langgraph platform build` v aktuální verzi LangGraph CLI
+- Řešením bylo použití dostupných příkazů a příprava procesu pro ruční nasazení
+- Další problém nastal s chybějícím balíčkem `langchain_openai` v CI/CD procesu
+- Tento problém byl vyřešen explicitní instalací balíčku v GitHub workflow
+- Problematický soubor s logy byl odstraněn kvůli syntaktickým chybám
