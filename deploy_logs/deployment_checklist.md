@@ -17,16 +17,19 @@
 
 - [x] Vytvoření souboru `deploy_logs/deployment_checklist.md` (tento soubor) - 17.05.2025
 - [x] Vytvoření souboru `deploy_logs/deployment_plan.md` - 17.05.2025
-- [ ] Dokončit commit změn v souborech:
-  - [ ] README.md
-  - [ ] .env.example
-  - [ ] .github/copilot-instructions.md
-  - [ ] doc/manual_langgraph_deployment.md
-  - [ ] docker-compose.yml
-  - [ ] docker-compose.override.yml
-  - [ ] deploy_logs/deployment_checklist.md (tento soubor)
-  - [ ] deploy_logs/deployment_plan.md
-- [ ] Push změn do GitHub
+- [x] Vytvoření souboru `deploy_logs/update_18_05_2025.md` - 18.05.2025
+- [x] Vytvoření souboru `deploy_logs/github_actions_check.md` - 18.05.2025
+- [x] Vytvoření souboru `deploy_logs/manual_artifact_deployment.md` - 18.05.2025
+- [x] Dokončit commit změn v souborech - 18.05.2025:
+  - [x] README.md
+  - [x] .env.example
+  - [x] .github/copilot-instructions.md
+  - [x] doc/manual_langgraph_deployment.md
+  - [x] docker-compose.yml
+  - [x] docker-compose.override.yml
+  - [x] deploy_logs/deployment_checklist.md (tento soubor)
+  - [x] deploy_logs/deployment_plan.md
+- [x] Push změn do GitHub - 18.05.2025
 
 ### Ověření CI/CD
 
