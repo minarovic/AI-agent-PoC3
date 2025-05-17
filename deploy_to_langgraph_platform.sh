@@ -63,15 +63,15 @@ case $choice in
     ;;
   2)
     echo "Sestavuji projekt..."
-    langgraph platform build --local
+    langgraph build
     
-    echo "Nasazuji na LangGraph Platform..."
-    langgraph platform push --env production
+    echo "Připraven k nasazení na LangGraph Platform..."
+    echo "Pro nasazení použijte oficiální LangGraph CLI nástroje nebo LangGraph Platform UI"
     ;;
   3)
     echo "Sestavuji projekt..."
-    langgraph platform build --local
-    echo "Hotovo. Pro nasazení použijte: langgraph platform push --env production"
+    langgraph build
+    echo "Hotovo. Pro lokální spuštění použijte: langgraph up"
     ;;
   *)
     echo "Neplatná volba"

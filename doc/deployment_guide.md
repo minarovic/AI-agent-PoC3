@@ -79,6 +79,16 @@ Pro přístup k LangGraph Studio UI otevřete v prohlížeči:
 https://smith.langchain.com/studio/?baseUrl=http://127.0.0.1:2024
 ```
 
+### C. Sestavení projektu a ruční nasazení
+
+```bash
+# Sestavení projektu
+langgraph build
+
+# Lokální spuštění sestaveného projektu
+langgraph up
+```
+
 ## Environment proměnné
 
 Pro správné fungování aplikace je třeba nastavit tyto proměnné prostředí:
