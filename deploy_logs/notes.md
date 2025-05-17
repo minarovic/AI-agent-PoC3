@@ -123,3 +123,24 @@ Při pokusu o spuštění příkazu `langgraph platform build --local` nastala c
 5. Nasazení na LangGraph Platform:
    - Použít LangGraph Platform UI pro nahrání artefaktu
    - Nebo aktualizovat dokumentaci s aktuálním způsobem nasazení
+
+## [Timestamp: 2025-05-17 - CI/CD Pipeline Fix]
+
+### Identifikované problémy v CI/CD:
+- Workflow selhal s chybou "Could not import langchain_openai python package"
+- Problematický soubor `deploy_logs/1.py` způsoboval další syntaktické chyby
+
+### Provedené opravy:
+1. Přidán explicitní příkaz pro instalaci `langchain_openai` v GitHub workflow:
+   ```yaml
+   pip install langchain_openai  # Explicitně instalujeme tento balíček
+   ```
+   
+2. Odstraněn problémový soubor s logy `deploy_logs/1.py`
+   - Soubor obsahoval pouze logy z předchozího pokusu o nasazení
+   - Tyto logy zahrnovaly časové značky s úvodní nulou (07:01), což Python interpretoval jako osmičkovou soustavu
+   - Soubor nebyl součástí aplikačního kódu
+
+### Očekávané výsledky:
+- CI/CD pipeline by nyní měl proběhnout úspěšně
+- Měl by být vytvořen artefakt `langgraph-package` pro nasazení na LangGraph Platform
