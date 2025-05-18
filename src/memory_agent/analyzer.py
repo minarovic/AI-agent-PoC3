@@ -47,10 +47,6 @@ VALID_ANALYSIS_TYPES = ["risk_comparison", "supplier_analysis", "general"]
 
 # NOTE: AnalysisResult je nyní importován z memory_agent.schema
 # Tím je zajištěna konzistence a LangGraph Platform může správně generovat schémata
-    is_company_analysis: bool = Field(description="Indicates whether the query is about company analysis")
-    confidence: float = Field(ge=0.0, le=1.0, description="Analysis confidence level (0.0 - 1.0)")
-    
-    model_config = {"extra": "forbid"}
 
 # NEW: Few-shot examples for each type of analysis
 RISK_EXAMPLES = [

@@ -131,5 +131,12 @@ class AnalysisResult(BaseModel):
     query: str = Field(
         description="Původní uživatelský dotaz"
     )
+    is_company_analysis: bool = Field(
+        description="Indicates whether the query is about company analysis"
+    )
+    confidence: float = Field(
+        ge=0.0, le=1.0, 
+        description="Analysis confidence level (0.0 - 1.0)"
+    )
 
     model_config = ConfigDict(extra="allow")
