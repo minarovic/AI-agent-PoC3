@@ -1,6 +1,8 @@
 {
     "name": "AI-agent-Ntier",
-    "entrypoint": "src.memory_agent.graph:graph",
+    "graphs": {
+        "agent": "./src/memory_agent/graph.py:graph"
+    },
     "python_version": "3.12",
     "dependencies": ["."]
 }
