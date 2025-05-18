@@ -77,11 +77,21 @@ jobs:
         cp -r .langgraph artifacts/
         cp langgraph.json artifacts/
         tar -czvf langgraph-package.tar.gz artifacts/
+        # Kontrola, že soubor byl vytvořen
+        ls -la langgraph-package.tar.gz
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
         LANGSMITH_PROJECT: "AI-agent-Ntier"
     
+    - name: Verify LangGraph artifact
+      run: |
+        if [ ! -f langgraph-package.tar.gz ]; then
+          echo "Error: langgraph-package.tar.gz not found!"
+          exit 1
+        fi
+        echo "Artifact verified: langgraph-package.tar.gz"
+
     - name: Upload LangGraph artifact
       uses: actions/upload-artifact@v3
       with:

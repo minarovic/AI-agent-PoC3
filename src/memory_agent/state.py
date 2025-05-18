@@ -18,7 +18,6 @@ from typing_extensions import Annotated
 
 # Import pro MockMCPConnector
 from memory_agent.tools import MockMCPConnector
-from memory_agent.schema import MockMCPConnectorConfig  # Import konfiguračního modelu
 
 # Import AnalysisResult odstraněn, používáme Dict[str, Any] s reducery
 
@@ -119,13 +118,13 @@ class State:
     vygenerovaných postřehů nebo doporučení.
     """
     
-    mcp_connector_config: Optional[MockMCPConnectorConfig] = None
+    mcp_connector: Optional[MockMCPConnector] = None
     """
-    Konfigurace pro MockMCPConnector pro jednotný přístup k datům.
+    Instance MockMCPConnector pro jednotný přístup k datům.
     
-    Tato konfigurace bude použita k vytvoření instance MockMCPConnector
-    kdykoli je potřeba přistupovat k datům. Použitím Pydantic modelu místo
-    přímé instance třídy umožňujeme LangGraph Platform generovat JSON schéma.
+    Poskytuje centralizovaný přístup k datovým zdrojům pro všechny uzly v grafu.
+    Místo přímých API volání různých externích služeb používáme tuto instanci
+    pro konzistentní a testovatelný přístup k datům v celém workflow.
     """
     
     # Podpora pro konfigurace
@@ -143,23 +142,6 @@ class State:
     # State rozšíření pro LangGraph Platform
     query_type: Optional[str] = None
     """Typ dotazu identifikovaný během analýzy."""
-
-    def get_mcp_connector(self) -> Any:
-        """
-        Vytvoří nebo vrátí instanci MockMCPConnector na základě konfigurace.
-        
-        Returns:
-            Any: Instance konektoru pro přístup k datům
-        """
-        from memory_agent.utils import create_mcp_connector_from_config
-        from memory_agent.schema import MockMCPConnectorConfig
-        
-        if self.mcp_connector_config is None:
-            # Vytvoření výchozí konfigurace, pokud žádná neexistuje
-            self.mcp_connector_config = MockMCPConnectorConfig()
-        
-        # Vytvoření nové instance MockMCPConnector s konfigurací
-        return create_mcp_connector_from_config(self.mcp_connector_config)
 
 
 # AgentState pro přímou integraci s LangGraph Platform

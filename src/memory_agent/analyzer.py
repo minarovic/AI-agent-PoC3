@@ -1,43 +1,25 @@
-from typing import Any, Dict, List, Optional, Tuple, Literal
-import json
 import logging
-import os
-import re
 import traceback
-from datetime import datetime
+import re
+from typing import Dict, List, Literal, Optional, Union, Any, Tuple
+from typing_extensions import TypedDict
 
 # LangChain Core imports
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-# Použití přímo pydantic místo langchain_core.pydantic_v1 (odstraněni warnings)
-from pydantic import BaseModel, Field, validator
+from langchain_core.pydantic_v1 import BaseModel, Field, validator
 from langchain_core.runnables import RunnableConfig, chain, RunnablePassthrough
 from langchain_core.tools import BaseTool, StructuredTool, tool
 from langchain_core.runnables.utils import ConfigurableFieldSpec
 from langchain_core.exceptions import OutputParserException
 
 # LangChain imports
-from langchain_openai import ChatOpenAI
+from langchain.chat_models import init_chat_model
 
-# Local imports
 from memory_agent import utils
-from memory_agent.schema import AnalysisResult
 
 logger = logging.getLogger(__name__)
-
-# Helper function to replace init_chat_model
-def get_chat_model(model: str = "gpt-4", temperature: float = 0.0, **kwargs):
-    """Initialize a chat model with the given parameters."""
-    # Handle Anthropic models
-    if "anthropic" in model.lower() or "claude" in model.lower():
-        # NOTE: For Anthropic models, we'd need to import from langchain_anthropic
-        # This is a placeholder that will use OpenAI as fallback
-        logger.warning(f"Anthropic model '{model}' requested but using OpenAI fallback")
-        return ChatOpenAI(model="gpt-4", temperature=temperature, **kwargs)
-    # Handle OpenAI models (default)
-    else:
-        return ChatOpenAI(model=model, temperature=temperature, **kwargs)
 
 # UPDATED: Definition of analysis types with Literal instead of enum
 AnalysisType = Literal["risk_comparison", "supplier_analysis", "general"]
@@ -45,8 +27,17 @@ AnalysisType = Literal["risk_comparison", "supplier_analysis", "general"]
 # Valid analysis types constant
 VALID_ANALYSIS_TYPES = ["risk_comparison", "supplier_analysis", "general"]
 
-# NOTE: AnalysisResult je nyní importován z memory_agent.schema
-# Tím je zajištěna konzistence a LangGraph Platform může správně generovat schémata
+# NEW: Define Pydantic model for analysis result
+class AnalysisResult(BaseModel):
+    """Result of user input analysis."""
+    companies: List[str] = Field(description="List of identified companies")
+    company: str = Field(description="Primary company (first in the list)")
+    analysis_type: AnalysisType = Field(description="Type of analysis to perform")
+    query: str = Field(description="Original user query")
+    is_company_analysis: bool = Field(description="Indicates whether the query is about company analysis")
+    confidence: float = Field(ge=0.0, le=1.0, description="Analysis confidence level (0.0 - 1.0)")
+    
+    model_config = {"extra": "forbid"}
 
 # NEW: Few-shot examples for each type of analysis
 RISK_EXAMPLES = [
@@ -225,7 +216,7 @@ def extract_analysis_type_from_reasoning(reasoning: str) -> AnalysisType:
 def process_with_reasoning(query: str, examples: List[Dict[str, Any]]) -> str:
     """Process query with reasoning process for more accurate analysis type detection."""
     # Initialize model with low temperature for deterministic outputs
-    llm = get_chat_model(model="anthropic/claude-3-sonnet-20240229", temperature=0.1)
+    llm = init_chat_model(model="anthropic/claude-3-sonnet-20240229", temperature=0.1)
     
     # Create prompt with examples and reasoning steps
     prompt_template = """Analyze this query using these steps:
@@ -360,7 +351,7 @@ class ErrorHandler:
         )
 
 # UPDATED: Main analyze_query function with LCEL chain
-async def analyze_query_async(
+async def analyze_query(
     user_input: str, 
     config: Optional[RunnableConfig] = None,
     model: Optional[str] = None, 
@@ -378,7 +369,7 @@ async def analyze_query_async(
         elif model:
             model_name = utils.split_model_and_provider(model)[1]
             
-        llm = get_chat_model(model=model_name)
+        llm = init_chat_model(model=model_name)
         
         # Combine examples based on query content
         examples = []
@@ -386,7 +377,6 @@ async def analyze_query_async(
         
         if any(kw in lower_query for kw in ["risk", "compliance", "sanctions", "riziko", "sankce"]):
             examples.extend(RISK_EXAMPLES[:2])
-        
         if any(kw in lower_query for kw in ["supplier", "supply", "dodavatel", "dodávky"]):
             examples.extend(SUPPLIER_EXAMPLES[:2])
         
@@ -436,44 +426,3 @@ async def analyze_query_async(
         logger.error(traceback.format_exc())
         # Fallback to error handler
         return ErrorHandler.handle_llm_error(e, user_input)
-
-
-# Přidání synchronní verze analyze_query pro kompatibilitu s grafovými uzly
-def analyze_query(
-    user_input: str, 
-    config: Optional[RunnableConfig] = None,
-    model: Optional[str] = None, 
-    mcp_connector: Any = None
-) -> AnalysisResult:
-    """
-    Synchronní verze funkce analyze_query pro přímé použití v grafových uzlech.
-    
-    Args:
-        user_input: Uživatelský dotaz k analýze
-        config: Volitelná konfigurace pro LangChain runnable
-        model: Volitelný model pro LLM
-        mcp_connector: Volitelný MCP konektor
-        
-    Returns:
-        AnalysisResult: Výsledek analýzy dotazu
-    """
-    import asyncio
-    
-    # Vytvoření funkce pro spuštění asynchronní funkce synchronně
-    def run_async(coroutine):
-        try:
-            loop = asyncio.get_event_loop()
-        except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
-        return loop.run_until_complete(coroutine)
-    
-    # Zavolání asynchronní funkce synchronně
-    return run_async(
-        analyze_query_async(
-            user_input=user_input,
-            config=config,
-            model=model,
-            mcp_connector=mcp_connector
-        )
-    )

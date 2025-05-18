@@ -63,15 +63,15 @@ case $choice in
     ;;
   2)
     echo "Sestavuji projekt..."
-    langgraph build --tag ai-agent-ntier:latest
+    langgraph build --local
     
-    echo "Připraven k nasazení na LangGraph Platform..."
-    echo "Pro nasazení použijte oficiální LangGraph CLI nástroje nebo LangGraph Platform UI"
+    echo "Nasazuji na LangGraph Platform..."
+    langgraph up --env production
     ;;
   3)
     echo "Sestavuji projekt..."
-    langgraph build --tag ai-agent-ntier:latest
-    echo "Hotovo. Pro lokální spuštění použijte: langgraph up"
+    langgraph build --local
+    echo "Hotovo. Pro nasazení použijte: langgraph up --env production"
     ;;
   *)
     echo "Neplatná volba"
