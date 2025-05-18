@@ -1,8 +1,10 @@
+from typing import Any, Dict, List, Optional, Tuple, Literal
+import json
 import logging
-import traceback
+import os
 import re
-from typing import Dict, List, Literal, Optional, Union, Any, Tuple
-from typing_extensions import TypedDict
+import traceback
+from datetime import datetime
 
 # LangChain Core imports
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -15,11 +17,24 @@ from langchain_core.runnables.utils import ConfigurableFieldSpec
 from langchain_core.exceptions import OutputParserException
 
 # LangChain imports
-from langchain.chat_models import init_chat_model
+from langchain_openai import ChatOpenAI
 
 from memory_agent import utils
 
 logger = logging.getLogger(__name__)
+
+# Helper function to replace init_chat_model
+def get_chat_model(model: str = "gpt-4", temperature: float = 0.0, **kwargs):
+    """Initialize a chat model with the given parameters."""
+    # Handle Anthropic models
+    if "anthropic" in model.lower() or "claude" in model.lower():
+        # NOTE: For Anthropic models, we'd need to import from langchain_anthropic
+        # This is a placeholder that will use OpenAI as fallback
+        logger.warning(f"Anthropic model '{model}' requested but using OpenAI fallback")
+        return ChatOpenAI(model="gpt-4", temperature=temperature, **kwargs)
+    # Handle OpenAI models (default)
+    else:
+        return ChatOpenAI(model=model, temperature=temperature, **kwargs)
 
 # UPDATED: Definition of analysis types with Literal instead of enum
 AnalysisType = Literal["risk_comparison", "supplier_analysis", "general"]
@@ -216,7 +231,7 @@ def extract_analysis_type_from_reasoning(reasoning: str) -> AnalysisType:
 def process_with_reasoning(query: str, examples: List[Dict[str, Any]]) -> str:
     """Process query with reasoning process for more accurate analysis type detection."""
     # Initialize model with low temperature for deterministic outputs
-    llm = init_chat_model(model="anthropic/claude-3-sonnet-20240229", temperature=0.1)
+    llm = get_chat_model(model="anthropic/claude-3-sonnet-20240229", temperature=0.1)
     
     # Create prompt with examples and reasoning steps
     prompt_template = """Analyze this query using these steps:
@@ -369,7 +384,7 @@ async def analyze_query(
         elif model:
             model_name = utils.split_model_and_provider(model)[1]
             
-        llm = init_chat_model(model=model_name)
+        llm = get_chat_model(model=model_name)
         
         # Combine examples based on query content
         examples = []

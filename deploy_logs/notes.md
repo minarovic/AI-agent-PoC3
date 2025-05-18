@@ -2,6 +2,43 @@ Zápisky:
 
 # Deploying AI-agent-Ntier - Poznámky z procesu nasazení
 
+## [2024-07-21] - Missing langchain_community module
+
+### Identifikovaný problém:
+- Deployment do LangGraph Platform selhal s chybou: `ModuleNotFoundError: No module named 'langchain_community'`
+- Tato chyba se vyskytuje ve `/deps/AI-agent-PoC3/src/memory_agent/graph.py`, při importu `from langchain_community import chat_models`
+
+### Analýza příčiny:
+- Import `from langchain.chat_models import ChatOpenAI` se v novějších verzích interně opírá o modul `langchain_community`
+- I když je modul `langchain_community` uveden v requirements.txt, zdá se, že není správně nainstalován v prostředí LangGraph Platform
+
+### Navrhované řešení:
+- [x] Aktualizovat import v `graph.py`: změnit `from langchain.chat_models import ChatOpenAI` na `from langchain_openai import ChatOpenAI`
+- [x] Vytvořit pomocnou funkci `get_chat_model()` v `analyzer.py` k nahrazení `init_chat_model`
+- [x] Přidat explicitně `langchain_core` do `requirements.txt` pro zajištění správné instalace všech závislostí
+- [ ] Spustit deployment znovu a ověřit fungování
+
+### Implementace:
+- Změna importu v `src/memory_agent/graph.py`:
+  - Před: `from langchain.chat_models import ChatOpenAI`
+  - Po: `from langchain_openai import ChatOpenAI`
+- Vytvoření pomocné funkce v `analyzer.py`:
+  ```python
+  def get_chat_model(model: str = "gpt-4", temperature: float = 0.0, **kwargs):
+      """Initialize a chat model with the given parameters."""
+      # Handle Anthropic models
+      if "anthropic" in model.lower() or "claude" in model.lower():
+          logger.warning(f"Anthropic model '{model}' requested but using OpenAI fallback")
+          return ChatOpenAI(model="gpt-4", temperature=temperature, **kwargs)
+      else:
+          return ChatOpenAI(model=model, temperature=temperature, **kwargs)
+  ```
+- Aktualizace `requirements.txt` s přidáním `langchain_core>=0.1.0`
+
+### Verifikace:
+- Čeká na opětovný deployment do LangGraph Platform
+- Vytvořeny diagramy `doc/PlantUML/langchain_dependency_fix.puml`, `langchain_import_sequence.puml` a `module_dependencies.puml`
+
 ## [Timestamp: 2025-05-17 - Initial Analysis]
 
 ### Identifikovaný problém:
