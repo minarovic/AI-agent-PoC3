@@ -1,123 +1,61 @@
-#!/bin/zsh
-# Script pro push AI-agent-Ntier na GitHub pro následné nasazení na LangGraph Platform
+#!/bin/bash
+set -e
 
-echo "====================================================="
-echo "   AI-agent-Ntier - GitHub Deployment Script    "
-echo "====================================================="
+# Barvy pro výstup v terminálu
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
 
-# Kontrola, zda jsme ve správném adresáři
+echo -e "${YELLOW}Zahajuji nasazení kódu na GitHub...${NC}"
+
+# Kontrola, zda máme správně inicializovaný git repozitář
 if [ ! -d ".git" ]; then
-  echo "Error: Nejsme v git repozitáři. Spusťte skript z kořenového adresáře projektu."
-  exit 1
+    echo -e "${RED}Git repozitář není inicializován. Spusťte 'git init' a nastavte vzdálený repozitář.${NC}"
+    exit 1
 fi
 
-# Kontrola, zda máme všechny potřebné soubory
-echo "Kontroluji základní strukturu projektu..."
-
+# Kontrola existence klíčových souborů
 if [ ! -f "langgraph.json" ]; then
-  echo "Error: langgraph.json nenalezen!"
-  exit 1
+    echo -e "${RED}Soubor langgraph.json neexistuje! Tento soubor je nutný pro deployment na LangGraph Platform.${NC}"
+    exit 1
 fi
 
-if [ ! -f "requirements.txt" ]; then
-  echo "Error: requirements.txt nenalezen!"
-  exit 1
-fi
+# Očištění od Docker souborů a dalších konfiguračních souborů
+echo -e "${YELLOW}Odstraňuji soubory, které by mohly způsobit konflikt při buildu...${NC}"
+files_to_ignore=(
+    "Dockerfile"
+    "docker-compose.yml"
+    ".dockerignore"
+    ".github/workflows"
+)
 
-if [ ! -d "src/memory_agent" ]; then
-  echo "Error: Adresářová struktura src/memory_agent nenalezena!"
-  exit 1
-fi
-
-# Spuštění verifikačního skriptu
-echo "Spouštím verifikaci deploymentu..."
-./verify_deployment.sh
-
-if [ $? -ne 0 ]; then
-  echo "Verifikace selhala. Opravte chyby a zkuste to znovu."
-  exit 1
-fi
-
-echo "Verifikace úspěšná."
-echo ""
-
-# Příprava pro push na GitHub
-echo "Připravuji commit pro push na GitHub..."
-
-# Kontrola branch
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-echo "Aktuální branch: $CURRENT_BRANCH"
-
-if [ "$CURRENT_BRANCH" != "main" ] && [ "$CURRENT_BRANCH" != "master" ]; then
-  echo -n "Nejste na hlavní branch. Chcete přepnout na 'main'? (y/n): "
-  read -r switch_branch
-  if [ "$switch_branch" = "y" ]; then
-    # Kontrola, zda branch main existuje
-    if git show-ref --verify --quiet refs/heads/main; then
-      git checkout main
-    else
-      echo "Branch 'main' neexistuje. Vytvářím ji..."
-      git checkout -b main
+for file in "${files_to_ignore[@]}"; do
+    if [ -e "$file" ]; then
+        echo -e "${YELLOW}Ignoruji soubor/složku: $file${NC}"
+        git update-index --skip-worktree "$file" 2>/dev/null || true
     fi
-  else
-    echo "Pokračujete na branch $CURRENT_BRANCH."
-  fi
-fi
+done
 
-# Získání změn
-git status
+# Přidání všech souborů ke commitu (kromě ignorovaných)
+echo -e "${YELLOW}Přidávám soubory ke commitu...${NC}"
+git add .
 
-echo -n "Chcete commitnout všechny změny? (y/n): "
-read -r commit_all
+# Vrácení ignorovaných souborů do sledování
+for file in "${files_to_ignore[@]}"; do
+    if [ -e "$file" ]; then
+        git update-index --no-skip-worktree "$file" 2>/dev/null || true
+    fi
+done
 
-if [ "$commit_all" = "y" ]; then
-  git add .
-  echo -n "Zadejte commit message: "
-  read -r commit_msg
-  if [ -z "$commit_msg" ]; then
-    commit_msg="Update deployment configuration"
-  fi
-  git commit -m "$commit_msg"
-else
-  echo "Selektivní přidání souborů ke commitu:"
-  echo "Přidejte soubory pomocí 'git add' a potom pokračujte."
-  exit 0
-fi
+# Vytvoření commitu
+echo -e "${YELLOW}Vytvářím commit...${NC}"
+git commit -m "Deployment update $(date '+%Y-%m-%d %H:%M:%S')"
 
 # Push na GitHub
-echo -n "Chcete pushovat změny na GitHub? (y/n): "
-read -r push_changes
+echo -e "${YELLOW}Odesílám změny na GitHub...${NC}"
+git push
 
-if [ "$push_changes" = "y" ]; then
-  echo "Pushování změn na GitHub..."
-  REMOTE_URL=$(git remote get-url origin 2>/dev/null)
-  
-  # Pokud remote neexistuje nebo není nastaven
-  if [ $? -ne 0 ] || [ -z "$REMOTE_URL" ]; then
-    echo "Remote 'origin' není nastaven."
-    echo -n "Zadejte URL vašeho GitHub repozitáře (např. git@github.com:username/repo.git): "
-    read -r repo_url
-    if [ -z "$repo_url" ]; then
-      echo "URL repozitáře nebylo zadáno. Ukončuji."
-      exit 1
-    fi
-    git remote add origin "$repo_url"
-  fi
-  
-  git push -u origin $(git rev-parse --abbrev-ref HEAD)
-  
-  if [ $? -eq 0 ]; then
-    echo "====================================================="
-    echo "  Push na GitHub úspěšný!  "
-    echo "====================================================="
-    echo "Po úspěšném nasazení na GitHub:"
-    echo "1. V LangGraph Platform nastavte propojení s vaším GitHub repozitářem"
-    echo "2. Povolte automatické nasazení pro vybranou branch"
-    echo "3. Ověřte nasazení v administraci LangGraph Platform"
-  else
-    echo "Push na GitHub selhal. Zkontrolujte připojení a oprávnění."
-    exit 1
-  fi
-else
-  echo "Push zrušen. Commit zůstane pouze lokálně."
-fi
+echo -e "${GREEN}Deployment na GitHub dokončen!${NC}"
+echo -e "${YELLOW}Nyní přejděte do administrace LangGraph Platform a propojte tento GitHub repozitář.${NC}"
+echo -e "${YELLOW}URL: https://platform.langgraph.com${NC}"

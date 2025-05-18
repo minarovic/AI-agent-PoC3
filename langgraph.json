@@ -1,8 +1,14 @@
 {
-    "name": "AI-agent-Ntier",
-    "graphs": {
-        "agent": "./src/memory_agent/graph.py:graph"
-    },
-    "python_version": "3.12",
-    "dependencies": [".", "langchain_openai>=0.1.0"]
+  "name": "ai-agent-ntier",
+  "version": "1.0.0",
+  "description": "AI agent N-tier aplikace",
+  "entry_point": "main:app",
+  "environment_variables": [
+    "OPENAI_API_KEY",
+    "LANGSMITH_API_KEY",
+    "LANGSMITH_PROJECT"
+  ],
+  "dependencies": {
+    "python": "3.11"
+  }
 }

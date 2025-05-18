@@ -535,7 +535,7 @@ Deployment by měl nyní:
 ### Navrhované řešení:
 - [x] Vytvořit synchronní wrapper pro asynchronní funkci `analyze_query`
 - [x] Aktualizovat import v `graph_nodes.py`, aby používal synchronní verzi
-- [x] Upravit uzel `route_query`, aby volal synchronní verzi funkce
+- [x] Upravit uzel `route_query`, aby volal synchroní verzi funkce
 - [x] Zachovat původní asynchronní funkci pod novým názvem pro možné budoucí použití
 
 ### Implementace:
@@ -584,3 +584,26 @@ Deployment by měl nyní:
 - Změny byly commitnuty a pushnuty do GitHub repozitáře
 - Deployment skript bude znovu spuštěn pro ověření opravy
 - Očekáváme, že chyba `KeyError: <coroutine object analyze_query at 0x...>` již nebude nastávat
+
+## [2024-05-21] - Chybějící povinný parametr Tag
+
+### Identifikovaný problém:
+- Chyba: Missing option '--tag' / '-t' při spuštění příkazu langgraph build
+- Proces sestavení vyžaduje parametr tag, který nebyl zadán
+
+### Analýza příčiny:
+- CLI nástroj langgraph vyžaduje povinný parametr --tag pro příkaz build
+- Tento parametr chyběl v našem deploymentovém skriptu
+- Bez tohoto parametru nelze vytvořit správně označený image
+
+### Navrhované řešení:
+- [x] Přidat parametr --tag do příkazu langgraph build
+- [x] Vytvořit konvenci pro verzování tagů pro naše deploymenty
+
+### Implementace:
+- Přidáno `--tag "$TAG_VERSION"` do příkazu langgraph build v deploy_to_langgraph_platform.sh
+- Nastaveno TAG_VERSION="v1.0.0" jako standardní formát verzování
+
+### Verifikace:
+- Lokální build nyní probíhá úspěšně se správným tagováním
+- Deployment funguje správně s označenou verzí

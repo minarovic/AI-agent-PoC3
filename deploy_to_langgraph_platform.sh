@@ -86,3 +86,41 @@ case $choice in
     exit 1
     ;;
 esac
+
+#!/bin/bash
+set -e
+
+# Barvy pro výstup v terminálu
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${YELLOW}Zahajuji lokální deployment do LangGraph Platform...${NC}"
+
+# Nastavení proměnných prostředí pokud nejsou již nastaveny
+if [ -z "$OPENAI_API_KEY" ]; then
+    echo -e "${YELLOW}OPENAI_API_KEY není nastaven, načítám z .env souboru...${NC}"
+    export $(grep -v '^#' .env | xargs)
+fi
+
+# Ověření python prostředí
+if [ ! -d "venv" ]; then
+    echo -e "${YELLOW}Vytvářím virtuální prostředí...${NC}"
+    python -m venv venv
+    source venv/bin/activate
+    pip install -r requirements.txt
+else
+    source venv/bin/activate
+fi
+
+# Build s požadovaným tag parametrem
+echo -e "${YELLOW}Sestavuji LangGraph balíček...${NC}"
+TAG_VERSION="v1.0.0"
+langgraph build --local --tag "$TAG_VERSION"
+
+# Spuštění lokálního deploymentu
+echo -e "${YELLOW}Spouštím lokální deployment...${NC}"
+langgraph up
+
+echo -e "${GREEN}Lokální deployment úspěšně dokončen!${NC}"

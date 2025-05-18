@@ -1,7 +1,7 @@
 # Hlavní závislosti
 langchain>=0.1.0
 langchain_core>=0.1.0
-langgraph>=0.2.0
+langgraph>=0.2.10
 pydantic>=2.0.0
 python-dotenv>=1.0.1
 requests>=2.31.0
@@ -15,3 +15,7 @@ langchain_community>=0.1.0
 # Testovací závislosti
 pytest>=8.3.5
 pytest-asyncio>=0.26.0
+
+# LangGraph Platform specifické závislosti
+uvicorn>=0.27.0
+fastapi>=0.109.0
