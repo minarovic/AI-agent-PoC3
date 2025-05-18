@@ -94,7 +94,9 @@ jobs:
         echo "Artifact verified: langgraph-package.tar.gz"
 
     - name: Upload LangGraph artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: langgraph-package
         path: langgraph-package.tar.gz
+        retention-days: 5
+        if-no-files-found: error
