@@ -412,3 +412,80 @@ Deployment by měl nyní:
 - [ ] Nasadit opravy do produkce
 - [ ] Zkontrolovat logy po nasazení pro potvrzení odstranění chyby
 - [ ] Zkontrolovat API dokumentaci v LangGraph Platform
+
+## [2025-05-18] - Aktualizace GitHub Actions workflow
+
+### Identifikovaný problém:
+- GitHub Actions workflow používal zastaralou verzi actions/upload-artifact@v3
+- V logu workflow se objevovala chyba "Missing download info for actions/upload-artifact@v3"
+- Workflow neměl nastavené parametry pro retenci artefaktů a chování při nenalezení souborů
+
+### Analýza příčiny:
+- Akce actions/upload-artifact@v3 je zastaralá a způsobuje problémy s kompatibilitou
+- Chybějící parametry pro retenci a chování při nenalezení souborů mohly způsobovat nestabilitu procesu
+
+### Navrhované řešení:
+- [x] Aktualizovat actions/upload-artifact z v3 na v4
+- [x] Přidat parametr retention-days pro nastavení doby uchování artefaktů
+- [x] Přidat parametr if-no-files-found pro explicitní chování při nenalezení souborů
+
+### Implementace:
+```yaml
+# Původní
+- name: Upload LangGraph artifact
+  uses: actions/upload-artifact@v3
+  with:
+    name: langgraph-package
+    path: langgraph-package.tar.gz
+
+# Aktualizované
+- name: Upload LangGraph artifact
+  uses: actions/upload-artifact@v4
+  with:
+    name: langgraph-package
+    path: langgraph-package.tar.gz
+    retention-days: 5
+    if-no-files-found: error
+```
+
+### Verifikace:
+- Změny byly commitnuty a pushnuty do repozitáře GitHub (commit 77729a1)
+- GitHub Actions workflow by měl nyní běžet bez chyby "Missing download info for actions/upload-artifact@v3"
+- Artefakty budou nyní uchovávány po dobu 5 dnů a při nenalezení souborů workflow selže s chybou
+
+## [2025-05-18] - Oprava chybějícího parametru pro langgraph build
+
+### Identifikovaný problém:
+- GitHub Actions workflow selhal s chybou: `Error: Missing option '--tag' / '-t'`
+- Příkaz `langgraph build` v GitHub Actions workflow vyžaduje buď parametr `--tag` nebo `--local`
+- Build selhával s návratovým kódem 2
+
+### Analýza příčiny:
+- Příkaz `langgraph build` bez parametrů předpokládá vytvoření Docker image, což vyžaduje tag
+- V GitHub Actions nepotřebujeme vytvářet Docker image, pouze sestavit lokální verzi
+- V lokálním skriptu `deploy_to_langgraph_platform.sh` již máme správné použití `langgraph build --local`
+
+### Navrhované řešení:
+- [x] Přidat parametr `--local` k příkazu `langgraph build` v GitHub Actions workflow
+- [x] Commit a push změn do repozitáře
+
+### Implementace:
+```yaml
+# Původní
+- name: Build LangGraph package
+  run: |
+    langgraph build
+  env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+# Nové
+- name: Build LangGraph package
+  run: |
+    langgraph build --local
+  env:
+    OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+```
+
+### Verifikace:
+- Změny byly commitnuty a pushnuty do repozitáře
+- GitHub Actions workflow by měl nyní úspěšně sestavit projekt bez chyby "Missing option --tag"

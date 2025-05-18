@@ -62,7 +62,7 @@ jobs:
     
     - name: Build LangGraph package
       run: |
-        langgraph build
+        langgraph build --local
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
