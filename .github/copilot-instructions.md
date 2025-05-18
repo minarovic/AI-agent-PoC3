@@ -11,6 +11,15 @@
 ## Hlavní cíl
 Primárně se soustřeď na **úspěšný deployment aplikace** do LangGraph Platform a řešení technických překážek v tomto procesu.
 
+## Priorita úkolů
+PRIORITA: 
+1. Oprava chyb v kódu a řešení technických problémů
+2. Nasazení kódu na LangGraph Platform
+3. Ladění a testování nasazené aplikace
+4. Až po úspěšném nasazení se věnuj dokumentaci
+
+**KRITICKÉ:** Nejprve řeš kompletní opravu a nasazení, až následně se věnuj dokumentaci. Dokumentace nemá prioritu - prioritou je funkční nasazení aplikace na LangGraph Platform.
+
 ## Proces řešení problémů (MCP)
 
 ### 1. Identifikace a analýza chyb (Chain 1)
@@ -72,9 +81,13 @@ Pro složitější problémy:
 ## Co NEDĚLAT (CoT analýza)
 **NEVYTVÁŘEJ** rozsáhlou dokumentaci
 > *Proč?* Odvádí pozornost od hlavního cíle - úspěšného deploymentu
+> *Důležité!* Dokumentaci vytvoř až PO úspěšném nasazení aplikace
 
 **NEPOSÍLEJ** průběžně dokumentaci a diagramy na GitHub
 > *Proč?* Zpomaluje proces a tříští fokus
+
+**NEUPŘEDNOSTŇUJ** dokumentaci před opravou chyb
+> *Proč?* Dokumentace bez funkční aplikace nemá žádný přínos
 
 **NIKDY NEPOSÍLEJ** Docker soubory a konfiguraci na GitHub
 > *Proč?* Způsobuje konflikty při buildu na LangGraph Platform

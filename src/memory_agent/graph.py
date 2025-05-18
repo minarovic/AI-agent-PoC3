@@ -97,7 +97,7 @@ def create_graph(config: Optional[Config] = None) -> StateGraph:
     # Definice cest pro jednotlivé typy dotazů
     builder.add_conditional_edges(
         "route_query",
-        lambda x: x["state"].query_type,
+        lambda x: x.query_type,  # x je přímo objekt State, ne slovník
         {
             "company": "prepare_company_query",
             "person": "prepare_person_query",
