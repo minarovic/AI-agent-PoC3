@@ -1,0 +1,42 @@
+{
+  "id": "entity_1003",
+  "type": "company",
+  "label": "BOS AUTOMOTIVE",
+  "countries": ["CZE"],
+  "addresses": [
+    {
+      "full": "Průmyslová 1169, 334 41 Dobřany, Czech Republic",
+      "country": "CZE",
+      "administrative_area": "Plzeň Region"
+    }
+  ],
+  "identifiers": [
+    {
+      "type": "duns_number",
+      "value": "366035673"
+    },
+    {
+      "type": "registration_number",
+      "value": "27125203"
+    },
+    {
+      "type": "vat_number",
+      "value": "CZ27125203"
+    }
+  ],
+  "risk": {
+    "supply_chain_vulnerability": true,
+    "concentration_risk": {
+      "level": "medium",
+      "factors": ["limited_supplier_diversity"]
+    },
+    "risk_score": 40
+  },
+  "metadata": {
+    "founded": "2003",
+    "industry": "Automotive interior components",
+    "company_size": "Medium enterprise",
+    "employee_count": "250-999"
+  },
+  "description": "BOS AUTOMOTIVE in Czech Republic is a manufacturing subsidiary focusing on production of automotive interior components including textile and plastic parts, luggage covers, and roller blinds. The facility serves as a key production hub for European automotive customers."
+}

@@ -1,0 +1,154 @@
+{
+  "data": [
+    {
+      "source": "entity_1001",
+      "target": {
+        "id": "entity_3001",
+        "type": "company",
+        "label": "ChemSource GmbH",
+        "countries": ["DEU"],
+        "risk": ["raw_material_volatility"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1001",
+            "type": "company",
+            "label": "MB TOOL s.r.o.",
+            "countries": ["CZE"],
+            "risk": ["operational_risk"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3926.30",
+                "description": "Plastic fittings for furniture, coachwork or the like"
+              },
+              "min_date": "2023-01-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["DEU", "FRA"],
+              "departure_countries": ["CZE"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_2002",
+            "type": "company",
+            "label": "Continental",
+            "countries": ["DEU"],
+            "risk": ["market_concentration"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "4008.21",
+                "description": "Rubber plates, sheets and strip"
+              },
+              "min_date": "2023-01-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["CZE"],
+              "departure_countries": ["DEU"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_3001",
+            "type": "company",
+            "label": "ChemSource GmbH",
+            "countries": ["DEU"],
+            "risk": ["raw_material_volatility"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3901.20",
+                "description": "Polyethylene having a specific gravity of 0.94 or more"
+              },
+              "min_date": "2023-01-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["DEU"],
+              "departure_countries": ["NLD"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "entity_1001",
+      "target": {
+        "id": "entity_3002",
+        "type": "company",
+        "label": "RawPolymer Ltd",
+        "countries": ["GBR"],
+        "risk": ["supply_chain_disruption"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1001",
+            "type": "company",
+            "label": "MB TOOL s.r.o.",
+            "countries": ["CZE"],
+            "risk": ["operational_risk"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3926.30",
+                "description": "Plastic fittings for furniture, coachwork or the like"
+              },
+              "min_date": "2023-01-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["DEU", "FRA"],
+              "departure_countries": ["CZE"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_2003",
+            "type": "company",
+            "label": "Covestro AG",
+            "countries": ["DEU"],
+            "risk": ["raw_material_volatility"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3901.20",
+                "description": "Polyethylene having a specific gravity of 0.94 or more"
+              },
+              "min_date": "2023-01-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["CZE"],
+              "departure_countries": ["DEU"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_3002",
+            "type": "company",
+            "label": "RawPolymer Ltd",
+            "countries": ["GBR"],
+            "risk": ["supply_chain_disruption"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "2710.12",
+                "description": "Light oils and preparations"
+              },
+              "min_date": "2023-01-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["DEU"],
+              "departure_countries": ["GBR"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "supplier_name": "MB TOOL s.r.o.",
+  "duns_number": "511391109",
+  "industry": "Automotive components manufacturing",
+  "primary_tier": "Tier1",
+  "supplier_since": "2010-03-15",
+  "hs_code_matches": [
+    {
+      "hsCode": "3926.30",
+      "description": "Plastic fittings for furniture, coachwork or the like",
+      "match_confidence": 0.95
+    },
+    {
+      "hsCode": "8708.29",
+      "description": "Parts and accessories of bodies for motor vehicles",
+      "match_confidence": 0.90
+    }
+  ],
+  "identified_activities": [
+    {
+      "activity_code": "AC2211",
+      "activity": "Plastic injection molding",
+      "confidence": 0.98
+    },
+    {
+      "activity_code": "AC3354",
+      "activity": "Tooling and metal fabrication",
+      "confidence": 0.85
+    },
+    {
+      "activity_code": "AC4112",
+      "activity": "Assembly of automotive components",
+      "confidence": 0.92
+    }
+  ],
+  "geographic_presence": ["CZE", "DEU", "SVK"],
+  "quality_rating": 4.2,
+  "compliance_status": "Compliant",
+  "last_assessment_date": "2023-11-10"
+}

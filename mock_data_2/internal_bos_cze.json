@@ -1,0 +1,50 @@
+{
+  "supplier_name": "BOS AUTOMOTIVE",
+  "duns_number": "366035673",
+  "industry": "Automotive interior components",
+  "primary_tier": "Tier1",
+  "supplier_since": "2007-05-18",
+  "hs_code_matches": [
+    {
+      "hsCode": "8708.29",
+      "description": "Parts and accessories of bodies for motor vehicles",
+      "match_confidence": 0.96
+    },
+    {
+      "hsCode": "9401.90",
+      "description": "Parts of seats",
+      "match_confidence": 0.93
+    },
+    {
+      "hsCode": "6307.90",
+      "description": "Other made up articles, including dress patterns",
+      "match_confidence": 0.88
+    }
+  ],
+  "identified_activities": [
+    {
+      "activity_code": "AC4211",
+      "activity": "Automotive interior components manufacturing",
+      "confidence": 0.97
+    },
+    {
+      "activity_code": "AC3354",
+      "activity": "Textile processing for automotive application",
+      "confidence": 0.94
+    },
+    {
+      "activity_code": "AC4113",
+      "activity": "Assembly of luggage covers",
+      "confidence": 0.96
+    },
+    {
+      "activity_code": "AC4231",
+      "activity": "Manufacturing of sunblinds and roller systems",
+      "confidence": 0.98
+    }
+  ],
+  "geographic_presence": ["CZE", "DEU", "SVK", "POL"],
+  "quality_rating": 4.5,
+  "compliance_status": "Compliant",
+  "last_assessment_date": "2023-09-22"
+}

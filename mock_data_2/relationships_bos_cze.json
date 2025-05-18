@@ -1,0 +1,353 @@
+{
+  "data": [
+    {
+      "id": "rel_boscz_wkkunststoffteile",
+      "source": {
+        "id": "entity_1003",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2010",
+        "label": "WK-Kunststoffteile"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Plastic components",
+        "since": "2013"
+      }
+    },
+    {
+      "id": "rel_boscz_sktgmbh",
+      "source": {
+        "id": "entity_1003",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2011",
+        "label": "SKT GmbH"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Technical components",
+        "since": "2015"
+      }
+    },
+    {
+      "id": "rel_boscz_deflingen",
+      "source": {
+        "id": "entity_1003",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2012",
+        "label": "Deflingen De-Münchenberg Gmbh"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Metal components",
+        "since": "2011"
+      }
+    },
+    {
+      "id": "rel_boscz_curtbauer",
+      "source": {
+        "id": "entity_1003",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2013",
+        "label": "Curt Bauer GmbH"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Textile products",
+        "since": "2009"
+      }
+    },
+    {
+      "id": "rel_boscz_texnononwovens",
+      "source": {
+        "id": "entity_1003",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2014",
+        "label": "Texno Nonwovens"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Nonwoven textiles",
+        "since": "2017"
+      }
+    },
+    {
+      "id": "rel_texnononwovens_technofiber",
+      "source": {
+        "id": "entity_2014",
+        "label": "Texno Nonwovens"
+      },
+      "target": {
+        "id": "entity_3005",
+        "label": "TechnoFiber GmbH"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Fiber materials"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_boscz_wkkunststoffteile",
+      "from_id": "entity_1003",
+      "from_label": "BOS AUTOMOTIVE",
+      "from_type": "company",
+      "to_id": "entity_2010",
+      "to_label": "WK-Kunststoffteile",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Key Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Plastic Components Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Registry 2023",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "3926.30",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_boscz_curtbauer",
+      "from_id": "entity_1003",
+      "from_label": "BOS AUTOMOTIVE",
+      "from_type": "company",
+      "to_id": "entity_2013",
+      "to_label": "Curt Bauer GmbH",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Strategic Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Textile Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Database",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "5903.10",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_boscz_texnononwovens",
+      "from_id": "entity_1003",
+      "from_label": "BOS AUTOMOTIVE",
+      "from_type": "company",
+      "to_id": "entity_2014",
+      "to_label": "Texno Nonwovens",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Regular Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Nonwoven Textile Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Industry Reports",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "5603.14",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    }
+  ]
+}

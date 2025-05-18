@@ -1,0 +1,36 @@
+{
+  "limit": 10,
+  "offset": 0,
+  "next": false,
+  "results": [
+    {
+      "id": "entity_1002",
+      "type": "company",
+      "label": "BOS AUTOMOTIVE",
+      "identifiers": [
+        {
+          "type": "duns_number",
+          "value": "535010490"
+        },
+        {
+          "type": "registration_number",
+          "value": "HRB 762831"
+        }
+      ],
+      "countries": ["DEU"],
+      "addresses": [
+        {
+          "full": "Stuttgart-Strasse 123, 70173 Stuttgart, Germany",
+          "country": "DEU"
+        }
+      ],
+      "risk": {
+        "supply_chain_vulnerability": true,
+        "risk_score": 42
+      },
+      "meta": {
+        "alternate_names": ["BOS Group", "BOS GmbH"]
+      }
+    }
+  ]
+}

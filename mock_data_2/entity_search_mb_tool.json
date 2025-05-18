@@ -1,0 +1,36 @@
+{
+  "limit": 10,
+  "offset": 0,
+  "next": false,
+  "results": [
+    {
+      "id": "entity_1001",
+      "type": "company",
+      "label": "MB TOOL s.r.o.",
+      "identifiers": [
+        {
+          "type": "duns_number",
+          "value": "511391109"
+        },
+        {
+          "type": "registration_number",
+          "value": "26150565"
+        }
+      ],
+      "countries": ["CZE"],
+      "addresses": [
+        {
+          "full": "Třebařov 177, 569 33 Třebařov, Czech Republic",
+          "country": "CZE"
+        }
+      ],
+      "risk": {
+        "operational_risk": true,
+        "risk_score": 35
+      },
+      "meta": {
+        "alternate_names": ["MB TOOL"]
+      }
+    }
+  ]
+}

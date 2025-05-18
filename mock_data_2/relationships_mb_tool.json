@@ -1,0 +1,352 @@
+{
+  "data": [
+    {
+      "id": "rel_mb_svitap",
+      "source": {
+        "id": "entity_1001",
+        "label": "MB TOOL s.r.o."
+      },
+      "target": {
+        "id": "entity_2001",
+        "label": "Svitap s.r.o."
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Textile components",
+        "since": "2015"
+      }
+    },
+    {
+      "id": "rel_mb_continental",
+      "source": {
+        "id": "entity_1001",
+        "label": "MB TOOL s.r.o."
+      },
+      "target": {
+        "id": "entity_2002",
+        "label": "Continental"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Rubber components",
+        "since": "2010"
+      }
+    },
+    {
+      "id": "rel_mb_covestro",
+      "source": {
+        "id": "entity_1001",
+        "label": "MB TOOL s.r.o."
+      },
+      "target": {
+        "id": "entity_2003",
+        "label": "Covestro AG"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Plastic raw materials",
+        "since": "2012"
+      }
+    },
+    {
+      "id": "rel_mb_bada",
+      "source": {
+        "id": "entity_1001",
+        "label": "MB TOOL s.r.o."
+      },
+      "target": {
+        "id": "entity_2004",
+        "label": "BADA AG"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Plastic compounds",
+        "since": "2017"
+      }
+    },
+    {
+      "id": "rel_continental_supplier1",
+      "source": {
+        "id": "entity_2002", 
+        "label": "Continental"
+      },
+      "target": {
+        "id": "entity_3001",
+        "label": "ChemSource GmbH"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Chemical components"
+      }
+    },
+    {
+      "id": "rel_covestro_supplier1",
+      "source": {
+        "id": "entity_2003",
+        "label": "Covestro AG"
+      },
+      "target": {
+        "id": "entity_3002",
+        "label": "RawPolymer Ltd"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Base chemicals"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_mb_svitap",
+      "from_id": "entity_1001",
+      "from_label": "MB TOOL s.r.o.",
+      "from_type": "company",
+      "to_id": "entity_2001",
+      "to_label": "Svitap s.r.o.",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Key Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Textile Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Directory 2022",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "5903.90",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_mb_continental",
+      "from_id": "entity_1001",
+      "from_label": "MB TOOL s.r.o.",
+      "from_type": "company",
+      "to_id": "entity_2002",
+      "to_label": "Continental",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Strategic Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Rubber Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Corporate Website",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "4008.21",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_mb_covestro",
+      "from_id": "entity_1001",
+      "from_label": "MB TOOL s.r.o.",
+      "from_type": "company",
+      "to_id": "entity_2003",
+      "to_label": "Covestro AG",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Strategic Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Plastics Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Contract Database",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "3901.20",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    }
+  ]
+}

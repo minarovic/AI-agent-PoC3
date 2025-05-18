@@ -88,7 +88,7 @@ class MockMCPConnector:
     # Třídní proměnné pro konfiguraci
     MOCK_DATA_PATH: ClassVar[str] = os.environ.get(
         "MOCK_DATA_PATH", 
-        str(Path(__file__).parent.parent.parent / "mock_data")
+        str(Path(__file__).parent.parent.parent / "mock_data_2")
     )
     
     def __init__(self, data_path: Optional[str] = None):
@@ -178,15 +178,12 @@ class MockMCPConnector:
         Raises:
             EntityNotFoundError: Pokud společnost nebyla nalezena
         """
-        companies_path = os.path.join(self.data_path, "companies")
-        if not os.path.isdir(companies_path):
-            logger.error(f"Adresář společností neexistuje: {companies_path}")
-            raise ConnectionError(f"Adresář společností neexistuje: {companies_path}")
-        
-        for file_path in glob.glob(os.path.join(companies_path, "*.json")):
+        # Hledáme v souborech entity_detail_*.json
+        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
             try:
                 company_data = self._load_json_file(file_path)
-                company_name = company_data.get("name", "")
+                # V nových datech se používá "label" místo "name"
+                company_name = company_data.get("label", "")
                 
                 if self._fuzzy_name_match(name, company_name):
                     logger.info(f"Nalezena společnost: {company_name} (hledáno: {name})")
@@ -211,12 +208,8 @@ class MockMCPConnector:
         Raises:
             EntityNotFoundError: Pokud společnost nebyla nalezena
         """
-        companies_path = os.path.join(self.data_path, "companies")
-        if not os.path.isdir(companies_path):
-            logger.error(f"Adresář společností neexistuje: {companies_path}")
-            raise ConnectionError(f"Adresář společností neexistuje: {companies_path}")
-        
-        for file_path in glob.glob(os.path.join(companies_path, "*.json")):
+        # Hledáme v souborech entity_detail_*.json
+        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
             try:
                 company_data = self._load_json_file(file_path)
                 if company_data.get("id") == company_id:
@@ -239,38 +232,100 @@ class MockMCPConnector:
         Returns:
             List[Dict[str, Any]]: Seznam nalezených společností
         """
-        companies_path = os.path.join(self.data_path, "companies")
-        if not os.path.isdir(companies_path):
-            logger.error(f"Adresář společností neexistuje: {companies_path}")
-            raise ConnectionError(f"Adresář společností neexistuje: {companies_path}")
-        
         results = []
         
-        for file_path in glob.glob(os.path.join(companies_path, "*.json")):
+        # Nejprve zkontrolujeme soubor entity_search.json, pokud existuje
+        entity_search_path = os.path.join(self.data_path, "entity_search.json")
+        if os.path.exists(entity_search_path):
             try:
-                company_data = self._load_json_file(file_path)
-                
-                # Kontrola parametrů vyhledávání
-                matches = True
-                
-                if params.id and company_data.get("id") != params.id:
-                    matches = False
-                
-                if params.name and not self._fuzzy_name_match(params.name, company_data.get("name", "")):
-                    matches = False
-                
-                if params.country and company_data.get("country") != params.country:
-                    matches = False
-                
-                if params.industry and company_data.get("industry") not in params.industry:
-                    matches = False
-                
-                if matches:
-                    results.append(company_data)
-            
+                search_results = self._load_json_file(entity_search_path)
+                if "results" in search_results:
+                    for company in search_results["results"]:
+                        # Kontrola parametrů vyhledávání
+                        matches = True
+                        
+                        if params.id and company.get("id") != params.id:
+                            matches = False
+                        
+                        if params.name and not self._fuzzy_name_match(params.name, company.get("label", "")):
+                            matches = False
+                        
+                        # V nových datech jsou země uloženy v seznamu
+                        if params.country:
+                            country_match = False
+                            if "countries" in company:
+                                for country in company["countries"]:
+                                    if country.lower() == params.country.lower():
+                                        country_match = True
+                                        break
+                            if not country_match:
+                                matches = False
+                        
+                        # Kontrola průmyslu z detailů společnosti
+                        if params.industry and params.industry:
+                            # Pro kontrolu průmyslu musíme načíst detailní data
+                            try:
+                                detail_path = os.path.join(self.data_path, f"entity_detail_{company.get('id')}.json")
+                                if os.path.exists(detail_path):
+                                    detail_data = self._load_json_file(detail_path)
+                                    industry_match = False
+                                    if "industry" in detail_data:
+                                        for ind in params.industry:
+                                            if ind.lower() in detail_data["industry"].lower():
+                                                industry_match = True
+                                                break
+                                    if not industry_match:
+                                        matches = False
+                            except:
+                                # Pokud nelze načíst detaily, předpokládáme neshodu
+                                matches = False
+                        
+                        if matches:
+                            results.append(company)
             except Exception as e:
-                logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
-                continue
+                logger.warning(f"Chyba při zpracování souboru {entity_search_path}: {str(e)}")
+        
+        # Pokud není entity_search.json nebo neobsahuje výsledky, procházíme jednotlivé entity_detail_*.json soubory
+        if not results:
+            for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+                try:
+                    company_data = self._load_json_file(file_path)
+                    
+                    # Kontrola parametrů vyhledávání
+                    matches = True
+                    
+                    if params.id and company_data.get("id") != params.id:
+                        matches = False
+                    
+                    if params.name and not self._fuzzy_name_match(params.name, company_data.get("label", "")):
+                        matches = False
+                    
+                    if params.country and params.country:
+                        country_match = False
+                        if "countries" in company_data:
+                            for country in company_data["countries"]:
+                                if country.lower() == params.country.lower():
+                                    country_match = True
+                                    break
+                        if not country_match:
+                            matches = False
+                    
+                    if params.industry and params.industry:
+                        industry_match = False
+                        if "industry" in company_data:
+                            for ind in params.industry:
+                                if ind.lower() in company_data["industry"].lower():
+                                    industry_match = True
+                                    break
+                        if not industry_match:
+                            matches = False
+                    
+                    if matches:
+                        results.append(company_data)
+                
+                except Exception as e:
+                    logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
+                    continue
         
         logger.info(f"Nalezeno {len(results)} společností podle parametrů: {params}")
         return results
@@ -288,30 +343,62 @@ class MockMCPConnector:
         Raises:
             EntityNotFoundError: Pokud finanční data nebyla nalezena
         """
-        internal_path = os.path.join(self.data_path, "internal_data", "financials")
-        if not os.path.isdir(internal_path):
-            logger.error(f"Adresář finančních dat neexistuje: {internal_path}")
-            raise ConnectionError(f"Adresář finančních dat neexistuje: {internal_path}")
+        # Nejprve získáme detail společnosti pro získání názvu/labelu
+        company_detail = None
+        company_name = None
         
-        file_path = os.path.join(internal_path, f"{company_id}.json")
-        if os.path.isfile(file_path):
-            try:
-                return self._load_json_file(file_path)
-            except Exception as e:
-                logger.error(f"Chyba při načítání finančních dat pro společnost {company_id}: {str(e)}")
-                raise DataFormatError(f"Chyba při načítání finančních dat: {str(e)}")
+        try:
+            # Zkusíme najít detail společnosti podle ID
+            for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+                detail_data = self._load_json_file(file_path)
+                if detail_data.get("id") == company_id:
+                    company_detail = detail_data
+                    company_name = detail_data.get("label", "").split(" ")[0].lower()  # První část názvu pro hledání souboru
+                    break
+        except Exception as e:
+            logger.warning(f"Nepodařilo se načíst detail společnosti: {str(e)}")
         
-        # Fallback na generický soubor, pokud neexistuje specifický
-        generic_path = os.path.join(internal_path, "generic_financial_data.json")
-        if os.path.isfile(generic_path):
+        # Pokusíme se najít internal_*.json soubor
+        internal_files = []
+        
+        # Pokud známe název společnosti, zkusíme najít podle něj
+        if company_name:
+            # Hledáme soubory internal_*.json podle názvu společnosti
+            for file_path in glob.glob(os.path.join(self.data_path, f"internal_{company_name}*.json")):
+                internal_files.append(file_path)
+        
+        # Pokud ne, projdeme všechny internal_*.json soubory
+        if not internal_files:
+            for file_path in glob.glob(os.path.join(self.data_path, "internal_*.json")):
+                internal_files.append(file_path)
+        
+        # Procházíme nalezené soubory a hledáme finanční data
+        for file_path in internal_files:
             try:
-                data = self._load_json_file(generic_path)
-                # Přidáme ID společnosti pro konzistenci
-                data["company_id"] = company_id
-                return data
+                internal_data = self._load_json_file(file_path)
+                
+                # Pokud máme ID společnosti, kontrolujeme shodu
+                if "duns_number" in internal_data and company_detail and "identifiers" in company_detail:
+                    for identifier in company_detail["identifiers"]:
+                        if identifier.get("type") == "duns_number" and identifier.get("value") == internal_data.get("duns_number"):
+                            # Našli jsme shodu - vrátíme celá interní data nebo jen finanční část
+                            if "financial_data" in internal_data:
+                                financial_data = internal_data["financial_data"]
+                                financial_data["company_id"] = company_id  # Přidáme ID pro konzistenci
+                                return financial_data
+                            else:
+                                # Pokud neexistuje specifická sekce financial_data, vrátíme celá interní data
+                                return internal_data
+                
+                # Pokud soubor obsahuje financial_data pro dané ID
+                if "company_id" in internal_data and internal_data["company_id"] == company_id:
+                    if "financial_data" in internal_data:
+                        return internal_data["financial_data"]
+                    else:
+                        return internal_data
             except Exception as e:
-                logger.error(f"Chyba při načítání generických finančních dat: {str(e)}")
-                raise DataFormatError(f"Chyba při načítání finančních dat: {str(e)}")
+                logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
+                continue
         
         logger.error(f"Finanční data pro společnost s ID '{company_id}' nebyla nalezena")
         raise EntityNotFoundError(f"Finanční data pro společnost s ID '{company_id}' nebyla nalezena")
@@ -326,41 +413,87 @@ class MockMCPConnector:
         Returns:
             List[Dict[str, Any]]: Seznam vztahů společnosti
         """
-        relationships_path = os.path.join(self.data_path, "relationships")
-        if not os.path.isdir(relationships_path):
-            logger.error(f"Adresář vztahů neexistuje: {relationships_path}")
-            raise ConnectionError(f"Adresář vztahů neexistuje: {relationships_path}")
-        
-        # Nejprve zkusíme najít specifický soubor pro společnost
-        specific_path = os.path.join(relationships_path, f"{company_id}.json")
-        if os.path.isfile(specific_path):
-            try:
-                return self._load_json_file(specific_path)
-            except Exception as e:
-                logger.error(f"Chyba při načítání vztahů pro společnost {company_id}: {str(e)}")
-                raise DataFormatError(f"Chyba při načítání vztahů: {str(e)}")
-        
-        # Pokud neexistuje specifický soubor, projdeme všechny soubory vztahů
         results = []
+        company_detail = None
+        company_name = None
         
-        for file_path in glob.glob(os.path.join(relationships_path, "*.json")):
+        # Nejprve zkusíme získat detail společnosti, abychom měli její název
+        try:
+            for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+                detail_data = self._load_json_file(file_path)
+                if detail_data.get("id") == company_id:
+                    company_detail = detail_data
+                    company_name = detail_data.get("label", "").split(" ")[0].lower()  # První část názvu pro hledání souboru
+                    break
+        except Exception as e:
+            logger.warning(f"Nepodařilo se načíst detail společnosti: {str(e)}")
+        
+        # Pokud známe název společnosti, zkusíme najít specifický soubor pro tuto společnost
+        relationship_files = []
+        
+        if company_name:
+            # Hledáme specifické soubory vztahů pro společnost
+            for file_path in glob.glob(os.path.join(self.data_path, f"relationships_{company_name}*.json")):
+                relationship_files.append(file_path)
+        
+        # Pokud nemáme specifické soubory, použijeme všechny soubory vztahů
+        if not relationship_files:
+            for file_path in glob.glob(os.path.join(self.data_path, "relationships_*.json")):
+                relationship_files.append(file_path)
+        
+        # Procházíme nalezené soubory vztahů
+        for file_path in relationship_files:
             try:
                 relationships_data = self._load_json_file(file_path)
                 
-                if isinstance(relationships_data, list):
-                    # Filtrujeme vztahy týkající se dané společnosti
-                    for relationship in relationships_data:
-                        if (relationship.get("source_id") == company_id or 
-                            relationship.get("target_id") == company_id):
+                # Nová struktura obsahuje "data" pole s jednotlivými vztahy
+                if "data" in relationships_data and isinstance(relationships_data["data"], list):
+                    for relationship in relationships_data["data"]:
+                        # Kontrola, zda tento vztah zahrnuje hledanou společnost
+                        source = relationship.get("source", {})
+                        target = relationship.get("target", {})
+                        
+                        if (source.get("id") == company_id or target.get("id") == company_id):
                             results.append(relationship)
-                elif isinstance(relationships_data, dict):
-                    # Pokud je to slovník s klíčem odpovídajícím ID společnosti
-                    if company_id in relationships_data:
-                        results.extend(relationships_data[company_id])
+                
+                # Pro případ, že by struktura byla jiná, zkontrolujeme i "relationships" pole
+                elif "relationships" in relationships_data and isinstance(relationships_data["relationships"], list):
+                    for relationship in relationships_data["relationships"]:
+                        source = relationship.get("source", {})
+                        target = relationship.get("target", {})
+                        
+                        if (source.get("id") == company_id or target.get("id") == company_id):
+                            results.append(relationship)
+                
+                # Starší formát bez vnořené struktury
+                elif isinstance(relationships_data, list):
+                    for relationship in relationships_data:
+                        source = relationship.get("source", {})
+                        target = relationship.get("target", {})
+                        
+                        if (source.get("id") == company_id or target.get("id") == company_id):
+                            results.append(relationship)
             
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
+        
+        # Pokud jsme nenašli žádné vztahy, zkusíme ještě obecný soubor relationships.json
+        if not results:
+            general_path = os.path.join(self.data_path, "relationships.json")
+            if os.path.exists(general_path):
+                try:
+                    general_data = self._load_json_file(general_path)
+                    
+                    if "data" in general_data and isinstance(general_data["data"], list):
+                        for relationship in general_data["data"]:
+                            source = relationship.get("source", {})
+                            target = relationship.get("target", {})
+                            
+                            if (source.get("id") == company_id or target.get("id") == company_id):
+                                results.append(relationship)
+                except Exception as e:
+                    logger.warning(f"Chyba při zpracování obecného souboru vztahů: {str(e)}")
         
         logger.info(f"Nalezeno {len(results)} vztahů pro společnost {company_id}")
         return results
@@ -378,15 +511,14 @@ class MockMCPConnector:
         Raises:
             EntityNotFoundError: Pokud osoba nebyla nalezena
         """
-        people_path = os.path.join(self.data_path, "people")
-        if not os.path.isdir(people_path):
-            logger.error(f"Adresář osob neexistuje: {people_path}")
-            raise ConnectionError(f"Adresář osob neexistuje: {people_path}")
+        # V nové struktuře dat mohou být osoby v souborech entity_detail_person_*.json nebo přímo v entity_detail_*.json
+        # s typem "person"
         
-        for file_path in glob.glob(os.path.join(people_path, "*.json")):
+        # Nejprve zkusíme najít specifické soubory pro osoby
+        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_person_*.json")):
             try:
                 person_data = self._load_json_file(file_path)
-                person_name = person_data.get("name", "")
+                person_name = person_data.get("label", "")
                 
                 if self._fuzzy_name_match(name, person_name):
                     logger.info(f"Nalezena osoba: {person_name} (hledáno: {name})")
@@ -394,6 +526,36 @@ class MockMCPConnector:
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
+                
+        # Pokud nenajdeme specifické soubory, projdeme všechny entity_detail soubory
+        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+            try:
+                entity_data = self._load_json_file(file_path)
+                # Kontrola, zda jde o osobu
+                if entity_data.get("type") == "person":
+                    person_name = entity_data.get("label", "")
+                    
+                    if self._fuzzy_name_match(name, person_name):
+                        logger.info(f"Nalezena osoba: {person_name} (hledáno: {name})")
+                        return entity_data
+            except Exception as e:
+                logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
+                continue
+        
+        # Pro zpětnou kompatibilitu zkontrolujeme i původní adresář people, pokud existuje
+        people_path = os.path.join(self.data_path, "people")
+        if os.path.isdir(people_path):
+            for file_path in glob.glob(os.path.join(people_path, "*.json")):
+                try:
+                    person_data = self._load_json_file(file_path)
+                    person_name = person_data.get("name", "")
+                    
+                    if self._fuzzy_name_match(name, person_name):
+                        logger.info(f"Nalezena osoba: {person_name} (hledáno: {name})")
+                        return person_data
+                except Exception as e:
+                    logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
+                    continue
         
         logger.error(f"Osoba s jménem '{name}' nebyla nalezena")
         raise EntityNotFoundError(f"Osoba s jménem '{name}' nebyla nalezena")
@@ -411,12 +573,11 @@ class MockMCPConnector:
         Raises:
             EntityNotFoundError: Pokud osoba nebyla nalezena
         """
-        people_path = os.path.join(self.data_path, "people")
-        if not os.path.isdir(people_path):
-            logger.error(f"Adresář osob neexistuje: {people_path}")
-            raise ConnectionError(f"Adresář osob neexistuje: {people_path}")
+        # V nové struktuře dat mohou být osoby v souborech entity_detail_person_*.json nebo přímo v entity_detail_*.json
+        # s typem "person"
         
-        for file_path in glob.glob(os.path.join(people_path, "*.json")):
+        # Nejprve zkusíme najít specifické soubory pro osoby
+        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_person_*.json")):
             try:
                 person_data = self._load_json_file(file_path)
                 if person_data.get("id") == person_id:
@@ -425,6 +586,31 @@ class MockMCPConnector:
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
+                
+        # Pokud nenajdeme specifické soubory, projdeme všechny entity_detail soubory
+        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+            try:
+                entity_data = self._load_json_file(file_path)
+                # Kontrola, zda jde o osobu a ID se shoduje
+                if entity_data.get("type") == "person" and entity_data.get("id") == person_id:
+                    logger.info(f"Nalezena osoba s ID: {person_id}")
+                    return entity_data
+            except Exception as e:
+                logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
+                continue
+        
+        # Pro zpětnou kompatibilitu zkontrolujeme i původní adresář people, pokud existuje
+        people_path = os.path.join(self.data_path, "people")
+        if os.path.isdir(people_path):
+            for file_path in glob.glob(os.path.join(people_path, "*.json")):
+                try:
+                    person_data = self._load_json_file(file_path)
+                    if person_data.get("id") == person_id:
+                        logger.info(f"Nalezena osoba s ID: {person_id}")
+                        return person_data
+                except Exception as e:
+                    logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
+                    continue
         
         logger.error(f"Osoba s ID '{person_id}' nebyla nalezena")
         raise EntityNotFoundError(f"Osoba s ID '{person_id}' nebyla nalezena")
@@ -439,42 +625,94 @@ class MockMCPConnector:
         Returns:
             List[Dict[str, Any]]: Seznam vztahů osoby
         """
-        # Podobná implementace jako get_company_relationships
-        relationships_path = os.path.join(self.data_path, "relationships")
+        # Implementace podobná metodě get_company_relationships s úpravou pro osoby
         results = []
+        person_detail = None
+        person_name = None
         
-        if not os.path.isdir(relationships_path):
-            logger.error(f"Adresář vztahů neexistuje: {relationships_path}")
-            raise ConnectionError(f"Adresář vztahů neexistuje: {relationships_path}")
+        # Nejprve zkusíme získat detail osoby, abychom měli její jméno
+        try:
+            # Hledat v entity_detail souborech
+            for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+                detail_data = self._load_json_file(file_path)
+                if detail_data.get("id") == person_id:
+                    person_detail = detail_data
+                    person_name = detail_data.get("label", "").split(" ")[0].lower()  # První část jména pro hledání souborů
+                    break
+        except Exception as e:
+            logger.warning(f"Nepodařilo se načíst detail osoby: {str(e)}")
         
-        # Nejprve zkusíme najít specifický soubor pro osobu
-        specific_path = os.path.join(relationships_path, f"person_{person_id}.json")
-        if os.path.isfile(specific_path):
-            try:
-                return self._load_json_file(specific_path)
-            except Exception as e:
-                logger.error(f"Chyba při načítání vztahů pro osobu {person_id}: {str(e)}")
-                raise DataFormatError(f"Chyba při načítání vztahů: {str(e)}")
-        
-        # Pokud neexistuje specifický soubor, projdeme všechny soubory vztahů
-        for file_path in glob.glob(os.path.join(relationships_path, "*.json")):
+        # Procházíme soubory relationships_*.json a hledáme vztahy zahrnující osobu
+        for file_path in glob.glob(os.path.join(self.data_path, "relationships_*.json")):
             try:
                 relationships_data = self._load_json_file(file_path)
                 
-                if isinstance(relationships_data, list):
-                    # Filtrujeme vztahy týkající se dané osoby
-                    for relationship in relationships_data:
-                        if (relationship.get("source_id") == person_id or 
-                            relationship.get("target_id") == person_id):
+                # Kontrola různých formátů dat vztahů
+                
+                # Formát s polem "data"
+                if "data" in relationships_data and isinstance(relationships_data["data"], list):
+                    for relationship in relationships_data["data"]:
+                        source = relationship.get("source", {})
+                        target = relationship.get("target", {})
+                        
+                        if (source.get("id") == person_id or target.get("id") == person_id):
                             results.append(relationship)
-                elif isinstance(relationships_data, dict):
-                    # Pokud je to slovník s klíčem odpovídajícím ID osoby
-                    if person_id in relationships_data:
-                        results.extend(relationships_data[person_id])
+                
+                # Formát s polem "relationships"
+                elif "relationships" in relationships_data and isinstance(relationships_data["relationships"], list):
+                    for relationship in relationships_data["relationships"]:
+                        source = relationship.get("source", {})
+                        target = relationship.get("target", {})
+                        
+                        if (source.get("id") == person_id or target.get("id") == person_id):
+                            results.append(relationship)
+                
+                # Starší formát - přímo seznam vztahů
+                elif isinstance(relationships_data, list):
+                    for relationship in relationships_data:
+                        source = relationship.get("source", {})
+                        target = relationship.get("target", {})
+                        
+                        if (source.get("id") == person_id or target.get("id") == person_id):
+                            results.append(relationship)
             
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
+        
+        # Pokud jsme nenašli žádné vztahy, zkusíme ještě obecný soubor relationships.json
+        if not results:
+            general_path = os.path.join(self.data_path, "relationships.json")
+            if os.path.exists(general_path):
+                try:
+                    general_data = self._load_json_file(general_path)
+                    
+                    if "data" in general_data and isinstance(general_data["data"], list):
+                        for relationship in general_data["data"]:
+                            source = relationship.get("source", {})
+                            target = relationship.get("target", {})
+                            
+                            if (source.get("id") == person_id or target.get("id") == person_id):
+                                results.append(relationship)
+                except Exception as e:
+                    logger.warning(f"Chyba při zpracování obecného souboru vztahů: {str(e)}")
+        
+        # Pro zpětnou kompatibilitu zkontrolujeme i původní adresář relationships, pokud existuje
+        relationships_path = os.path.join(self.data_path, "relationships")
+        if os.path.isdir(relationships_path):
+            # Nejprve zkusíme najít specifický soubor pro osobu
+            specific_path = os.path.join(relationships_path, f"person_{person_id}.json")
+            if os.path.isfile(specific_path):
+                try:
+                    relationships_data = self._load_json_file(specific_path)
+                    
+                    # Podle formátu dat je přidáme do výsledků
+                    if isinstance(relationships_data, list):
+                        results.extend(relationships_data)
+                    elif isinstance(relationships_data, dict) and "relationships" in relationships_data:
+                        results.extend(relationships_data["relationships"])
+                except Exception as e:
+                    logger.warning(f"Chyba při zpracování specifického souboru vztahů: {str(e)}")
         
         logger.info(f"Nalezeno {len(results)} vztahů pro osobu {person_id}")
         return results

@@ -1,0 +1,79 @@
+{
+  "data": [
+    {
+      "source": "entity_1004",
+      "target": {
+        "id": "entity_3006",
+        "type": "company",
+        "label": "ChemPolymer International",
+        "countries": ["DEU"],
+        "risk": ["environmental_compliance"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1004",
+            "type": "company",
+            "label": "ADIS TACHOV, zp",
+            "countries": ["CZE"],
+            "risk": ["regulatory_compliance"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "8708.29",
+                "description": "Parts and accessories of bodies for motor vehicles"
+              },
+              "min_date": "2023-06-01",
+              "max_date": "2024-05-01",
+              "arrival_countries": ["DEU", "CZE"],
+              "departure_countries": ["CZE"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_2018",
+            "type": "company",
+            "label": "TERPLASTICS",
+            "countries": ["POL"],
+            "risk": []
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3926.30",
+                "description": "Plastic fittings for furniture, coachwork or the like"
+              },
+              "min_date": "2023-03-15",
+              "max_date": "2024-02-15",
+              "arrival_countries": ["CZE"],
+              "departure_countries": ["POL"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_3006",
+            "type": "company",
+            "label": "ChemPolymer International",
+            "countries": ["DEU"],
+            "risk": ["environmental_compliance"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3907.20",
+                "description": "Other polyethers"
+              },
+              "min_date": "2023-01-10",
+              "max_date": "2024-01-10",
+              "arrival_countries": ["POL"],
+              "departure_countries": ["DEU"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

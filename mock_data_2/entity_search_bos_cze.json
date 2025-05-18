@@ -1,0 +1,36 @@
+{
+  "limit": 10,
+  "offset": 0,
+  "next": false,
+  "results": [
+    {
+      "id": "entity_1003",
+      "type": "company",
+      "label": "BOS AUTOMOTIVE",
+      "identifiers": [
+        {
+          "type": "duns_number",
+          "value": "366035673"
+        },
+        {
+          "type": "registration_number",
+          "value": "27125203"
+        }
+      ],
+      "countries": ["CZE"],
+      "addresses": [
+        {
+          "full": "Průmyslová 1169, 334 41 Dobřany, Czech Republic",
+          "country": "CZE"
+        }
+      ],
+      "risk": {
+        "supply_chain_vulnerability": true,
+        "risk_score": 40
+      },
+      "meta": {
+        "alternate_names": ["BOS Automotive Czech"]
+      }
+    }
+  ]
+}

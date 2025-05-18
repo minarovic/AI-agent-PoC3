@@ -1,0 +1,111 @@
+{
+  "data": [
+    {
+      "source": "entity_1003",
+      "target": {
+        "id": "entity_3005",
+        "type": "company",
+        "label": "TechnoFiber GmbH",
+        "countries": ["AUT"],
+        "risk": ["delivery_volatility"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1003",
+            "type": "company",
+            "label": "BOS AUTOMOTIVE",
+            "countries": ["CZE"],
+            "risk": ["supply_chain_vulnerability"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "8708.29",
+                "description": "Parts and accessories of bodies for motor vehicles"
+              },
+              "min_date": "2023-05-01",
+              "max_date": "2024-04-01",
+              "arrival_countries": ["DEU", "FRA", "ITA"],
+              "departure_countries": ["CZE"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_2014",
+            "type": "company",
+            "label": "Texno Nonwovens",
+            "countries": ["CZE"],
+            "risk": []
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "5603.14",
+                "description": "Nonwovens, whether or not impregnated, coated, covered or laminated: Of man-made filaments: Weighing more than 150 g/m²"
+              },
+              "min_date": "2023-02-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["CZE"],
+              "departure_countries": ["AUT"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_3005",
+            "type": "company",
+            "label": "TechnoFiber GmbH",
+            "countries": ["AUT"],
+            "risk": ["delivery_volatility"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "5503.20",
+                "description": "Synthetic staple fibers, not carded, combed or otherwise processed for spinning: Of polyesters"
+              },
+              "min_date": "2023-01-15",
+              "max_date": "2024-01-15",
+              "arrival_countries": ["AUT"],
+              "departure_countries": ["DEU"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "entity_1003",
+      "target": {
+        "id": "entity_1002",
+        "type": "company",
+        "label": "BOS AUTOMOTIVE",
+        "countries": ["DEU"],
+        "risk": ["supply_chain_vulnerability"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1003",
+            "type": "company",
+            "label": "BOS AUTOMOTIVE",
+            "countries": ["CZE"],
+            "risk": ["supply_chain_vulnerability"]
+          },
+          "products": []
+        },
+        {
+          "entity": {
+            "id": "entity_1002",
+            "type": "company",
+            "label": "BOS AUTOMOTIVE",
+            "countries": ["DEU"],
+            "risk": ["supply_chain_vulnerability"]
+          },
+          "products": []
+        }
+      ]
+    }
+  ]
+}

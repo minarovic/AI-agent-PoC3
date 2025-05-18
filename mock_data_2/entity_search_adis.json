@@ -1,0 +1,36 @@
+{
+  "limit": 10,
+  "offset": 0,
+  "next": false,
+  "results": [
+    {
+      "id": "entity_1004",
+      "type": "company",
+      "label": "ADIS TACHOV, zp",
+      "identifiers": [
+        {
+          "type": "duns_number",
+          "value": "361672367"
+        },
+        {
+          "type": "registration_number",
+          "value": "48360546"
+        }
+      ],
+      "countries": ["CZE"],
+      "addresses": [
+        {
+          "full": "Oldřichovská 1437, 347 01 Tachov, Czech Republic",
+          "country": "CZE"
+        }
+      ],
+      "risk": {
+        "regulatory_compliance": true,
+        "risk_score": 38
+      },
+      "meta": {
+        "alternate_names": ["ADIS TACHOV"]
+      }
+    }
+  ]
+}

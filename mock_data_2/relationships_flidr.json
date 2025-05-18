@@ -1,0 +1,284 @@
+{
+  "data": [
+    {
+      "id": "rel_flidr_kirchhoff",
+      "source": {
+        "id": "entity_1005",
+        "label": "Flídr plast s.r"
+      },
+      "target": {
+        "id": "entity_2020",
+        "label": "Kirchhoff and Lehr"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Engineering parts",
+        "since": "2014"
+      }
+    },
+    {
+      "id": "rel_flidr_sage",
+      "source": {
+        "id": "entity_1005",
+        "label": "Flídr plast s.r"
+      },
+      "target": {
+        "id": "entity_2021",
+        "label": "Sage"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Software solutions",
+        "since": "2017"
+      }
+    },
+    {
+      "id": "rel_flidr_dplast",
+      "source": {
+        "id": "entity_1005",
+        "label": "Flídr plast s.r"
+      },
+      "target": {
+        "id": "entity_2022",
+        "label": "D Plast a.s"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Plastic compounds",
+        "since": "2012"
+      }
+    },
+    {
+      "id": "rel_flidr_almat",
+      "source": {
+        "id": "entity_1005",
+        "label": "Flídr plast s.r"
+      },
+      "target": {
+        "id": "entity_2023",
+        "label": "Almat s.r.o."
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Aluminum components",
+        "since": "2015"
+      }
+    },
+    {
+      "id": "rel_flidr_hennlich",
+      "source": {
+        "id": "entity_1005",
+        "label": "Flídr plast s.r"
+      },
+      "target": {
+        "id": "entity_2024",
+        "label": "Hennlich springs"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Spring components",
+        "since": "2016"
+      }
+    },
+    {
+      "id": "rel_dplast_innovationcompounds",
+      "source": {
+        "id": "entity_2022",
+        "label": "D Plast a.s"
+      },
+      "target": {
+        "id": "entity_3007",
+        "label": "Innovation Compounds"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Compound additives"
+      }
+    },
+    {
+      "id": "rel_hennlich_metalforming",
+      "source": {
+        "id": "entity_2024",
+        "label": "Hennlich springs"
+      },
+      "target": {
+        "id": "entity_3008",
+        "label": "MetalForming Precision"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Metal components"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_flidr_dplast",
+      "from_id": "entity_1005",
+      "from_label": "Flídr plast s.r",
+      "from_type": "company",
+      "to_id": "entity_2022",
+      "to_label": "D Plast a.s",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Strategic Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Plastic Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Company Registry",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "3901.20",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_flidr_hennlich",
+      "from_id": "entity_1005",
+      "from_label": "Flídr plast s.r",
+      "from_type": "company",
+      "to_id": "entity_2024",
+      "to_label": "Hennlich springs",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Regular Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Metal Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Database",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "7320.20",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    }
+  ]
+}

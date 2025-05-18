@@ -1,0 +1,368 @@
+{
+  "data": [
+    {
+      "id": "rel_bosde_tecknit",
+      "source": {
+        "id": "entity_1002",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2005",
+        "label": "Tec Knit GmbH"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Technical textiles",
+        "since": "2008"
+      }
+    },
+    {
+      "id": "rel_bosde_hornschuch",
+      "source": {
+        "id": "entity_1002",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2006",
+        "label": "Hornschuch Stolzenau GmbH"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Surface materials",
+        "since": "2011"
+      }
+    },
+    {
+      "id": "rel_bosde_swisschem",
+      "source": {
+        "id": "entity_1002",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2007",
+        "label": "SwissChem AG"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Chemical components",
+        "since": "2013"
+      }
+    },
+    {
+      "id": "rel_bosde_tatasteel",
+      "source": {
+        "id": "entity_1002",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2008",
+        "label": "Tata Steel"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Steel products",
+        "since": "2010"
+      }
+    },
+    {
+      "id": "rel_bosde_dssmith",
+      "source": {
+        "id": "entity_1002",
+        "label": "BOS AUTOMOTIVE"
+      },
+      "target": {
+        "id": "entity_2009",
+        "label": "DS Smith Slovakia s.r.o"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Packaging materials",
+        "since": "2016"
+      }
+    },
+    {
+      "id": "rel_swisschem_polyplast",
+      "source": {
+        "id": "entity_2007",
+        "label": "SwissChem AG"
+      },
+      "target": {
+        "id": "entity_3004",
+        "label": "Polyplast Solutions"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Plastic raw materials"
+      }
+    },
+    {
+      "id": "rel_tatasteel_alutech",
+      "source": {
+        "id": "entity_2008",
+        "label": "Tata Steel"
+      },
+      "target": {
+        "id": "entity_3003",
+        "label": "AluTech Components"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Aluminum components"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_bosde_tecknit",
+      "from_id": "entity_1002",
+      "from_label": "BOS AUTOMOTIVE",
+      "from_type": "company",
+      "to_id": "entity_2005",
+      "to_label": "Tec Knit GmbH",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Key Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Technical Textile Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Directory 2022",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "5903.10",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_bosde_hornschuch",
+      "from_id": "entity_1002",
+      "from_label": "BOS AUTOMOTIVE",
+      "from_type": "company",
+      "to_id": "entity_2006",
+      "to_label": "Hornschuch Stolzenau GmbH",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Strategic Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Surface Materials",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Corporate Website",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "5903.20",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_bosde_swisschem",
+      "from_id": "entity_1002",
+      "from_label": "BOS AUTOMOTIVE",
+      "from_type": "company",
+      "to_id": "entity_2007",
+      "to_label": "SwissChem AG",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Regular Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Chemical Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Registry",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "3907.30",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    }
+  ]
+}

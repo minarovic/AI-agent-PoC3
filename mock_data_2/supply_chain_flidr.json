@@ -1,0 +1,154 @@
+{
+  "data": [
+    {
+      "source": "entity_1005",
+      "target": {
+        "id": "entity_3007",
+        "type": "company",
+        "label": "Innovation Compounds",
+        "countries": ["DEU"],
+        "risk": ["raw_material_price_volatility"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1005",
+            "type": "company",
+            "label": "Flídr plast s.r",
+            "countries": ["CZE"],
+            "risk": ["material_availability"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3926.30",
+                "description": "Plastic fittings for furniture, coachwork or the like"
+              },
+              "min_date": "2023-03-01",
+              "max_date": "2024-02-28",
+              "arrival_countries": ["DEU", "POL"],
+              "departure_countries": ["CZE"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_2022",
+            "type": "company",
+            "label": "D Plast a.s",
+            "countries": ["CZE"],
+            "risk": []
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3901.20",
+                "description": "Polyethylene having a specific gravity of 0.94 or more"
+              },
+              "min_date": "2023-02-15",
+              "max_date": "2024-01-15",
+              "arrival_countries": ["CZE"],
+              "departure_countries": ["CZE", "DEU"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_3007",
+            "type": "company",
+            "label": "Innovation Compounds",
+            "countries": ["DEU"],
+            "risk": ["raw_material_price_volatility"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3824.99",
+                "description": "Other chemical products and preparations"
+              },
+              "min_date": "2023-01-10",
+              "max_date": "2023-12-30",
+              "arrival_countries": ["CZE", "DEU"],
+              "departure_countries": ["DEU"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source": "entity_1005",
+      "target": {
+        "id": "entity_3008",
+        "type": "company",
+        "label": "MetalForming Precision",
+        "countries": ["AUT"],
+        "risk": ["quality_control"]
+      },
+      "path": [
+        {
+          "entity": {
+            "id": "entity_1005",
+            "type": "company",
+            "label": "Flídr plast s.r",
+            "countries": ["CZE"],
+            "risk": ["material_availability"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "3926.30",
+                "description": "Plastic fittings for furniture, coachwork or the like"
+              },
+              "min_date": "2023-03-01",
+              "max_date": "2024-02-28",
+              "arrival_countries": ["DEU", "POL"],
+              "departure_countries": ["CZE"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_2024",
+            "type": "company",
+            "label": "Hennlich springs",
+            "countries": ["CZE"],
+            "risk": []
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "7320.20",
+                "description": "Helical springs, of iron or steel"
+              },
+              "min_date": "2023-02-01",
+              "max_date": "2024-01-01",
+              "arrival_countries": ["CZE"],
+              "departure_countries": ["CZE", "AUT"]
+            }
+          ]
+        },
+        {
+          "entity": {
+            "id": "entity_3008",
+            "type": "company",
+            "label": "MetalForming Precision",
+            "countries": ["AUT"],
+            "risk": ["quality_control"]
+          },
+          "products": [
+            {
+              "hs_code": {
+                "code": "7326.19",
+                "description": "Other articles of iron or steel, forged or stamped, but not further worked"
+              },
+              "min_date": "2023-01-05",
+              "max_date": "2023-12-15",
+              "arrival_countries": ["CZE", "DEU", "AUT"],
+              "departure_countries": ["AUT"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

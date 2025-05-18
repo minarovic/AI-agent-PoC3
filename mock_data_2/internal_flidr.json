@@ -1,0 +1,50 @@
+{
+  "supplier_name": "Flídr plast s.r",
+  "duns_number": "495185217",
+  "industry": "Plastic components manufacturing",
+  "primary_tier": "Tier1",
+  "supplier_since": "2011-02-25",
+  "hs_code_matches": [
+    {
+      "hsCode": "3926.30",
+      "description": "Plastic fittings for furniture, coachwork or the like",
+      "match_confidence": 0.98
+    },
+    {
+      "hsCode": "3923.50",
+      "description": "Stoppers, lids, caps and other closures",
+      "match_confidence": 0.89
+    },
+    {
+      "hsCode": "8708.29",
+      "description": "Parts and accessories of bodies for motor vehicles",
+      "match_confidence": 0.94
+    }
+  ],
+  "identified_activities": [
+    {
+      "activity_code": "AC2231",
+      "activity": "Plastic injection molding",
+      "confidence": 0.99
+    },
+    {
+      "activity_code": "AC3424",
+      "activity": "Assembly of plastic components",
+      "confidence": 0.96
+    },
+    {
+      "activity_code": "AC4511",
+      "activity": "Surface finishing of plastic parts",
+      "confidence": 0.92
+    },
+    {
+      "activity_code": "AC5102",
+      "activity": "Custom mold design and production",
+      "confidence": 0.87
+    }
+  ],
+  "geographic_presence": ["CZE", "DEU", "POL"],
+  "quality_rating": 4.3,
+  "compliance_status": "Compliant",
+  "last_assessment_date": "2023-08-17"
+}

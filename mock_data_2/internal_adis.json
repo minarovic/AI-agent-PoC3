@@ -1,0 +1,50 @@
+{
+  "supplier_name": "ADIS TACHOV, zp",
+  "duns_number": "361672367",
+  "industry": "Automotive components",
+  "primary_tier": "Tier1",
+  "supplier_since": "2009-11-12",
+  "hs_code_matches": [
+    {
+      "hsCode": "8708.29",
+      "description": "Parts and accessories of bodies for motor vehicles",
+      "match_confidence": 0.95
+    },
+    {
+      "hsCode": "3926.30",
+      "description": "Plastic fittings for furniture, coachwork or the like",
+      "match_confidence": 0.87
+    },
+    {
+      "hsCode": "8708.99",
+      "description": "Other parts and accessories for motor vehicles",
+      "match_confidence": 0.91
+    }
+  ],
+  "identified_activities": [
+    {
+      "activity_code": "AC2221",
+      "activity": "Plastic component manufacturing",
+      "confidence": 0.96
+    },
+    {
+      "activity_code": "AC3454",
+      "activity": "Sealing systems production",
+      "confidence": 0.92
+    },
+    {
+      "activity_code": "AC4212",
+      "activity": "Metal-plastic assembly",
+      "confidence": 0.94
+    },
+    {
+      "activity_code": "AC5131",
+      "activity": "Automotive systems testing",
+      "confidence": 0.89
+    }
+  ],
+  "geographic_presence": ["CZE", "DEU", "POL"],
+  "quality_rating": 4.0,
+  "compliance_status": "Under review",
+  "last_assessment_date": "2023-11-05"
+}

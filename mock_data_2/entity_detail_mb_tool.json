@@ -1,0 +1,42 @@
+{
+  "id": "entity_1001",
+  "type": "company",
+  "label": "MB TOOL s.r.o.",
+  "countries": ["CZE"],
+  "addresses": [
+    {
+      "full": "Třebařov 177, 569 33 Třebařov, Czech Republic",
+      "country": "CZE",
+      "administrative_area": "Pardubice Region"
+    }
+  ],
+  "identifiers": [
+    {
+      "type": "duns_number",
+      "value": "511391109"
+    },
+    {
+      "type": "registration_number",
+      "value": "26150565"
+    },
+    {
+      "type": "vat_number",
+      "value": "CZ26150565"
+    }
+  ],
+  "risk": {
+    "operational_risk": true,
+    "supply_chain_exposure": {
+      "level": "medium",
+      "factors": ["single_source_dependencies"]
+    },
+    "risk_score": 35
+  },
+  "metadata": {
+    "founded": "1997",
+    "industry": "Automotive components manufacturing",
+    "company_size": "Medium enterprise",
+    "employee_count": "100-249"
+  },
+  "description": "MB TOOL s.r.o. is a Czech manufacturer specializing in automotive plastic components, metal fabrication, and tooling. The company produces injection molded parts and technical assemblies for automotive industry."
+}

@@ -1,0 +1,42 @@
+{
+  "id": "entity_1002",
+  "type": "company",
+  "label": "BOS AUTOMOTIVE",
+  "countries": ["DEU"],
+  "addresses": [
+    {
+      "full": "Stuttgart-Strasse 123, 70173 Stuttgart, Germany",
+      "country": "DEU",
+      "administrative_area": "Baden-Württemberg"
+    }
+  ],
+  "identifiers": [
+    {
+      "type": "duns_number",
+      "value": "535010490"
+    },
+    {
+      "type": "registration_number",
+      "value": "HRB 762831"
+    },
+    {
+      "type": "vat_number",
+      "value": "DE812345678"
+    }
+  ],
+  "risk": {
+    "supply_chain_vulnerability": true,
+    "geographic_concentration": {
+      "level": "high",
+      "factors": ["regional_supplier_clustering"]
+    },
+    "risk_score": 42
+  },
+  "metadata": {
+    "founded": "1985",
+    "industry": "Automotive interior systems",
+    "company_size": "Large enterprise",
+    "employee_count": "1000-4999"
+  },
+  "description": "BOS AUTOMOTIVE is a German manufacturer specializing in automotive interior systems including cargo management systems, sun blinds, and armrests. The company is a major supplier to various European and global automotive OEMs."
+}

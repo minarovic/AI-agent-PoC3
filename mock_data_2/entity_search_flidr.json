@@ -1,0 +1,36 @@
+{
+  "limit": 10,
+  "offset": 0,
+  "next": false,
+  "results": [
+    {
+      "id": "entity_1005",
+      "type": "company",
+      "label": "Flídr plast s.r",
+      "identifiers": [
+        {
+          "type": "duns_number",
+          "value": "495185217"
+        },
+        {
+          "type": "registration_number",
+          "value": "25973631"
+        }
+      ],
+      "countries": ["CZE"],
+      "addresses": [
+        {
+          "full": "Široký Důl 200, 572 01 Polička, Czech Republic",
+          "country": "CZE"
+        }
+      ],
+      "risk": {
+        "material_availability": true,
+        "risk_score": 32
+      },
+      "meta": {
+        "alternate_names": ["Flidr Plast"]
+      }
+    }
+  ]
+}

@@ -1,0 +1,269 @@
+{
+  "data": [
+    {
+      "id": "rel_adis_inteva",
+      "source": {
+        "id": "entity_1004",
+        "label": "ADIS TACHOV, zp"
+      },
+      "target": {
+        "id": "entity_2015",
+        "label": "INTEVA PRODUCTS"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Automotive systems",
+        "since": "2012"
+      }
+    },
+    {
+      "id": "rel_adis_projectcontrols",
+      "source": {
+        "id": "entity_1004",
+        "label": "ADIS TACHOV, zp"
+      },
+      "target": {
+        "id": "entity_2016",
+        "label": "Project controls"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Control systems",
+        "since": "2016"
+      }
+    },
+    {
+      "id": "rel_adis_saficaltran",
+      "source": {
+        "id": "entity_1004",
+        "label": "ADIS TACHOV, zp"
+      },
+      "target": {
+        "id": "entity_2017",
+        "label": "SAFIC ALTRAN"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Engineering services",
+        "since": "2018"
+      }
+    },
+    {
+      "id": "rel_adis_terplastics",
+      "source": {
+        "id": "entity_1004",
+        "label": "ADIS TACHOV, zp"
+      },
+      "target": {
+        "id": "entity_2018",
+        "label": "TERPLASTICS"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Plastic components",
+        "since": "2014"
+      }
+    },
+    {
+      "id": "rel_adis_gemo",
+      "source": {
+        "id": "entity_1004",
+        "label": "ADIS TACHOV, zp"
+      },
+      "target": {
+        "id": "entity_2019",
+        "label": "GEMO Poland Sp. z o.o."
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Molded components",
+        "since": "2015"
+      }
+    },
+    {
+      "id": "rel_terplastics_chempolymer",
+      "source": {
+        "id": "entity_2018",
+        "label": "TERPLASTICS"
+      },
+      "target": {
+        "id": "entity_3006",
+        "label": "ChemPolymer International"
+      },
+      "type": "has_supplier",
+      "metadata": {
+        "product": "Chemical compounds"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel_adis_inteva",
+      "from_id": "entity_1004",
+      "from_label": "ADIS TACHOV, zp",
+      "from_type": "company",
+      "to_id": "entity_2015",
+      "to_label": "INTEVA PRODUCTS",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Key Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Automotive Systems",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Company Website",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "8708.99",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    },
+    {
+      "id": "rel_adis_terplastics",
+      "from_id": "entity_1004",
+      "from_label": "ADIS TACHOV, zp",
+      "from_type": "company",
+      "to_id": "entity_2018",
+      "to_label": "TERPLASTICS",
+      "to_type": "company",
+      "type": "has_supplier",
+      "attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Strategic Supplier",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "industry": {
+          "data": [
+            {
+              "value": "Plastic Components Manufacturing",
+              "type": "industry",
+              "label": "Industry"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "source": {
+          "data": [
+            {
+              "value": "Supplier Database",
+              "type": "source",
+              "label": "Source"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        },
+        "hs_codes": {
+          "data": [
+            {
+              "value": "3926.30",
+              "type": "hs_code",
+              "label": "HS Code"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      },
+      "rev_attributes": {
+        "relationship_type": {
+          "data": [
+            {
+              "value": "Customer",
+              "type": "relationship_type",
+              "label": "Relationship Type"
+            }
+          ],
+          "limit": 5,
+          "size": {
+            "count": 1,
+            "qualifier": "eq"
+          }
+        }
+      }
+    }
+  ]
+}

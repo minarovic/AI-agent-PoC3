@@ -1,0 +1,42 @@
+{
+  "id": "entity_1004",
+  "type": "company",
+  "label": "ADIS TACHOV, zp",
+  "countries": ["CZE"],
+  "addresses": [
+    {
+      "full": "Oldřichovská 1437, 347 01 Tachov, Czech Republic",
+      "country": "CZE",
+      "administrative_area": "Plzeň Region"
+    }
+  ],
+  "identifiers": [
+    {
+      "type": "duns_number",
+      "value": "361672367"
+    },
+    {
+      "type": "registration_number",
+      "value": "48360546"
+    },
+    {
+      "type": "vat_number",
+      "value": "CZ48360546"
+    }
+  ],
+  "risk": {
+    "regulatory_compliance": true,
+    "quality_control": {
+      "level": "medium",
+      "factors": ["process_standardization_gaps"]
+    },
+    "risk_score": 38
+  },
+  "metadata": {
+    "founded": "1995",
+    "industry": "Automotive components",
+    "company_size": "Medium enterprise",
+    "employee_count": "100-249"
+  },
+  "description": "ADIS TACHOV is a Czech manufacturer specializing in automotive components including plastic and metal parts, sealing systems, and assembly services. The company is a key supplier to various automotive manufacturers and Tier 1 suppliers in Central Europe."
+}
