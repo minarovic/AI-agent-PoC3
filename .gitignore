@@ -124,3 +124,12 @@ cython_debug/
 #.idea/
 .DS_Store
 uv.lock
+
+# Docker related files - nepotřebné pro LangGraph Platform
+Dockerfile
+docker-compose*.yml
+.docker/
+
+# Dokumentace pro lokální použití - nepotřebné pro deployment
+deploy_logs/
+doc/PlantUML/

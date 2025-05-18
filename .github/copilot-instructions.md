@@ -1,174 +1,158 @@
-# Instrukce pro Copilot Agenta: AI-agent-Ntier
+# Instrukce pro Copilota: AI-agent-Ntier Deployment
 
-## Mise a kontext
+> **Reference k PlantUML příručkám:** Příručky pro vytváření diagramů najdeš v `/Users/marekminarovic/AI-agent-Ntier/doc/PlantUML/`
+> - Diagram_Aktivit.md - Tvorba diagramů aktivit
+> - Sekvencni_diagram.md - Tvorba sekvenčních diagramů
+> - Diagram_Trid.md - Tvorba diagramů tříd
+> - Stavovy_diagram.md - Tvorba stavových diagramů
 
-Jsi Copilot Agent pro projekt AI-agent-Ntier, asistent specializovaný na vývoj a nasazení agentní architektury Memory Agent. Tvým hlavním úkolem je **implementace nasazení na GitHub a LangGraph Platform**, což zahrnuje přípravu repozitáře, konfiguraci CI/CD workflow a následné nasazení na LangGraph Platform.
+*Strukturovaný návod s využitím CoT a MCP přístupů*
 
-Při práci používej CoT (Chain of Thought) prompting a MCP (Multi-Chain Prompting) sequential thinking pro jasnou strukturaci myšlenek a návrhů. Tato metodika ti pomůže systematicky analyzovat problémy, navrhnout řešení a dokumentovat implementační kroky.
+## Hlavní cíl
+Primárně se soustřeď na **úspěšný deployment aplikace** do LangGraph Platform a řešení technických překážek v tomto procesu.
 
-## Prioritní zaměření
+## Proces řešení problémů (MCP)
 
-1. **Nasazení na GitHub**:
-   - Příprava repozitáře a konfigurace pro GitHub
-   - Správné nastavení CI/CD workflow
-   - Testování build pipeline
+### 1. Identifikace a analýza chyb (Chain 1)
+Při nalezení chyby v GitHub Actions nebo logu:
+1. **Identifikace** - Extrahuj přesnou chybovou zprávu
+2. **Analýza (CoT)** - Proveď řetězec úvah:
+   - Co přesně říká chybová zpráva?
+   - V které části procesu se vyskytuje?
+   - Jaká je pravděpodobná příčina?
+   - Je to jednoduchá syntaktická chyba nebo komplexnější problém?
+3. **Návrh řešení** - Definuj konkrétní opravu s vysvětlením
+4. **Implementace** - Proveď potřebné změny
+5. **Verifikace** - Ověř, že řešení funguje
 
-2. **Příprava nasazení na LangGraph Platform**:
-   - Konfigurace langgraph.json
-   - Příprava deployment skriptů
-   - Integrace s CI/CD pipeline
-
-## Metodologie práce - CoT a MCP
-
-Při řešení úkolů používej strukturovaný přístup:
-
-### Chain of Thought (CoT) Prompting:
-1. **Pochopení problému** - Jasně definuj, co je třeba udělat
-2. **Analýza současného stavu** - Prozkoumej existující konfiguraci a kód
-3. **Návrh řešení** - Navrhni konkrétní kroky s odůvodněním
-4. **Implementace** - Poskytni konkrétní kód nebo konfiguraci
-5. **Verifikace** - Navrhni, jak ověřit, že řešení funguje
-
-### MCP Sequential Thinking:
-Pro složitější problémy používej sekvenční myšlení:
-1. **Identifikuj dílčí kroky** potřebné k dosažení cíle
-2. **Postupuj systematicky** od jednoho kroku k druhému
-3. **Průběžně reflektuj a reviduj** své předchozí kroky
-4. **Dokumentuj své myšlenkové postupy** pro lepší sledovatelnost
-
-## Průběžné vysvětlování technických postupů
-
-**KLÍČOVÉ: Při každém technickém rozhodnutí a postupu vysvětluj, proč děláš to, co děláš.**
-
-Uživatel potřebuje neustálý přehled o tvém myšlenkovém procesu, zejména když:
-- Volíš postup, který nemusí být intuitivně jasný (např. testování na lokálu před GitHub)
-- Navrhuješ kroky, které se mohou zdát jako režie navíc
-- Používáš specifické techniky nebo nástroje
-- Rozhodneš se mezi více možnými přístupy
-
-Při každém technickém rozhodnutí vždy:
-1. **Vysvětli záměr** - Co chceš tímto krokem dosáhnout
-2. **Zdůvodni postup** - Proč jsi zvolil právě tento postup
-3. **Nastíň alternativy** - Jaké jiné přístupy jsi zvažoval a proč jsi je nepoužil
-4. **Uveď rizika a výhody** - Jaké jsou potenciální komplikace a benefity zvoleného přístupu
-
-Například:
-- "Testuji aplikaci nejprve v lokálním Dockeru, **protože** to umožňuje rychle odhalit problémy s konfigurací před vytvořením GitHub Actions workflow. Přímé nasazení bez lokálního testování by mohlo vést k opakovaným selháním build procesu na GitHub."
-- "Přidávám tento krok do deployment skriptu, **protože** zajišťuje správné nastavení proměnných prostředí bez ukládání citlivých údajů do repozitáře. Alternativou by bylo ruční nastavení, což by zvýšilo riziko chyb."
-
-Vynech vysvětlení jen u zcela zřejmých kroků (např. "Instaluji závislosti pomocí pip").
-
-## Bezpečnostní pokyny
-
-**DŮLEŽITÉ**: Minimalizuj aktivity kolem security a API klíčů. Pracuj pouze s tím, co je nezbytně nutné.
-
-1. **Nikdy nezahrnuj skutečné API klíče** do kódu nebo konfiguračních souborů
-2. **Používej proměnné prostředí** nebo secrets v GitHub Actions
-3. **Odkazuj na bezpečnostní checklist** v docs/langgraph_platform_security_checklist.md
-4. **Při konfiguraci CI/CD** používej GitHub Secrets pro citlivé údaje
-
-Když narazíš na potřebu práce s citlivými údaji, navrhni bezpečný způsob jejich správy, ale nepředpokládej konkrétní hodnoty.
-
-## Automatická dokumentace práce
-
-Při řešení složitějších úkolů nebo delších sekvencí kroků vytvoř "self-checkpoint" - krátký záznam:
-
+### 2. Využití Context7 (Chain 2)
 ```
-### Checkpoint: [Název aktuálního úkolu]
-- **Dokončeno**: [Seznam dokončených kroků]
-- **V procesu**: [Na čem právě pracuješ]
-- **Zbývá**: [Co je ještě potřeba udělat]
-- **Poznámky**: [Důležité informace, na které je třeba pamatovat]
+Pokud jde o komplexní problém:
+  HLEDEJ příklady řešení v Context7
+  APLIKUJ nalezená řešení s adaptací pro konkrétní situaci
+Pokud jde o jednoduchou syntaktickou chybu:
+  NEHLEDEJ v Context7
+  IMPLEMENTUJ přímé řešení podle logu
 ```
 
-Dokumentuj své myšlenkové postupy do `./deploy_logs/notes.md`, aby byl k dispozici trvalý záznam tvých rozhodnutí a postupů.
+### 3. Dokumentace v notes.md (Chain 3)
+```
+Po identifikaci a řešení problému:
+  VYTVOŘ stručný zápis do ./deploy_logs/notes.md ve formátu:
+    ## [DATUM] - [PROBLÉM]
+    ### Identifikovaný problém:
+    - Stručný popis chyby z logu/GitHub Actions
+    ### Analýza příčiny:
+    - Pravděpodobná příčina problému
+    ### Navrhované řešení:
+    - [ ] Krok 1: Konkrétní akce
+    - [ ] Krok 2: Konkrétní akce
+    ### Implementace:
+    - Provedené změny
+    ### Verifikace:
+    - Výsledek opravy
+```
 
-Tato self-dokumentace ti pomůže udržet kontext i v případě, že by došlo k jeho ztrátě.
+### 4. Vizuální dokumentace (Chain 4)
+```
+Pro složitější problémy:
+  VYTVOŘ PlantUML diagram popisující workflow řešení
+  ULOŽ ho do /Users/marekminarovic/AI-agent-Ntier/doc/PlantUML
+  ZAMĚŘ SE na:
+    - Procesy deploymentu (sekvenční diagramy)
+    - Workflow řešení problémů (diagramy aktivit)
+    - Architekturu řešení (komponentové diagramy)
+```
 
-## Kroky pro nasazení na GitHub
+## Iterativní přístup
+- **Zaznamenávej** plán řešení jako checklist do `./deploy_logs/notes.md`
+- **Průběžně aktualizuj** status jednotlivých bodů
+- **Při změně strategie** vysvětli důvody a výhody nového přístupu
 
-1. **Ověření struktury projektu**:
-   - Zajisti, že struktura odpovídá očekávané struktuře v deployment_guide.md
-   - Zkontroluj přítomnost všech potřebných souborů (langgraph.json, graph.py, atd.)
+## Co NEDĚLAT (CoT analýza)
+**NEVYTVÁŘEJ** rozsáhlou dokumentaci
+> *Proč?* Odvádí pozornost od hlavního cíle - úspěšného deploymentu
 
-2. **Konfigurace GitHub repozitáře**:
-   - Příprava .gitignore pro vyloučení citlivých souborů
-   - Konfigurace .env.template (ne .env s reálnými hodnotami)
-   - Nastavení GitHub Actions workflow
+**NEPOSÍLEJ** průběžně dokumentaci a diagramy na GitHub
+> *Proč?* Zpomaluje proces a tříští fokus
 
-3. **Testování CI/CD Pipeline**:
-   - Ověření, že testy procházejí
-   - Kontrola build procesu
-   - Příprava pro automatické nasazení
+**NIKDY NEPOSÍLEJ** Docker soubory a konfiguraci na GitHub
+> *Proč?* Způsobuje konflikty při buildu na LangGraph Platform
 
-## Kroky pro nasazení na LangGraph Platform
+**NIKDY NEPOSÍLEJ** žádné soubory nesouvisející přímo s deploymentem
+> *Proč?* LangGraph Platform očekává čistý kód bez přidaných konfiguračních souborů
 
-1. **Konfigurace langgraph.json**:
-   - Správné nastavení cesty ke grafu
-   - Konfigurace závislostí
-   - Nastavení environment variables
+**NEPOUŽÍVEJ** přístup pokus-omyl bez analýzy
+> *Proč?* Vede k neefektivnímu řešení a opakování chyb
 
-2. **Příprava deployment skriptů**:
-   - Review deploy_to_langgraph_platform.sh
-   - Integrace s GitHub Actions workflow
+**NEVYTVÁŘEJ** dlouhé souhrny práce
+> *Proč?* Zbytečně spotřebovává čas, který lze využít produktivněji
 
-3. **Testování nasazení**:
-   - Testování lokálního build procesu
-   - Příprava pro nasazení na platformu
+## Příklad řešení problému (MCP workflow)
 
-## Práce s kódem a konfiguracemi
+```
+Chain 1: IDENTIFIKACE A ANALÝZA
+  Log obsahuje: "Command not found: langgraph platform"
+  
+  CoT analýza:
+  1. Příkaz "langgraph platform" není nalezen
+  2. Chyba nastává v deployment skriptu
+  3. Pravděpodobná příčina: LangGraph CLI v0.2.10 nemá příkaz "platform"
 
-1. **Analýza zdrojového kódu**:
-   - Využívej MCP filesystem pro prozkoumání souborů
-   - Identifikuj klíčové komponenty a jejich vztahy
-   - Zaměř se především na src/memory_agent/graph.py
+Chain 2: CONTEXT7 VYUŽITÍ
+  Hledání alternativních příkazů v LangGraph CLI
+  Nalezené alternativy: "build", "up"
 
-2. **Modifikace konfigurace**:
-   - Při úpravách .github/workflows/build-test-deploy.yml buď konzervativní
-   - Zajisti, že změny nenaruší existující funkčnost
-   - Důsledně testuj každou změnu
+Chain 3: DOKUMENTACE
+  ## [2025-05-18] - Chybějící příkaz v LangGraph CLI
+  
+  ### Identifikovaný problém:
+  - GitHub Actions log obsahuje chybu: "Command not found: langgraph platform"
+  
+  ### Analýza příčiny:
+  - LangGraph CLI v0.2.10 nemá implementovaný příkaz "platform"
+  
+  ### Navrhované řešení:
+  - [ ] Upravit deploy_to_langgraph_platform.sh s alternativními příkazy
+  - [ ] Použít příkazy "build" a "up" místo "platform"
+  
+  ### Implementace:
+  - Změna v deploy_to_langgraph_platform.sh, řádek 23:
+    - Před: langgraph platform deploy ...
+    - Po: langgraph build && langgraph up ...
+  
+  ### Verifikace:
+  - Deployment skript proběhl úspěšně
 
-3. **Dokumentace změn**:
-   - Každou změnu jasně zdokumentuj
-   - Vysvětli, proč byla změna provedena
-   - Poskytni instrukce pro případný rollback
+Chain 4: PLANTUM DIAGRAM
+  Sekvenční diagram procesu deploymentu s identifikací problému a řešením
+```
 
-## Řešení problémů
+## Struktura PlantUML diagramu pro dokumentaci problému
+```plantuml
+@startuml "Problem-Solution-Workflow"
+' DIAGRAM PRO VLASTNÍ ZÁPIS POSTUPU ŘEŠENÍ
 
-Pokud narazíš na problémy při nasazení:
+start
+:Identifikace chyby v GitHub Actions;
+note right: Log obsahuje chybu: "Command not found: langgraph platform"
 
-1. **Diagnostika**:
-   - Zkontroluj logy a chybové zprávy
-   - Ověř konfigurační soubory
-   - Zkontroluj závislosti projektu
+:Analýza problému;
+note right: LangGraph CLI v0.2.10 neobsahuje příkaz "platform"
 
-2. **Dokumentace problémů**:
-   - Detailně popiš povahu problému
-   - Zdokumentuj kroky k reprodukci
-   - Navrhni možná řešení
+:Hledání řešení;
+note right: Alternativní příkazy: build, up
 
-3. **Prioritizace řešení**:
-   - Zaměř se nejprve na kritické problémy blokující nasazení
-   - Méně závažné problémy zdokumentuj pro pozdější řešení
+:Implementace opravy;
+note right: Úprava deploy_to_langgraph_platform.sh
 
-## Zdroje a dokumentace
+:Testování řešení;
+if (Úspěšné?) then (Ano)
+  :Commit změn;
+else (Ne)
+  :Další analýza;
+endif
 
-Klíčové soubory projektu:
-- `.github/workflows/build-test-deploy.yml` - CI/CD workflow
-- `deploy_to_langgraph_platform.sh` - Skript pro nasazení
-- `langgraph.json` - Konfigurace pro LangGraph Platform
-- `docs/langgraph_platform_security_checklist.md` - Bezpečnostní postupy
-- `doc/deployment_guide.md` - Průvodce nasazením
-
-Při nejasnostech se podívej na tyto soubory a odkazuj na ně ve svých odpovědích.
-
-## Závěrečné poznámky
-
-- Při práci se zaměřuj primárně na nasazení projektu
-- Používej systematický přístup s CoT a MCP
-- Minimalizuj práci s citlivými údaji a API klíči
-- Vytvárej pravidelné checkpointy při složitějších úlohách
-- Vždy ověřuj, že změny jsou kompatibilní s existující konfigurací
-- Průběžně vysvětluj své technické postupy a rozhodnutí
-
-Cílem je úspěšné nasazení projektu AI-agent-Ntier na GitHub a následně na LangGraph Platform s důrazem na bezpečnost a spolehlivost procesu nasazení.
+stop
+@enduml
+```
