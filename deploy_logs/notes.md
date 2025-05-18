@@ -2,6 +2,65 @@ Zápisky:
 
 # Deploying AI-agent-Ntier - Poznámky z procesu nasazení
 
+## [2025-05-18] - Řešení problému s JSON schématem
+
+### Identifikovaný problém:
+- LangGraph Platform reportuje chybu při generování JSON schématu pro grafy
+- Chybová zpráva: `Cannot generate a JsonSchema for core_schema.IsInstanceSchema (<class 'memory_agent.tools.MockMCPConnector'>)`
+- Způsobuje problém při generování API dokumentace a testování
+
+### Analýza příčiny:
+- Třída `MockMCPConnector` v objektu `State` není serializovatelná do JSON formátu
+- LangGraph Platform potřebuje generovat JSON schéma pro všechny komponenty grafu
+- Přímá reference na instanci třídy ve stavu grafu není podporována
+
+### Navrhované řešení:
+- [x] Nahradit přímou referenci na `MockMCPConnector` za `MockMCPConnectorConfig` (Pydantic model)
+- [x] Přidat metodu `get_mcp_connector()` pro vytváření instancí z konfigurace
+- [x] Implementovat utility funkci `create_mcp_connector_from_config()`
+- [x] Vytvořit testovací skript pro ověření změn
+- [ ] Sestavit a nasadit projekt na LangGraph Platform
+- [ ] Verifikovat absenci chyby v produkčním prostředí
+
+### Implementace:
+1. Změněno v `src/memory_agent/state.py`:
+   ```python
+   # Původní
+   mcp_connector: Optional[MockMCPConnector] = None
+   
+   # Nové
+   mcp_connector_config: Optional[MockMCPConnectorConfig] = None
+   
+   # Přidána metoda
+   def get_mcp_connector(self) -> Any:
+       from memory_agent.utils import create_mcp_connector_from_config
+       if self.mcp_connector_config is None:
+           self.mcp_connector_config = MockMCPConnectorConfig()
+       return create_mcp_connector_from_config(self.mcp_connector_config)
+   ```
+
+2. Vytvořena utility funkce v `src/memory_agent/utils.py`:
+   ```python
+   def create_mcp_connector_from_config(config_dict: Dict[str, Any]) -> Any:
+       from memory_agent.tools import MockMCPConnector
+       from memory_agent.schema import MockMCPConnectorConfig
+       
+       if isinstance(config_dict, dict):
+           config = MockMCPConnectorConfig(**config_dict)
+       else:
+           config = config_dict
+       
+       return MockMCPConnector(data_path=config.data_path)
+   ```
+
+3. Přidána synchronní verze funkce `analyze_query` v `analyzer.py`
+
+4. Aktualizována logika v `graph_nodes.py` pro zpracování různých formátů výsledků
+
+### Verifikace:
+- Vytvořen testovací skript `tests/test_schema_fix_minimal.py`
+- Vizuální dokumentace vytvořena v `doc/PlantUML/LangGraphSchema_Fix_18_05_2025.plantuml`
+
 ## [2024-07-21] - Úspěšný deployment! 🎉
 
 ### Stav deploymentu:
@@ -311,3 +370,72 @@ Deployment by měl nyní:
 - Generovat správná JSON schémata pro vstupy/výstupy bez chyb
 - Zobrazit správnou dokumentaci API v LangGraph Platform
 - Odstranit varování o zastaralých importech z `langchain_core.pydantic_v1`
+
+## [2025-05-18] - Oprava JSON schématu pro LangGraph Platform
+
+### Identifikovaný problém:
+- LangGraph Platform hlásí chybu: `Cannot generate a JsonSchema for core_schema.IsInstanceSchema (<class 'memory_agent.tools.MockMCPConnector'>)`
+- V logu se objevují varování o používání `langchain_core.pydantic_v1`
+
+### Analýza příčiny:
+- `MockMCPConnector` jako třída není serializovatelná do JSON schématu
+- `State` objekt obsahuje přímý odkaz na instanci `MockMCPConnector`
+- LangGraph Platform potřebuje mít serializovatelné všechny součásti grafu pro správné generování API dokumentace
+
+### Navrhované řešení:
+- [x] Upravit State třídu, aby místo `mcp_connector` používala serializovatelný `mcp_connector_config`
+- [x] Přidat metodu `get_mcp_connector()` pro vytváření instancí z konfigurace
+- [x] Vytvořit synchronní wrapper pro `analyze_query` funkci
+- [x] Vytvořit testy pro kontrolu funkčnosti oprav
+
+### Implementace:
+1. Úprava `state.py`:
+   - Změněno `mcp_connector: Optional[MockMCPConnector]` na `mcp_connector_config: Optional[MockMCPConnectorConfig]`
+   - Přidána metoda `get_mcp_connector()` pro vytváření instancí
+
+2. Úprava `analyzer.py`:
+   - Vytvořena synchronní verze `analyze_query` pro kompatibilitu s grafovými uzly
+   - Asynchronní verze přejmenována na `analyze_query_async`
+
+3. Vytvořen testovací skript `tests/test_schema_fix_minimal.py`
+
+4. Vytvořena dokumentace oprav `deploy_logs/schema_fix_18_05_2025.md`
+
+5. Vytvořen PlantUML diagram `doc/PlantUML/LangGraphSchema_Fix.plantuml`
+
+### Verifikace:
+- Spuštěny testy pro ověření funkčnosti oprav
+- Testy potvrzují, že State objekt může nyní vytvářet MockMCPConnector z konfigurace
+- Předpokládáme, že LangGraph Platform bude nyní schopen generovat JSON schémata
+
+### Další kroky:
+- [ ] Nasadit opravy do produkce
+- [ ] Zkontrolovat logy po nasazení pro potvrzení odstranění chyby
+- [ ] Zkontrolovat API dokumentaci v LangGraph Platform
+
+## [2025-05-18] - Dokončení nasazení po opravě JSON schématu
+
+### Aktuální stav:
+- Všechny potřebné změny pro opravu JSON schématu byly implementovány a otestovány
+- Git branch `langraph-schema-fix` obsahuje kompletní řešení
+- Vytvořena dokumentace procesu opravy včetně PlantUML diagramů
+- Testovací skript `test_schema_fix_minimal.py` úspěšně ověřil funkčnost změn
+
+### Pokračování nasazení:
+- [x] Vytvořen nový PlantUML diagram `Deployment_Process_18_05_2025.plantuml` s vizualizací procesu nasazení
+- [ ] Spustit deploy skript s možností 2 (sestavení a nasazení na LangGraph Platform)
+- [ ] Ověřit logy nasazení pro absenci chyby "Cannot generate a JsonSchema"
+- [ ] Zkontrolovat správnost generování API dokumentace v LangGraph Platform
+- [ ] Po úspěšném nasazení sloučit branch `langraph-schema-fix` do `main`
+
+### Plán nasazení:
+1. Spustit příkaz: `./deploy_to_langgraph_platform.sh` a zvolit možnost 2
+2. Ověřit, že build proběhl úspěšně: `langgraph build --tag ai-agent-ntier:latest`
+3. Po sestavení Docker image nasadit na LangGraph Platform
+4. Zkontrolovat logy pro ověření úspěšnosti nasazení
+5. Vytvořit Pull Request pro sloučení `langraph-schema-fix` do `main`
+
+### Následné kroky po úspěšném nasazení:
+- Aktualizovat PlantUML diagramy s konečným stavem nasazení
+- Vytvořit shrnutí řešení problému v dokumentaci
+- Archivovat logy z nasazení pro budoucí reference
