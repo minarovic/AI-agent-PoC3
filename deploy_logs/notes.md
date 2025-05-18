@@ -1,6 +1,35 @@
+<!-- filepath: /Users/marekminarovic/AI-agent-Ntier/deploy_logs/notes.md -->
 Zápisky:
 
 # Deploying AI-agent-Ntier - Poznámky z procesu nasazení
+
+## [2025-05-19] - Docker build a nasazení
+
+### Identifikovaný problém:
+- Deploy skript používal příkazy `langgraph build` a `langgraph deploy --remote`, které se pokouší vytvořit Docker image lokálně
+- Tento přístup není vhodný pro workflow, kdy chceme čistý kód odeslat na GitHub a nechat LangGraph Platform sestavit aplikaci
+
+### Analýza příčiny:
+- LangGraph Platform očekává čistý kód bez Docker souborů
+- Lokální sestavení Docker image a následné nasazení není doporučený workflow
+- Správný postup je odeslat čistý kód na GitHub a nechat LangGraph Platform provést sestavení
+
+### Navrhované řešení:
+- [x] Přepracovat deploy workflow - odstranit příkazy pro lokální Docker build
+- [x] Upravit `deploy_to_langgraph_platform.sh` na skript pro lokální testování bez Docker buildu
+- [x] Ponechat `deploy_to_github.sh` jako hlavní způsob nasazení aplikace
+
+### Implementace:
+- `deploy_to_langgraph_platform.sh` upraven tak, aby sloužil pouze pro lokální testování:
+  - Odstraněny všechny příkazy `langgraph build` a `langgraph deploy`
+  - Přidáno spouštění verifikačního skriptu
+  - Ponechána pouze možnost lokálního testování s `langgraph serve` a spouštění testů
+- `deploy_to_github.sh` ponechán jako primární způsob nasazení - push čistého kódu na GitHub
+
+### Verifikace:
+- Skripty jsou nyní v souladu s best practices pro LangGraph Platform
+- Odstraněny všechny kroky, které by mohly přidat nežádoucí soubory do repozitáře
+- Veškeré sestavení aplikace bude probíhat na straně LangGraph Platform
 
 ## [2025-05-18] - Řešení problému s JSON schématem
 
@@ -489,3 +518,69 @@ Deployment by měl nyní:
 ### Verifikace:
 - Změny byly commitnuty a pushnuty do repozitáře
 - GitHub Actions workflow by měl nyní úspěšně sestavit projekt bez chyby "Missing option --tag"
+
+## [2025-05-18] - Oprava asynchronní funkce v LangGraph workflow
+
+### Identifikovaný problém:
+- LangGraph Platform hlásí chybu: `KeyError: <coroutine object analyze_query at 0x7b3556b87b50>`
+- Chyba nastává v uzlu `route_query` při zpracování grafu
+- Blokuje správné fungování celého workflow na platformě
+
+### Analýza příčiny:
+- Funkce `analyze_query` v modulu `analyzer.py` je asynchronní (`async def`), ale je volána v `route_query` synchronně
+- LangGraph Platform očekává synchronní funkce v uzlech grafu nebo správné zpracování asynchronních funkcí
+- Pokus o použití korutiny jako klíče ve slovníku způsobuje `KeyError`
+- Chyba v trace: `KeyError: <coroutine object analyze_query at 0x7b3556b87b50>`
+
+### Navrhované řešení:
+- [x] Vytvořit synchronní wrapper pro asynchronní funkci `analyze_query`
+- [x] Aktualizovat import v `graph_nodes.py`, aby používal synchronní verzi
+- [x] Upravit uzel `route_query`, aby volal synchronní verzi funkce
+- [x] Zachovat původní asynchronní funkci pod novým názvem pro možné budoucí použití
+
+### Implementace:
+1. Vytvořen synchronní wrapper `analyze_query_sync` v `analyzer.py`:
+   ```python
+   def analyze_query_sync(user_input: str, config=None, model=None, mcp_connector=None) -> str:
+       try:
+           # Získání výchozí smyčky událostí
+           loop = asyncio.get_event_loop()
+       except RuntimeError:
+           # Pokud smyčka není k dispozici, vytvoříme novou
+           loop = asyncio.new_event_loop()
+           asyncio.set_event_loop(loop)
+       
+       # Spuštění asynchronní funkce synchronně
+       result = loop.run_until_complete(analyze_query(user_input, config, model, mcp_connector))
+       
+       # Převod výsledku na typ dotazu
+       # ...
+   ```
+
+2. Aktualizován import v `graph_nodes.py`:
+   ```python
+   # Původní
+   from memory_agent.analyzer import analyze_query
+   
+   # Nový
+   from memory_agent.analyzer import analyze_query_sync
+   ```
+
+3. Upraveno volání funkce v `route_query`:
+   ```python
+   # Původní
+   query_type = analyze_query(state.current_query)
+   
+   # Nové
+   query_type = analyze_query_sync(state.current_query)
+   ```
+
+4. Přejmenována původní asynchronní funkce pro lepší srozumitelnost:
+   ```python
+   analyze_query_async = analyze_query
+   ```
+
+### Verifikace:
+- Změny byly commitnuty a pushnuty do GitHub repozitáře
+- Deployment skript bude znovu spuštěn pro ověření opravy
+- Očekáváme, že chyba `KeyError: <coroutine object analyze_query at 0x...>` již nebude nastávat

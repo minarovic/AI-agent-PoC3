@@ -6,7 +6,8 @@ detekci typu analýzy a generování optimalizovaných odpovědí.
 Upraveno pro kompatibilitu s LangGraph Platform.
 """
 
-from typing import Dict, List, Any, TypedDict, Annotated, Literal, Optional, cast
+from typing import Dict, List, Any, Annotated, Literal, Optional, cast
+from typing_extensions import TypedDict
 import operator
 import logging
 from pathlib import Path

@@ -20,6 +20,25 @@ PRIORITA:
 
 **KRITICKÉ:** Nejprve řeš kompletní opravu a nasazení, až následně se věnuj dokumentaci. Dokumentace nemá prioritu - prioritou je funkční nasazení aplikace na LangGraph Platform.
 
+## Správný workflow pro nasazení
+DŮLEŽITÉ: Pro nasazení aplikace na LangGraph Platform dodržuj následující postup:
+
+1. **Lokální testování:**
+   - Používej `deploy_to_langgraph_platform.sh` pouze pro LOKÁLNÍ testování funkčnosti
+   - Používej `verify_deployment.sh` pro kontrolu správnosti kódu
+   - NIKDY nepoužívej příkazy jako `langgraph build` nebo `langgraph deploy` při práci s GitHub
+
+2. **Nasazení na GitHub:**
+   - Pro nasazení na LangGraph Platform používej VÝHRADNĚ `deploy_to_github.sh`
+   - Tento skript odešle ČISTÝ kód na GitHub bez jakýchkoliv Docker souborů
+   - LangGraph Platform si stáhne kód přímo z GitHubu a sestaví jej podle `langgraph.json`
+
+3. **Propojení GitHub a LangGraph Platform:**
+   - V administraci LangGraph Platform propoj GitHub repozitář
+   - Nastav automatické nasazení při push do hlavní větve
+
+**NIKDY NEPOSÍLEJ** Docker soubory a konfiguraci na GitHub, způsobuje to konflikty při buildu na LangGraph Platform!
+
 ## Proces řešení problémů (MCP)
 
 ### 1. Identifikace a analýza chyb (Chain 1)

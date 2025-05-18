@@ -5,7 +5,8 @@ Tento modul obsahuje implementaci uzlů grafu pro StateGraph, které využívaj�
 MockMCPConnector pro získávání dat pro různé typy analýz.
 """
 
-from typing import Dict, Any, TypedDict, List, Optional, Literal
+from typing import Dict, Any, List, Optional, Literal
+from typing_extensions import TypedDict
 import logging
 
 from memory_agent.tools import (
@@ -18,7 +19,7 @@ from memory_agent.tools import (
 )
 
 from memory_agent.state import State
-from memory_agent.analyzer import analyze_query
+from memory_agent.analyzer import analyze_query_sync
 
 # Import prompt registry
 from memory_agent.prompts import (
@@ -49,7 +50,7 @@ def route_query(state: State) -> State:
         state.current_query = last_message.content
     
     if state.current_query:
-        query_type = analyze_query(state.current_query)
+        query_type = analyze_query_sync(state.current_query)
         
         logger.info(f"Dotaz '{state.current_query[:30]}...' klasifikován jako typ: {query_type}")
         

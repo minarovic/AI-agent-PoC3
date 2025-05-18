@@ -1,8 +1,9 @@
 #!/bin/zsh
-# Script pro nasazení AI-agent-Ntier na LangGraph Platform
+# Script pro lokální testování AI-agent-Ntier před nasazením na GitHub
+# DŮLEŽITÉ: Tento skript slouží pouze pro lokální testování! Pro nasazení použijte deploy_to_github.sh
 
 echo "====================================================="
-echo "   AI-agent-Ntier - LangGraph Platform Deploy    "
+echo "   AI-agent-Ntier - Lokální testování    "
 echo "====================================================="
 
 # Kontrola potřebných API klíčů
@@ -20,12 +21,6 @@ fi
 
 echo "Nastavuji LANGSMITH_PROJECT..."
 export LANGSMITH_PROJECT="AI-agent-Ntier"
-
-# Kontrola, zda je nainstalovaný LangGraph CLI
-if ! command -v langgraph &> /dev/null; then
-  echo "Instaluji LangGraph CLI..."
-  pip install --upgrade "langgraph-cli[inmem]"
-fi
 
 # Ověření konfigurace
 echo "Kontroluji konfiguraci..."
@@ -48,30 +43,43 @@ EOL
   exit 1
 fi
 
-# Možnosti nasazení
-echo "Vyberte způsob nasazení:"
-echo "1) Lokální vývojový server (langgraph dev)"
-echo "2) Sestavení a nasazení na LangGraph Platform"
-echo "3) Pouze sestavení bez nasazení"
+# Spustíme verifikaci
+echo "Spouštím verifikaci deploymentu..."
+./verify_deployment.sh
+
+if [ $? -ne 0 ]; then
+  echo "Verifikace selhala. Opravte chyby a zkuste to znovu."
+  exit 1
+fi
+
+echo "Verifikace úspěšná."
+
+# Možnosti lokálního testování
+echo "Vyberte způsob testování:"
+echo "1) Lokální vývojový server (langgraph serve)"
+echo "2) Spustit testy"
 
 read -r choice
 
 case $choice in
   1)
     echo "Spouštím lokální LangGraph Platform server pro testování..."
-    langgraph dev
+    langgraph serve
     ;;
   2)
-    echo "Sestavuji projekt..."
-    langgraph build --local
+    echo "Spouštím testy..."
+    pytest
     
-    echo "Nasazuji na LangGraph Platform..."
-    langgraph up --env production
-    ;;
-  3)
-    echo "Sestavuji projekt..."
-    langgraph build --local
-    echo "Hotovo. Pro nasazení použijte: langgraph up --env production"
+    if [ $? -eq 0 ]; then
+      echo "====================================================="
+      echo "  Testování úspěšně dokončeno!  "
+      echo "====================================================="
+      echo "Pro nasazení na GitHub použijte:"
+      echo "./deploy_to_github.sh"
+    else
+      echo "Testy selhaly. Opravte chyby a zkuste to znovu."
+      exit 1
+    fi
     ;;
   *)
     echo "Neplatná volba"

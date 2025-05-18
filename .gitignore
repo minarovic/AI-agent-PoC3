@@ -7,6 +7,12 @@ __pycache__/
 *.so
 .langgraph_api
 
+# Docker soubory (lokální testování)
+Dockerfile
+Dockerfile.local
+docker-compose.yml
+.dockerignore
+
 # Distribution / packaging
 .Python
 build/

@@ -3,6 +3,8 @@ import traceback
 import re
 from typing import Dict, List, Literal, Optional, Union, Any, Tuple
 from typing_extensions import TypedDict
+import asyncio
+from functools import wraps
 
 # LangChain Core imports
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
@@ -426,3 +428,56 @@ async def analyze_query(
         logger.error(traceback.format_exc())
         # Fallback to error handler
         return ErrorHandler.handle_llm_error(e, user_input)
+
+# Synchronní wrapper pro analyze_query
+import asyncio
+
+def analyze_query_sync(
+    user_input: str, 
+    config: Optional[RunnableConfig] = None,
+    model: Optional[str] = None, 
+    mcp_connector: Any = None
+) -> str:
+    """
+    Synchronní wrapper pro asynchronní funkci analyze_query.
+    
+    Args:
+        user_input: Uživatelský vstup k analýze
+        config: Volitelná konfigurace pro runnable
+        model: Volitelný název modelu
+        mcp_connector: Volitelný konektor MCP
+        
+    Returns:
+        Typ dotazu jako řetězec: "company", "person", "relationship", "custom", nebo "error"
+    """
+    try:
+        # Získání výchozí smyčky událostí
+        loop = asyncio.get_event_loop()
+    except RuntimeError:
+        # Pokud smyčka není k dispozici, vytvoříme novou
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+    
+    try:
+        # Spuštění asynchronní funkce synchronně
+        result = loop.run_until_complete(
+            analyze_query(user_input, config, model, mcp_connector)
+        )
+        
+        # Mapování výsledků na typ dotazu
+        if "company" in result.companies[0].lower() or result.is_company_analysis:
+            return "company"
+        elif any(keyword in user_input.lower() for keyword in ["osoba", "person", "člověk", "human"]):
+            return "person"
+        elif any(keyword in user_input.lower() for keyword in ["vztah", "relationship", "vazba", "connection"]):
+            return "relationship"
+        else:
+            return "custom"
+            
+    except Exception as e:
+        logger.error(f"Error in analyze_query_sync: {str(e)}")
+        logger.error(traceback.format_exc())
+        return "error"
+
+# Přejmenování původní asynchronní funkce, aby bylo jasné, že je asynchronní
+analyze_query_async = analyze_query
