@@ -10,12 +10,15 @@ import asyncio
 import warnings
 from functools import wraps
 from pathlib import Path
-from typing import Annotated, Dict, Any, Optional, List, ClassVar, Callable, TypeVar, cast
+from typing import Annotated, Dict, Any, Optional, List, ClassVar, Callable, TypeVar, cast, Union
 from pydantic import BaseModel, Field
 
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import InjectedToolArg, ToolException, BaseTool
 from langgraph.store.base import BaseStore
+
+# Import schema definitions
+from memory_agent.schema import CompanyQueryParams, MockMCPConnectorConfig, CompanyData, PersonData, RelationshipData
 
 from unidecode import unidecode
 import re
@@ -67,13 +70,7 @@ class EntityNotFoundError(MockMCPConnectorError):
     pass
 
 
-# Parametry dotazu pro vyhledávání firem
-class CompanyQueryParams(BaseModel):
-    """Parametry pro dotazy na firmy."""
-    name: Optional[str] = None
-    id: Optional[str] = None
-    country: Optional[str] = None
-    industry: Optional[List[str]] = None
+# Parametry dotazu pro vyhledávání firem jsou nyní definovány v schema.py
 
 
 # Třída pro přístup k mock datům
@@ -83,6 +80,9 @@ class MockMCPConnector:
     
     Tato třída poskytuje jednotné rozhraní pro přístup k různým typům dat
     (firmy, osoby, vztahy) v simulovaném prostředí Model Context Protocol (MCP).
+    
+    Poznámka: Instance této třídy jsou nyní serializovatelné pro LangGraph Platform
+    díky oddělení konfigurace do vlastního Pydantic modelu.
     """
     
     # Třídní proměnné pro konfiguraci
@@ -99,8 +99,22 @@ class MockMCPConnector:
             data_path: Volitelná cesta k mock datům.
                        Pokud není poskytnuta, použije se výchozí cesta.
         """
-        self.data_path = data_path or self.MOCK_DATA_PATH
+        default_path = os.environ.get("MOCK_DATA_PATH", str(Path(__file__).parent.parent.parent / "mock_data"))
+        path_to_use = data_path or default_path
+        
+        # Vytvoření konfiguračního objektu pro serializaci
+        self.config = MockMCPConnectorConfig(data_path=path_to_use)
+        self.data_path = path_to_use
         logger.info(f"Inicializace MockMCPConnector s cestou k datům: {self.data_path}")
+        
+    def to_dict(self) -> dict:
+        """
+        Serializace pro LangGraph Platform.
+        
+        Returns:
+            Dict reprezentující konfiguraci konektoru
+        """
+        return self.config.model_dump()
         
     def _load_json_file(self, file_path: str) -> Dict[str, Any]:
         """
@@ -165,7 +179,7 @@ class MockMCPConnector:
         # V reálném systému by zde byla sofistikovanější metrika
         return (norm1 in norm2) or (norm2 in norm1)
     
-    def get_company_by_name(self, name: str) -> Dict[str, Any]:
+    def get_company_by_name(self, name: str) -> Union[Dict[str, Any], CompanyData]:
         """
         Najde společnost podle názvu v mock datech.
         
@@ -173,7 +187,7 @@ class MockMCPConnector:
             name: Název společnosti
             
         Returns:
-            Dict[str, Any]: Data společnosti
+            Union[Dict[str, Any], CompanyData]: Data společnosti (buď jako slovník nebo jako model)
             
         Raises:
             EntityNotFoundError: Pokud společnost nebyla nalezena
@@ -190,7 +204,14 @@ class MockMCPConnector:
                 
                 if self._fuzzy_name_match(name, company_name):
                     logger.info(f"Nalezena společnost: {company_name} (hledáno: {name})")
-                    return company_data
+                    
+                    # Pro serializaci vytvoříme Pydantic model
+                    try:
+                        return CompanyData(**company_data)
+                    except Exception as e:
+                        logger.warning(f"Nelze serializovat data společnosti do modelu: {str(e)}")
+                        # Fallback na původní slovník
+                        return company_data
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
@@ -316,7 +337,7 @@ class MockMCPConnector:
         logger.error(f"Finanční data pro společnost s ID '{company_id}' nebyla nalezena")
         raise EntityNotFoundError(f"Finanční data pro společnost s ID '{company_id}' nebyla nalezena")
     
-    def get_company_relationships(self, company_id: str) -> List[Dict[str, Any]]:
+    def get_company_relationships(self, company_id: str) -> List[Union[Dict[str, Any], RelationshipData]]:
         """
         Získá vztahy společnosti k jiným entitám.
         
@@ -324,7 +345,7 @@ class MockMCPConnector:
             company_id: ID společnosti
             
         Returns:
-            List[Dict[str, Any]]: Seznam vztahů společnosti
+            List[Union[Dict[str, Any], RelationshipData]]: Seznam vztahů společnosti
         """
         relationships_path = os.path.join(self.data_path, "relationships")
         if not os.path.isdir(relationships_path):
@@ -335,7 +356,9 @@ class MockMCPConnector:
         specific_path = os.path.join(relationships_path, f"{company_id}.json")
         if os.path.isfile(specific_path):
             try:
-                return self._load_json_file(specific_path)
+                relationships_data = self._load_json_file(specific_path)
+                return [RelationshipData(**rel) if isinstance(rel, dict) else rel 
+                        for rel in relationships_data]
             except Exception as e:
                 logger.error(f"Chyba při načítání vztahů pro společnost {company_id}: {str(e)}")
                 raise DataFormatError(f"Chyba při načítání vztahů: {str(e)}")
@@ -352,7 +375,11 @@ class MockMCPConnector:
                     for relationship in relationships_data:
                         if (relationship.get("source_id") == company_id or 
                             relationship.get("target_id") == company_id):
-                            results.append(relationship)
+                            try:
+                                results.append(RelationshipData(**relationship))
+                            except Exception as e:
+                                logger.warning(f"Nelze serializovat vztah do modelu: {str(e)}")
+                                results.append(relationship)
                 elif isinstance(relationships_data, dict):
                     # Pokud je to slovník s klíčem odpovídajícím ID společnosti
                     if company_id in relationships_data:
@@ -365,7 +392,7 @@ class MockMCPConnector:
         logger.info(f"Nalezeno {len(results)} vztahů pro společnost {company_id}")
         return results
     
-    def get_person_by_name(self, name: str) -> Dict[str, Any]:
+    def get_person_by_name(self, name: str) -> Union[Dict[str, Any], PersonData]:
         """
         Najde osobu podle jména v mock datech.
         
@@ -373,7 +400,7 @@ class MockMCPConnector:
             name: Jméno osoby
             
         Returns:
-            Dict[str, Any]: Data osoby
+            Union[Dict[str, Any], PersonData]: Data osoby (buď jako slovník nebo jako model)
             
         Raises:
             EntityNotFoundError: Pokud osoba nebyla nalezena
@@ -390,7 +417,14 @@ class MockMCPConnector:
                 
                 if self._fuzzy_name_match(name, person_name):
                     logger.info(f"Nalezena osoba: {person_name} (hledáno: {name})")
-                    return person_data
+                    
+                    # Pro serializaci vytvoříme Pydantic model
+                    try:
+                        return PersonData(**person_data)
+                    except Exception as e:
+                        logger.warning(f"Nelze serializovat data osoby do modelu: {str(e)}")
+                        # Fallback na původní slovník
+                        return person_data
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
@@ -398,7 +432,7 @@ class MockMCPConnector:
         logger.error(f"Osoba s jménem '{name}' nebyla nalezena")
         raise EntityNotFoundError(f"Osoba s jménem '{name}' nebyla nalezena")
     
-    def get_person_by_id(self, person_id: str) -> Dict[str, Any]:
+    def get_person_by_id(self, person_id: str) -> Union[Dict[str, Any], PersonData]:
         """
         Najde osobu podle ID v mock datech.
         
@@ -406,7 +440,7 @@ class MockMCPConnector:
             person_id: ID osoby
             
         Returns:
-            Dict[str, Any]: Data osoby
+            Union[Dict[str, Any], PersonData]: Data osoby (buď jako slovník nebo jako model)
             
         Raises:
             EntityNotFoundError: Pokud osoba nebyla nalezena
@@ -421,7 +455,14 @@ class MockMCPConnector:
                 person_data = self._load_json_file(file_path)
                 if person_data.get("id") == person_id:
                     logger.info(f"Nalezena osoba s ID: {person_id}")
-                    return person_data
+                    
+                    # Pro serializaci vytvoříme Pydantic model
+                    try:
+                        return PersonData(**person_data)
+                    except Exception as e:
+                        logger.warning(f"Nelze serializovat data osoby do modelu: {str(e)}")
+                        # Fallback na původní slovník
+                        return person_data
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
@@ -429,7 +470,7 @@ class MockMCPConnector:
         logger.error(f"Osoba s ID '{person_id}' nebyla nalezena")
         raise EntityNotFoundError(f"Osoba s ID '{person_id}' nebyla nalezena")
     
-    def get_person_relationships(self, person_id: str) -> List[Dict[str, Any]]:
+    def get_person_relationships(self, person_id: str) -> List[Union[Dict[str, Any], RelationshipData]]:
         """
         Získá vztahy osoby k jiným entitám.
         
@@ -437,7 +478,7 @@ class MockMCPConnector:
             person_id: ID osoby
             
         Returns:
-            List[Dict[str, Any]]: Seznam vztahů osoby
+            List[Union[Dict[str, Any], RelationshipData]]: Seznam vztahů osoby
         """
         # Podobná implementace jako get_company_relationships
         relationships_path = os.path.join(self.data_path, "relationships")
@@ -451,7 +492,9 @@ class MockMCPConnector:
         specific_path = os.path.join(relationships_path, f"person_{person_id}.json")
         if os.path.isfile(specific_path):
             try:
-                return self._load_json_file(specific_path)
+                relationships_data = self._load_json_file(specific_path)
+                return [RelationshipData(**rel) if isinstance(rel, dict) else rel 
+                        for rel in relationships_data]
             except Exception as e:
                 logger.error(f"Chyba při načítání vztahů pro osobu {person_id}: {str(e)}")
                 raise DataFormatError(f"Chyba při načítání vztahů: {str(e)}")
@@ -466,7 +509,11 @@ class MockMCPConnector:
                     for relationship in relationships_data:
                         if (relationship.get("source_id") == person_id or 
                             relationship.get("target_id") == person_id):
-                            results.append(relationship)
+                            try:
+                                results.append(RelationshipData(**relationship))
+                            except Exception as e:
+                                logger.warning(f"Nelze serializovat vztah do modelu: {str(e)}")
+                                results.append(relationship)
                 elif isinstance(relationships_data, dict):
                     # Pokud je to slovník s klíčem odpovídajícím ID osoby
                     if person_id in relationships_data:

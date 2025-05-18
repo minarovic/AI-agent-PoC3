@@ -4,7 +4,7 @@ Utility functions for Memory Agent.
 Tento modul obsahuje obecné utility funkce používané v Memory Agent.
 """
 
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, Any
 
 
 def split_model_and_provider(model_name: str) -> Tuple[Optional[str], str]:
@@ -21,3 +21,29 @@ def split_model_and_provider(model_name: str) -> Tuple[Optional[str], str]:
         provider, model = model_name.split("/", 1)
         return provider, model
     return None, model_name
+
+
+def create_mcp_connector_from_config(config_dict: Dict[str, Any]) -> Any:
+    """
+    Vytvoří instanci MockMCPConnector z konfiguračního slovníku.
+    
+    Tato funkce je užitečná pro LangGraph Platform, kde potřebujeme
+    vytvářet instance z serializovaných konfigurací.
+    
+    Args:
+        config_dict: Konfigurační slovník obsahující data_path
+        
+    Returns:
+        Any: Nová instance MockMCPConnector
+    """
+    from memory_agent.tools import MockMCPConnector
+    from memory_agent.schema import MockMCPConnectorConfig
+    
+    # Vytvoříme Pydantic model z slovníku
+    if isinstance(config_dict, dict):
+        config = MockMCPConnectorConfig(**config_dict)
+    else:
+        config = config_dict
+    
+    # Vytvoříme instanci konektoru
+    return MockMCPConnector(data_path=config.data_path)

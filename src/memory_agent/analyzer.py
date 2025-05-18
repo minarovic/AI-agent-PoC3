@@ -10,7 +10,8 @@ from datetime import datetime
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
+# Použití přímo pydantic místo langchain_core.pydantic_v1 (odstraněni warnings)
+from pydantic import BaseModel, Field, validator
 from langchain_core.runnables import RunnableConfig, chain, RunnablePassthrough
 from langchain_core.tools import BaseTool, StructuredTool, tool
 from langchain_core.runnables.utils import ConfigurableFieldSpec
@@ -19,7 +20,9 @@ from langchain_core.exceptions import OutputParserException
 # LangChain imports
 from langchain_openai import ChatOpenAI
 
+# Local imports
 from memory_agent import utils
+from memory_agent.schema import AnalysisResult
 
 logger = logging.getLogger(__name__)
 
@@ -42,13 +45,8 @@ AnalysisType = Literal["risk_comparison", "supplier_analysis", "general"]
 # Valid analysis types constant
 VALID_ANALYSIS_TYPES = ["risk_comparison", "supplier_analysis", "general"]
 
-# NEW: Define Pydantic model for analysis result
-class AnalysisResult(BaseModel):
-    """Result of user input analysis."""
-    companies: List[str] = Field(description="List of identified companies")
-    company: str = Field(description="Primary company (first in the list)")
-    analysis_type: AnalysisType = Field(description="Type of analysis to perform")
-    query: str = Field(description="Original user query")
+# NOTE: AnalysisResult je nyní importován z memory_agent.schema
+# Tím je zajištěna konzistence a LangGraph Platform může správně generovat schémata
     is_company_analysis: bool = Field(description="Indicates whether the query is about company analysis")
     confidence: float = Field(ge=0.0, le=1.0, description="Analysis confidence level (0.0 - 1.0)")
     
@@ -366,7 +364,7 @@ class ErrorHandler:
         )
 
 # UPDATED: Main analyze_query function with LCEL chain
-async def analyze_query(
+async def analyze_query_async(
     user_input: str, 
     config: Optional[RunnableConfig] = None,
     model: Optional[str] = None, 
@@ -392,6 +390,7 @@ async def analyze_query(
         
         if any(kw in lower_query for kw in ["risk", "compliance", "sanctions", "riziko", "sankce"]):
             examples.extend(RISK_EXAMPLES[:2])
+        
         if any(kw in lower_query for kw in ["supplier", "supply", "dodavatel", "dodávky"]):
             examples.extend(SUPPLIER_EXAMPLES[:2])
         
@@ -441,3 +440,44 @@ async def analyze_query(
         logger.error(traceback.format_exc())
         # Fallback to error handler
         return ErrorHandler.handle_llm_error(e, user_input)
+
+
+# Přidání synchronní verze analyze_query pro kompatibilitu s grafovými uzly
+def analyze_query(
+    user_input: str, 
+    config: Optional[RunnableConfig] = None,
+    model: Optional[str] = None, 
+    mcp_connector: Any = None
+) -> AnalysisResult:
+    """
+    Synchronní verze funkce analyze_query pro přímé použití v grafových uzlech.
+    
+    Args:
+        user_input: Uživatelský dotaz k analýze
+        config: Volitelná konfigurace pro LangChain runnable
+        model: Volitelný model pro LLM
+        mcp_connector: Volitelný MCP konektor
+        
+    Returns:
+        AnalysisResult: Výsledek analýzy dotazu
+    """
+    import asyncio
+    
+    # Vytvoření funkce pro spuštění asynchronní funkce synchronně
+    def run_async(coroutine):
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        return loop.run_until_complete(coroutine)
+    
+    # Zavolání asynchronní funkce synchronně
+    return run_async(
+        analyze_query_async(
+            user_input=user_input,
+            config=config,
+            model=model,
+            mcp_connector=mcp_connector
+        )
+    )
