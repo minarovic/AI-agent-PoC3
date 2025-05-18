@@ -76,7 +76,8 @@ jobs:
         mkdir -p artifacts
         cp -r .langgraph artifacts/
         cp langgraph.json artifacts/
-        tar -czvf langgraph-package.tar.gz artifacts/
+        tar -czvf langgraph-package.tar.gz -C artifacts/ .
+        echo "Artifact langgraph-package.tar.gz created successfully."
         # Kontrola, že soubor byl vytvořen
         ls -la langgraph-package.tar.gz
       env:
