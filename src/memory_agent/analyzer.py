@@ -481,3 +481,87 @@ def analyze_query_sync(
 
 # Přejmenování původní asynchronní funkce, aby bylo jasné, že je asynchronní
 analyze_query_async = analyze_query
+
+# Přímá funkce pro rozpoznání společnosti a typu analýzy z dotazu
+def analyze_company_query(query: str) -> Tuple[str, str]:
+    """
+    Analyzuje uživatelský dotaz a extrahuje název společnosti a typ analýzy.
+    Používá pouze LLM s přístupem založeným na promptu, bez regex záložních řešení.
+    
+    Args:
+        query: Uživatelský dotaz k analýze
+        
+    Returns:
+        Tuple ve tvaru (název_společnosti, typ_analýzy)
+    """
+    try:
+        # Inicializace LLM modelu
+        llm = init_chat_model(model="anthropic/claude-3-sonnet-20240229", temperature=0.1)
+        
+        # Vytvoření promptu pro LLM
+        prompt_template = """Analyzuj vstup uživatele a extrahuj název společnosti a typ analýzy.
+
+        Formát by měl odpovídat vzoru: "Název společnosti; typ_analýzy"
+        Kde typ_analýzy může být:
+        - risk_comparison (pro analýzu rizik, compliance, sankcí atd.)
+        - supplier_analysis (pro vztahy s dodavateli, dodavatelský řetězec atd.)
+        - general (pro obecné informace o společnosti)
+
+        Příklady:
+        - Vstup: "Find risks for Apple Inc"
+          Výstup: "Apple Inc; risk_comparison"
+          
+        - Vstup: "Show me suppliers for Samsung Electronics"
+          Výstup: "Samsung Electronics; supplier_analysis"
+          
+        - Vstup: "I need information about Microsoft"
+          Výstup: "Microsoft; general"
+
+        - Vstup: "Má MB TOOL nějaké sankce?"
+          Výstup: "MB TOOL; risk_comparison"
+
+        - Vstup: "Jaké jsou vztahy mezi ŠKODA AUTO a jejími dodavateli?"
+          Výstup: "ŠKODA AUTO; supplier_analysis"
+
+        - Vstup: "Co je to Flídr plast?"
+          Výstup: "Flídr plast; general"
+
+        Vstup: {query}
+
+        Odpověz pouze strukturovaným výstupem ve formátu "Název společnosti; typ_analýzy" - žádný další text.
+        """
+        
+        # Vytvoření zpráv pro LLM
+        messages = [
+            SystemMessage(content="Jsi expert na extrakci názvů společností a záměrů analýz z dotazů."),
+            HumanMessage(content=prompt_template.format(query=query))
+        ]
+        
+        # Získání odpovědi z LLM
+        response = llm.invoke(messages)
+        result = response.content.strip()
+        logger.info(f"LLM analýza dotazu: '{query}' → '{result}'")
+        
+        # Parsování výsledku
+        if ";" in result:
+            company_name, analysis_type = result.split(";", 1)
+            company_name = company_name.strip()
+            analysis_type = analysis_type.strip()
+            
+            # Validace typu analýzy
+            valid_types = ["risk_comparison", "supplier_analysis", "general"]
+            if analysis_type not in valid_types:
+                # Výchozí hodnota při neplatném typu
+                analysis_type = "general"
+                
+            return company_name, analysis_type
+        else:
+            # Pokud je formát nesprávný, zkusíme použít celou odpověď jako název společnosti
+            company_name = result
+            # Výchozí analýza
+            return company_name, "general"
+    
+    except Exception as e:
+        logger.error(f"Chyba při analýze dotazu: {str(e)}")
+        # Vrátit výchozí hodnoty v případě chyby
+        return "Unknown Company", "general"
