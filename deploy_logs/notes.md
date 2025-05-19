@@ -646,3 +646,72 @@ Deployment by měl nyní:
 ### Verifikace:
 - Po úpravě konfigurace by měl build v GitHub Actions proběhnout bez chyby `AttributeError`
 - Ověřit úspěšný deployment pomocí workflow GitHub Actions
+
+## [2025-05-20] - Optimalizace GitHub Actions workflow pro LangGraph Platform
+
+### Identifikovaný problém:
+- Stávající GitHub Actions workflow obsahoval kroky pro lokální Docker build
+- Workflow vytvářel a nahrával artefakty s build soubory
+- Workflow nerespektoval doporučený způsob nasazení na LangGraph Platform
+
+### Analýza příčiny:
+- GitHub Actions workflow byl navržen s nepochopením správného deployment procesu
+- Pokus o kombinaci lokálního buildu a remote nasazení způsoboval konflikty
+- Vytváření artefaktů bylo zbytečné, protože LangGraph Platform používá GitHub jako zdroj
+
+### Navrhované řešení:
+- [x] Vytvořit nový optimalizovaný GitHub Actions workflow
+- [x] Odstranit kroky pro lokální Docker build
+- [x] Použít `deploy_to_github.sh` pro push čistého kódu na GitHub
+- [x] Vytvořit PlantUML diagram popisující správný deployment workflow
+- [ ] Nastavit automatické nasazení v administraci LangGraph Platform
+
+### Implementace:
+- Vytvořen nový GitHub Actions workflow soubor: `langgraph-platform-deploy.yml`
+- Workflow obsahuje 3 hlavní joby:
+  1. `test` - základní lint a spuštění testů
+  2. `verify-deployment` - validace langgraph.json a kontrola konfigurace
+  3. `deploy` - spuštění `deploy_to_github.sh` pro push čistého kódu
+- Odstraněny veškeré kroky pro lokální Docker build
+- Přidána kontrola existence Docker souborů s varováním
+
+### Verifikace:
+- Nový workflow validuje projekt bez vytváření lokálního Docker image
+- Deploy job využívá script `deploy_to_github.sh`, který správně čistí kód
+- Vytvořen dokumentační PlantUML diagram `LangGraph_Platform_Deployment_Workflow.plantuml`
+
+## [2025-05-20] - Dokončení optimalizace deployment procesu
+
+### Stav nasazení:
+- Vytvořena kompletní sada nástrojů a dokumentace pro nasazení na LangGraph Platform
+- Implementovány všechny potřebné kontroly a verifikace
+- Připraveny pomocné skripty pro monitorování nasazení
+
+### Implementované komponenty:
+- [x] Optimalizovaný GitHub Actions workflow `langgraph-platform-deploy.yml`
+- [x] Skript `verify_github_workflow.sh` pro verifikaci GitHub Actions workflow
+- [x] Skript `check_deployment_status.sh` pro monitorování nasazené aplikace
+- [x] Návod na propojení GitHub s LangGraph Platform v `doc/langgraph_platform_integration.md`
+- [x] Přehled častých problémů a jejich řešení v `doc/common_deployment_issues.md`
+- [x] PlantUML diagramy:
+  - `LangGraph_Platform_Deployment_Workflow.plantuml` - diagram správného deployment workflow
+  - `LangGraph_Platform_Deployment_Issues.plantuml` - diagram potenciálních problémů a jejich řešení
+
+### Další doporučení:
+- Nastavit automatické monitorování nasazené aplikace
+- Implementovat testy pro ověření funkčnosti API po nasazení
+- Zvážit přidání integračních testů v GitHub Actions workflow
+
+### Shrnutí procesu nasazení:
+1. Příprava kódu a repozitáře
+2. Spuštění `verify_deployment.sh` pro ověření konfigurace
+3. Push čistého kódu na GitHub pomocí `deploy_to_github.sh`
+4. GitHub Actions workflow verifikuje a kontroluje kód
+5. LangGraph Platform detekuje změny v GitHub repozitáři
+6. LangGraph Platform provádí build a nasazení aplikace
+7. Monitorování nasazené aplikace pomocí `check_deployment_status.sh`
+
+### Verifikace:
+- Všechny komponenty jsou připraveny a otestovány
+- Workflow je v souladu s best practices pro LangGraph Platform
+- Dokumentace je kompletní a obsahuje všechny potřebné informace

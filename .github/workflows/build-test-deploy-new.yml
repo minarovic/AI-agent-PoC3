@@ -38,7 +38,7 @@ jobs:
         # Vrátíme úspěšný návratový kód, aby workflow pokračoval
         exit 0
 
-  verify-only:
+  deploy-dev:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -76,37 +76,50 @@ jobs:
         LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
         LANGSMITH_PROJECT: "AI-agent-Ntier"
     
-    - name: Verify project configuration
+    # Tento krok pouze ověří, že kód je sestavitelný, ale nevytváří Docker image
+    - name: Verify project buildability
       run: |
-        echo "Ověření platnosti konfigurace projektu"
-        python -c "import json; json.load(open('langgraph.json'))"
-        echo "Konfigurace je validní JSON"
-        
-        # Ověření, že klíčové soubory existují
-        echo "Kontrola klíčových souborů:"
-        if [ -d "src/memory_agent" ]; then
-          echo "✓ Adresář src/memory_agent existuje"
-        else
-          echo "✗ Adresář src/memory_agent neexistuje!"
-          exit 1
-        fi
-        
-        if [ -f "src/memory_agent/graph.py" ]; then
-          echo "✓ Soubor graph.py existuje"
-        else
-          echo "✗ Soubor graph.py neexistuje!"
-          exit 1
-        fi
-        
-        if [ -f "src/memory_agent/state.py" ]; then
-          echo "✓ Soubor state.py existuje"
-        else
-          echo "✗ Soubor state.py neexistuje!"
-          exit 1
-        fi
-        
-        echo "Projekt je připraven k nasazení na LangGraph Platform"
+        langgraph build --local
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
         LANGSMITH_PROJECT: "AI-agent-Ntier"
+    
+    # Nasazení na LangGraph Platform
+    
+    - name: Create artifact for LangGraph Platform
+      run: |
+        # Vytvoříme artefakt, který obsahuje pouze zdrojový kód a konfigurační soubory
+        mkdir -p artifacts/src
+        
+        # Kopírujeme zdrojový kód a konfigurační soubory
+        cp -r src artifacts/
+        cp langgraph.json artifacts/
+        cp requirements*.txt artifacts/ 2>/dev/null || true
+        cp setup.py artifacts/
+        
+        # Vytvoření archivu
+        tar -czvf langgraph-package.tar.gz -C artifacts/ .
+        echo "Artifact langgraph-package.tar.gz created successfully."
+        # Kontrola, že soubor byl vytvořen
+        ls -la langgraph-package.tar.gz
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+        LANGSMITH_PROJECT: "AI-agent-Ntier"
+    
+    - name: Verify LangGraph artifact
+      run: |
+        if [ ! -f langgraph-package.tar.gz ]; then
+          echo "Error: langgraph-package.tar.gz not found!"
+          exit 1
+        fi
+        echo "Artifact verified: langgraph-package.tar.gz"
+
+    - name: Upload LangGraph artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: langgraph-package
+        path: langgraph-package.tar.gz
+        retention-days: 5
+        if-no-files-found: error
