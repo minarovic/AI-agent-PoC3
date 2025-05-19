@@ -126,13 +126,29 @@ class State:
     To umožňuje správné generování JSON schématu pro LangGraph Platform.
     """
     
+    mcp_connector: Annotated[Any, merge_dict_values] = field(default=None)
+    """
+    Instance MockMCPConnector pro přístup k datům.
+    
+    Tato instance je dostupná přímo jako atribut state objektu.
+    Při deploymentu na LangGraph Platform je inicializována v uzlech grafu.
+    """
+    
     def get_mcp_connector(self):
         """
         Vrátí instanci MockMCPConnector z konfigurace.
         
+        Nejprve zkontroluje, zda již existuje mcp_connector atribut,
+        a pokud ne, vytvoří novou instanci a uloží ji do mcp_connector.
+        
         Returns:
             MockMCPConnector: Instance konektoru pro přístup k datům
         """
+        # Nejprve zkontrolovat, zda už máme instanci konektoru
+        if self.mcp_connector is not None:
+            return self.mcp_connector
+            
+        # Pokud ne, vytvořit novou instanci
         from memory_agent.tools import MockMCPConnector
         from memory_agent.schema import MockMCPConnectorConfig
         
@@ -144,7 +160,9 @@ class State:
         else:
             config = self.mcp_connector_config
             
-        return MockMCPConnector(data_path=config.data_path)
+        # Vytvořit instanci a uložit ji přímo do atributu mcp_connector
+        self.mcp_connector = MockMCPConnector(data_path=config.data_path)
+        return self.mcp_connector
     
     # Podpora pro konfigurace
     config: Optional[Any] = None

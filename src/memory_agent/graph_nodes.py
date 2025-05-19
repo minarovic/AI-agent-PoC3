@@ -102,9 +102,22 @@ def retrieve_company_data(state: State) -> State:
         
         logger.info(f"Získávám data pro společnost: {company_name}")
         
-        company_data = state.get_mcp_connector().get_company_by_name(company_name)
+        # Přístup k MCP konektoru přes state.mcp_connector pokud existuje,
+        # jinak zkusíme vytvořit novou instanci konektoru
+        if hasattr(state, "mcp_connector"):
+            mcp_connector = state.mcp_connector
+        elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
+            mcp_connector = state.get_mcp_connector()
+        else:
+            # Pokud konektor není k dispozici v state, vytvořit novou instanci
+            from memory_agent.tools import MockMCPConnector
+            mcp_connector = MockMCPConnector()
+            # Připojit konektor do state pro další použití
+            state.mcp_connector = mcp_connector
         
-        return {"company_data": {"basic_info": company_data}}
+        company_data = mcp_connector.get_company_by_name(company_name)
+        
+        return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
     
     except EntityNotFoundError as e:
         logger.error(f"Společnost nenalezena: {e}")
@@ -160,8 +173,17 @@ def retrieve_additional_company_data(state: State) -> State:
         
         logger.info(f"Získávám doplňující data pro společnost ID: {company_id}")
         
-        # Získání MCP konektoru
-        mcp_connector = state.get_mcp_connector()
+        # Přístup k MCP konektoru přes různé možnosti
+        if hasattr(state, "mcp_connector"):
+            mcp_connector = state.mcp_connector
+        elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
+            mcp_connector = state.get_mcp_connector()
+        else:
+            # Pokud konektor není k dispozici v state, vytvořit novou instanci
+            from memory_agent.tools import MockMCPConnector
+            mcp_connector = MockMCPConnector()
+            # Připojit konektor do state pro další použití
+            state.mcp_connector = mcp_connector
         
         # Získání finančních dat
         financial_data = mcp_connector.get_company_financials(company_id)
@@ -175,7 +197,8 @@ def retrieve_additional_company_data(state: State) -> State:
             },
             "relationships_data": {
                 company_id: relationships
-            }
+            },
+            "mcp_connector": mcp_connector
         }
     
     except Exception as e:
@@ -248,10 +271,22 @@ def retrieve_person_data(state: State) -> State:
         
         logger.info(f"Získávám data pro osobu: {person_name}")
         
-        # Mockovaná funkce - ve skutečnosti by volala MCP connector
-        person_data = state.get_mcp_connector().get_person_by_name(person_name)
+        # Přístup k MCP konektoru přes různé možnosti
+        if hasattr(state, "mcp_connector"):
+            mcp_connector = state.mcp_connector
+        elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
+            mcp_connector = state.get_mcp_connector()
+        else:
+            # Pokud konektor není k dispozici v state, vytvořit novou instanci
+            from memory_agent.tools import MockMCPConnector
+            mcp_connector = MockMCPConnector()
+            # Připojit konektor do state pro další použití
+            state.mcp_connector = mcp_connector
         
-        return {"internal_data": {"person_data": person_data}}
+        # Získání dat osoby
+        person_data = mcp_connector.get_person_by_name(person_name)
+        
+        return {"internal_data": {"person_data": person_data}, "mcp_connector": mcp_connector}
     
     except Exception as e:
         logger.error(f"Chyba při získávání dat osoby: {e}")

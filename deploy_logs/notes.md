@@ -3,6 +3,40 @@ Zápisky:
 
 # Deploying AI-agent-Ntier - Poznámky z procesu nasazení
 
+## [2025-05-19] - Oprava AttributeError: 'State' object has no attribute 'mcp_connector'
+
+### Identifikovaný problém:
+- V logu se objevuje chyba: `AttributeError: 'State' object has no attribute 'mcp_connector'`
+- Problém je v souboru `graph_nodes.py` při volání `state.get_mcp_connector()`
+- Přestože třída `State` má metodu `get_mcp_connector()`, na LangGraph Platform k ní nemá přístup
+
+### Analýza příčiny:
+- Rozdíl mezi lokálním prostředím a prostředím LangGraph Platform při manipulaci se `State` objektem
+- LangGraph Platform pravděpodobně nepropaguje metody třídy State správně
+- State objekt na platformě nemá referenci na mcp_connector ani metodu get_mcp_connector
+
+### Navrhované řešení:
+- [x] Přidat přímý atribut `mcp_connector` do třídy `State` s použitím anotace `Annotated[Any, merge_dict_values]`
+- [x] Upravit metodu `get_mcp_connector()` tak, aby nejprve kontrolovala existenci atributu `mcp_connector`
+- [x] Upravit všechny uzly grafu, které používají `state.get_mcp_connector()`, aby byly odolné vůči jeho absenci
+- [x] Přidat fallback kód, který vytvoří novou instanci `MockMCPConnector` a přidá ji do state
+
+### Implementace:
+- Upraven soubor `state.py`:
+  - Přidán atribut `mcp_connector` s annotací pro správnou serializaci
+  - Upravena metoda `get_mcp_connector()` tak, aby nejprve kontrolovala existenci `mcp_connector`
+- Upraveny funkce v `graph_nodes.py`:
+  - `retrieve_company_data`
+  - `retrieve_additional_company_data`
+  - `retrieve_person_data`
+  - Přidán robust kód pro kontrolu existence mcp_connector/get_mcp_connector
+  - Každá funkce vrací `mcp_connector` jako součást stavu pro další použití
+
+### Verifikace:
+- Úpravy by měly zajistit, že při absenci `mcp_connector` nebo `get_mcp_connector` metody bude vytvořena nová instance
+- Každá úprava stavu zahrnuje `mcp_connector`, takže by měl být k dispozici v následujících uzlech grafu
+- Očekáváme, že tato změna odstraní chybu `AttributeError: 'State' object has no attribute 'mcp_connector'` při nasazení
+
 ## [2025-05-19] - Docker build a nasazení
 
 ### Identifikovaný problém:
