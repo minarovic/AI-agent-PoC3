@@ -720,3 +720,31 @@ Deployment by měl nyní:
 - I při chybách vrací strukturovaná data s ID společnosti
 - Pro "MB TOOL" vždy vrací kompletní data bez ohledu na dostupnost MCP konektoru
 - Lepší integrace se systémem správy stavu pomocí anotovaných typů
+
+## [2025-05-19] - Oprava problému s API klíči v kódu
+
+### Identifikovaný problém:
+- GitHub detekoval API klíče v kódu a odmítnul odeslání změn do větve `simplified-analyzer`
+- Klíče byly přítomny v souborech: `test_analyzer_direct.py`, `test_analyzer_simple.py`, `test_n8n_analyzer.py`, `test_openai_analyzer.py`
+- GitHub Security blokuje push, dokud klíče nebudou odstraněny ze všech commitů v historii
+
+### Analýza příčiny:
+- Testovací soubory obsahovaly komentáře s příklady API klíčů a některé měly přímo deklarované proměnné s klíči
+- GitHub Security detekuje klíče přes celou historii commitů, nejen v posledním commitu
+- Odstraňování klíčů z posledního commitu neřeší problém s předchozími commity
+
+### Navrhované řešení:
+- [x] Vytvořit novou větev `deployment-fix` z `main` pro čisté nasazení
+- [x] Aktualizovat `langgraph.json` v nové větvi bez vkládání API klíčů
+- [x] Nastavit načítání API klíčů výhradně z `.env` souboru nebo proměnných prostředí
+- [x] Provést commit a push nové větve bez historie obsahující citlivé údaje
+
+### Implementace:
+- Vytvořena nová větev `deployment-fix` z `main`
+- Aktualizován `langgraph.json` pro správné nasazení na LangGraph Platform
+- Přidána závislost na `pydantic>=2.0.0`
+- Změněna cesta k modulu v `graphs` dictionary na Python importní formát
+
+### Verifikace:
+- Úspěšně odeslány změny do větve `deployment-fix` bez bezpečnostních varování
+- Nová větev je připravena na nasazení do LangGraph Platform
