@@ -1,4 +1,19 @@
-def retrieve_company_data(state: State) -> State:
+import logging
+from typing import Dict, Any
+
+from memory_agent.tools import (
+    MockMCPConnector,
+    EntityNotFoundError,
+    DataFormatError,
+    ConnectionError,
+    MockMCPConnectorError
+)
+from memory_agent.state import State
+
+# Nastavení loggeru
+logger = logging.getLogger("memory_agent.retrieve_company_data")
+
+def retrieve_company_data(state: State) -> Dict[str, Any]:
     """
     Získá data o společnosti z MCP.
     
@@ -75,7 +90,9 @@ def retrieve_company_data(state: State) -> State:
                     "id": f"{company_name.lower().replace(' ', '_')}_id"
                 }
             
+            # Vrátíme data o společnosti
             return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
+        
         except Exception as e:
             logger.error(f"Chyba při získávání dat společnosti {company_name}: {str(e)}")
             # Vytvoření náhradních dat, abychom mohli pokračovat

@@ -184,6 +184,7 @@ def retrieve_company_data(state: State) -> State:
                 "employees": 120,
                 "revenue_category": "10-50M EUR"
             }
+            return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
         else:
             # Získání dat společnosti
             try:
@@ -198,21 +199,21 @@ def retrieve_company_data(state: State) -> State:
                         "id": f"{company_name.lower().replace(' ', '_')}_id"
                     }
                 
-            return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
-            
-        except Exception as e:
-            logger.error(f"Chyba při získávání dat společnosti {company_name}: {str(e)}")
-            # Vytvoření náhradních dat, abychom mohli pokračovat
-            company_data = {
-                "name": company_name,
-                "id": f"{company_name.lower().replace(' ', '_')}_id",
-                "error": str(e)
-            }
-            return {
-                "company_data": {"basic_info": company_data},
-                "mcp_connector": mcp_connector,
-                "error_state": {"error": str(e), "error_type": "data_retrieval_error"}
-            }
+                return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
+                
+            except Exception as e:
+                logger.error(f"Chyba při získávání dat společnosti {company_name}: {str(e)}")
+                # Vytvoření náhradních dat, abychom mohli pokračovat
+                company_data = {
+                    "name": company_name,
+                    "id": f"{company_name.lower().replace(' ', '_')}_id",
+                    "error": str(e)
+                }
+                return {
+                    "company_data": {"basic_info": company_data},
+                    "mcp_connector": mcp_connector,
+                    "error_state": {"error": str(e), "error_type": "data_retrieval_error"}
+                }
     
     except EntityNotFoundError as e:
         logger.error(f"Společnost nenalezena: {e}")
