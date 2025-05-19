@@ -96,16 +96,13 @@ def retrieve_company_data(state: State) -> State:
     Returns:
         Aktualizovaný stav s daty společnosti
     """
-    if not state.mcp_connector:
-        state.mcp_connector = MockMCPConnector()
-    
     try:
         query_params = state.internal_data.get("query_params", {})
         company_name = query_params.get("company_name")
         
         logger.info(f"Získávám data pro společnost: {company_name}")
         
-        company_data = state.mcp_connector.get_company_by_name(company_name)
+        company_data = state.get_mcp_connector().get_company_by_name(company_name)
         
         return {"company_data": {"basic_info": company_data}}
     
@@ -154,9 +151,6 @@ def retrieve_additional_company_data(state: State) -> State:
     Returns:
         Aktualizovaný stav s doplňujícími daty
     """
-    if not state.mcp_connector:
-        state.mcp_connector = MockMCPConnector()
-    
     try:
         company_id = state.company_data.get("basic_info", {}).get("id")
         
@@ -166,11 +160,14 @@ def retrieve_additional_company_data(state: State) -> State:
         
         logger.info(f"Získávám doplňující data pro společnost ID: {company_id}")
         
+        # Získání MCP konektoru
+        mcp_connector = state.get_mcp_connector()
+        
         # Získání finančních dat
-        financial_data = state.mcp_connector.get_company_financials(company_id)
+        financial_data = mcp_connector.get_company_financials(company_id)
         
         # Získání vztahů
-        relationships = state.mcp_connector.get_company_relationships(company_id)
+        relationships = mcp_connector.get_company_relationships(company_id)
         
         return {
             "company_data": {
@@ -245,9 +242,6 @@ def retrieve_person_data(state: State) -> State:
     Returns:
         Aktualizovaný stav s daty osoby
     """
-    if not state.mcp_connector:
-        state.mcp_connector = MockMCPConnector()
-    
     try:
         query_params = state.internal_data.get("query_params", {})
         person_name = query_params.get("person_name")
@@ -255,7 +249,7 @@ def retrieve_person_data(state: State) -> State:
         logger.info(f"Získávám data pro osobu: {person_name}")
         
         # Mockovaná funkce - ve skutečnosti by volala MCP connector
-        person_data = state.mcp_connector.get_person_by_name(person_name)
+        person_data = state.get_mcp_connector().get_person_by_name(person_name)
         
         return {"internal_data": {"person_data": person_data}}
     
@@ -323,9 +317,6 @@ def retrieve_relationship_data(state: State) -> State:
     Returns:
         Aktualizovaný stav s daty vztahů
     """
-    if not state.mcp_connector:
-        state.mcp_connector = MockMCPConnector()
-    
     try:
         query_params = state.internal_data.get("query_params", {})
         entities = query_params.get("entities", [])
@@ -403,9 +394,6 @@ def execute_custom_query(state: State) -> State:
     Returns:
         Aktualizovaný stav s výsledky dotazu
     """
-    if not state.mcp_connector:
-        state.mcp_connector = MockMCPConnector()
-    
     try:
         query_params = state.internal_data.get("query_params", {})
         custom_query = query_params.get("custom_query")
