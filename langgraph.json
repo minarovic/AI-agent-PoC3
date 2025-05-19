@@ -10,5 +10,25 @@
   ],
   "dependencies": {
     "python": "3.11"
+  },
+  "graphs": {
+    "ai_agent_ntier_graph": {
+      "description": "Hlavní graf AI agenta s N-tier architekturou",
+      "nodes": [
+        {
+          "type": "start",
+          "next": "process_request"
+        },
+        {
+          "id": "process_request",
+          "type": "process",
+          "action": "process_user_input",
+          "next": "end"
+        },
+        {
+          "type": "end"
+        }
+      ]
+    }
   }
 }

@@ -607,3 +607,28 @@ Deployment by měl nyní:
 ### Verifikace:
 - Lokální build nyní probíhá úspěšně se správným tagováním
 - Deployment funguje správně s označenou verzí
+
+## [2024-05-21] - Chybějící definice grafů v konfiguraci
+
+### Identifikovaný problém:
+- GitHub Actions log obsahuje chybu: "No graphs found in config. Add at least one graph to 'graphs' dictionary."
+- Chyba se vyskytuje během kroku `langgraph build` v GitHub Actions
+
+### Analýza příčiny:
+- V souboru langgraph.json chybí sekce 'graphs', která je povinná pro sestavení balíčku
+- LangGraph Platform vyžaduje definici alespoň jednoho grafu v konfiguraci
+- Bez této definice nemůže být aplikace úspěšně sestavena a nasazena
+
+### Navrhované řešení:
+- [x] Přidat sekci 'graphs' do souboru langgraph.json
+- [x] Definovat základní strukturu grafu s potřebnými uzly
+- [x] Zachovat stávající konfiguraci pro správné fungování aplikace
+
+### Implementace:
+- Upraven soubor langgraph.json s přidáním sekce 'graphs'
+- Definován základní graf s názvem 'ai_agent_ntier_graph'
+- Nastavena základní struktura grafu se start a end uzly a zpracováním požadavku
+
+### Verifikace:
+- Ověřit spuštěním GitHub Actions workflow
+- Kontrola, zda je aplikace úspěšně sestavena a nasazena
