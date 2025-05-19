@@ -748,3 +748,28 @@ Deployment by měl nyní:
 ### Verifikace:
 - Úspěšně odeslány změny do větve `deployment-fix` bez bezpečnostních varování
 - Nová větev je připravena na nasazení do LangGraph Platform
+
+## [2025-05-19] - Shrnutí procesu nasazení a další kroky
+
+### Aktuální stav:
+- Upravený konfigurační soubor `langgraph.json` byl úspěšně odeslán na GitHub ve větvi `deployment-fix`
+- Odstraněny API klíče ze všech testovacích souborů pro zvýšení bezpečnosti
+- Vytvořena kompletní dokumentace procesu v `notes.md` a vizualizace pomocí PlantUML diagramů
+
+### Další kroky:
+- [ ] Manuálně zkontrolovat stav deploymentu v administrativním rozhraní LangGraph Platform
+- [ ] Propojit GitHub repozitář (větev `deployment-fix`) v administrativním rozhraní platformy
+- [ ] Ověřit, že aplikace byla správně sestavena a nasazena
+- [ ] Otestovat funkčnost nasazené aplikace s reálnými daty
+- [ ] Po úspěšném ověření sloučit větev `deployment-fix` do hlavní větve
+
+### Příkazy pro kontrolu stavu nasazení:
+Pro kontrolu stavu nasazené aplikace lze použít script `check_deployment_status.sh` s URL endpointem:
+```bash
+./check_deployment_status.sh <api-endpoint-url>
+```
+
+Příklad:
+```bash
+./check_deployment_status.sh https://platform.langgraph.com/apps/ai-agent-ntier/api
+```

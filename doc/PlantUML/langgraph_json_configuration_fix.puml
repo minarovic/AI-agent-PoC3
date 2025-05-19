@@ -1,0 +1,42 @@
+@startuml "LangGraph-JSON-Configuration-Fix"
+' Diagram znázorňující proces identifikace a řešení problému s konfigurací langgraph.json
+
+title LangGraph Platform - Oprava konfigurace langgraph.json
+
+start
+
+:Analýza logů nasazení na LangGraph Platform;
+note right: Log obsahuje chybu:\n"Error: No graphs found in config.\nAdd at least one graph to 'graphs' dictionary."
+
+:Identifikace nekonzistence v konfiguraci;
+note right: Lokální langgraph.json vs.\nlanggraph.json použitý při deployi
+
+:Analýza problému;
+note right: Formát cesty v "graphs":\n"./src/memory_agent/graph.py:graph" (cesta k souboru)\nvs.\n"src.memory_agent.graph:graph" (Python importní cesta)
+
+:Prozkoumání struktury grafu v projektu;
+note right: Ověření, že proměnná "graph" existuje\nv modulu src.memory_agent.graph
+
+:Úprava konfiguračního souboru;
+note right: 1. Změna formátu cesty\n2. Přidání závislosti na pydantic>=2.0.0
+
+:Aktualizace dokumentace;
+note right: Přidání záznamu do deploy_logs/notes.md\ns popisem problému a řešení
+
+:Vytvoření vizuální dokumentace;
+note right: PlantUML diagram popisující\nworkflow řešení
+
+:Nasazení na LangGraph Platform;
+note right: Použití deploy_to_github.sh pro\nodeslání čistého kódu na GitHub
+
+if (Bylo nasazení úspěšné?) then (Ano)
+  :Ověření funkčnosti\naplikace na platformě;
+else (Ne)
+  :Analýza dalších\nproblémů v logách;
+  :Oprava dalších\nidentifikovaných problémů;
+  backward:Opakování procesu;
+endif
+
+stop
+
+@enduml
