@@ -585,50 +585,64 @@ Deployment by měl nyní:
 - Deployment skript bude znovu spuštěn pro ověření opravy
 - Očekáváme, že chyba `KeyError: <coroutine object analyze_query at 0x...>` již nebude nastávat
 
-## [2024-05-21] - Chybějící povinný parametr Tag
+## [2025-05-19] - Řešení AttributeError v langgraph-cli
 
 ### Identifikovaný problém:
-- Chyba: Missing option '--tag' / '-t' při spuštění příkazu langgraph build
-- Proces sestavení vyžaduje parametr tag, který nebyl zadán
+- GitHub Actions log obsahuje chybu: `AttributeError: 'NoneType' object has no attribute 'split'`
+- Tato chyba se vyskytuje v funkci `_is_node_graph` knihovny langgraph-cli, kde proměnná `spec` je `None`
+- Chyba nastává při pokusu o volání metody `.split(":")` na této `None` hodnotě
 
 ### Analýza příčiny:
-- CLI nástroj langgraph vyžaduje povinný parametr --tag pro příkaz build
-- Tento parametr chyběl v našem deploymentovém skriptu
-- Bez tohoto parametru nelze vytvořit správně označený image
+- Funkce `_is_node_graph` v langgraph-cli neošetřuje případ, kdy je proměnná `spec` hodnota `None`
+- Toto může nastat, pokud je konfigurace v `langgraph.json` nesprávná nebo neúplná
+- V souboru `langgraph.json` chyběla povinná sekce `graphs`, místo toho byl definovaný nepodporovaný klíč `entry_point`
 
 ### Navrhované řešení:
-- [x] Přidat parametr --tag do příkazu langgraph build
-- [x] Vytvořit konvenci pro verzování tagů pro naše deploymenty
+- [x] Odstranit nepodporovaný klíč `entry_point` z `langgraph.json`
+- [x] Přidat povinnou sekci `graphs` se správným odkazem na graph.py:graph
+- [x] Aktualizovat sekci `dependencies` na pole s hodnotami pro správnou instalaci knihoven
+- [ ] Ověřit, že proměnné prostředí `OPENAI_API_KEY` a `LANGSMITH_API_KEY` jsou správně nastaveny v GitHub secrets
 
 ### Implementace:
-- Přidáno `--tag "$TAG_VERSION"` do příkazu langgraph build v deploy_to_langgraph_platform.sh
-- Nastaveno TAG_VERSION="v1.0.0" jako standardní formát verzování
+```json
+// Původní langgraph.json
+{
+  "name": "ai-agent-ntier",
+  "version": "1.0.0",
+  "description": "AI agent N-tier aplikace",
+  "entry_point": "main:app",
+  "environment_variables": [
+    "OPENAI_API_KEY",
+    "LANGSMITH_API_KEY",
+    "LANGSMITH_PROJECT"
+  ],
+  "dependencies": {
+    "python": "3.11"
+  }
+}
+
+// Nový langgraph.json
+{
+  "name": "ai-agent-ntier",
+  "version": "1.0.0",
+  "description": "AI agent N-tier aplikace",
+  "environment_variables": [
+    "OPENAI_API_KEY",
+    "LANGSMITH_API_KEY",
+    "LANGSMITH_PROJECT"
+  ],
+  "python_version": "3.11",
+  "dependencies": [
+    ".",
+    "langchain_openai>=0.1.0",
+    "langchain_community>=0.1.0"
+  ],
+  "graphs": {
+    "agent": "./src/memory_agent/graph.py:graph"
+  }
+}
+```
 
 ### Verifikace:
-- Lokální build nyní probíhá úspěšně se správným tagováním
-- Deployment funguje správně s označenou verzí
-
-## [2024-05-21] - Chybějící definice grafů v konfiguraci
-
-### Identifikovaný problém:
-- GitHub Actions log obsahuje chybu: "No graphs found in config. Add at least one graph to 'graphs' dictionary."
-- Chyba se vyskytuje během kroku `langgraph build` v GitHub Actions
-
-### Analýza příčiny:
-- V souboru langgraph.json chybí sekce 'graphs', která je povinná pro sestavení balíčku
-- LangGraph Platform vyžaduje definici alespoň jednoho grafu v konfiguraci
-- Bez této definice nemůže být aplikace úspěšně sestavena a nasazena
-
-### Navrhované řešení:
-- [x] Přidat sekci 'graphs' do souboru langgraph.json
-- [x] Definovat základní strukturu grafu s potřebnými uzly
-- [x] Zachovat stávající konfiguraci pro správné fungování aplikace
-
-### Implementace:
-- Upraven soubor langgraph.json s přidáním sekce 'graphs'
-- Definován základní graf s názvem 'ai_agent_ntier_graph'
-- Nastavena základní struktura grafu se start a end uzly a zpracováním požadavku
-
-### Verifikace:
-- Ověřit spuštěním GitHub Actions workflow
-- Kontrola, zda je aplikace úspěšně sestavena a nasazena
+- Po úpravě konfigurace by měl build v GitHub Actions proběhnout bez chyby `AttributeError`
+- Ověřit úspěšný deployment pomocí workflow GitHub Actions

@@ -2,33 +2,18 @@
   "name": "ai-agent-ntier",
   "version": "1.0.0",
   "description": "AI agent N-tier aplikace",
-  "entry_point": "main:app",
   "environment_variables": [
     "OPENAI_API_KEY",
     "LANGSMITH_API_KEY",
     "LANGSMITH_PROJECT"
   ],
-  "dependencies": {
-    "python": "3.11"
-  },
+  "python_version": "3.11",
+  "dependencies": [
+    ".",
+    "langchain_openai>=0.1.0",
+    "langchain_community>=0.1.0"
+  ],
   "graphs": {
-    "ai_agent_ntier_graph": {
-      "description": "Hlavní graf AI agenta s N-tier architekturou",
-      "nodes": [
-        {
-          "type": "start",
-          "next": "process_request"
-        },
-        {
-          "id": "process_request",
-          "type": "process",
-          "action": "process_user_input",
-          "next": "end"
-        },
-        {
-          "type": "end"
-        }
-      ]
-    }
+    "agent": "./src/memory_agent/graph.py:graph"
   }
 }

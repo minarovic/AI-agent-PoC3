@@ -59,6 +59,22 @@ jobs:
         pip install langchain_openai  # Explicitně instalujeme tento balíček
         pip install langchain_community  # Přidáváme chybějící závislost
         pip install -e .
+        
+    - name: Upgrade langgraph-cli
+      run: |
+        pip install --upgrade langgraph-cli
+        pip show langgraph-cli
+    
+    - name: Validate environment variables and debug info
+      run: |
+        echo "Kontrola konfigurace langgraph.json:"
+        cat langgraph.json
+        echo "Python verze:"
+        python --version
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+        LANGSMITH_PROJECT: "AI-agent-Ntier"
     
     - name: Build LangGraph package
       run: |

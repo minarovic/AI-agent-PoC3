@@ -118,14 +118,33 @@ class State:
     vygenerovaných postřehů nebo doporučení.
     """
     
-    mcp_connector: Optional[MockMCPConnector] = None
+    mcp_connector_config: Optional[Any] = None
     """
-    Instance MockMCPConnector pro jednotný přístup k datům.
+    Konfigurace pro MockMCPConnector.
     
-    Poskytuje centralizovaný přístup k datovým zdrojům pro všechny uzly v grafu.
-    Místo přímých API volání různých externích služeb používáme tuto instanci
-    pro konzistentní a testovatelný přístup k datům v celém workflow.
+    Místo přímé instance používáme serializovatelnou konfiguraci.
+    To umožňuje správné generování JSON schématu pro LangGraph Platform.
     """
+    
+    def get_mcp_connector(self):
+        """
+        Vrátí instanci MockMCPConnector z konfigurace.
+        
+        Returns:
+            MockMCPConnector: Instance konektoru pro přístup k datům
+        """
+        from memory_agent.tools import MockMCPConnector
+        from memory_agent.schema import MockMCPConnectorConfig
+        
+        if self.mcp_connector_config is None:
+            self.mcp_connector_config = MockMCPConnectorConfig()
+            
+        if isinstance(self.mcp_connector_config, dict):
+            config = MockMCPConnectorConfig(**self.mcp_connector_config)
+        else:
+            config = self.mcp_connector_config
+            
+        return MockMCPConnector(data_path=config.data_path)
     
     # Podpora pro konfigurace
     config: Optional[Any] = None
