@@ -15,6 +15,6 @@
     "pydantic>=2.0.0"
   ],
   "graphs": {
-    "agent": "src.memory_agent.graph:graph"
+    "agent": "./src/memory_agent/graph.py:graph"
   }
 }

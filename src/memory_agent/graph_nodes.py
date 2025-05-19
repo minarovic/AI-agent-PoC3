@@ -154,22 +154,35 @@ def retrieve_company_data(state: State) -> State:
         
         logger.info(f"Získávám data pro společnost: {company_name}")
         
-        # Přístup k MCP konektoru přes state.mcp_connector pokud existuje,
-        # jinak zkusíme vytvořit novou instanci konektoru
-        if hasattr(state, "mcp_connector") and state.mcp_connector is not None:
-            mcp_connector = state.mcp_connector
-            logger.info("Používám existující MCP konektor ze state.mcp_connector")
-        elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
-            mcp_connector = state.get_mcp_connector()
-            logger.info("Používám MCP konektor získaný přes state.get_mcp_connector()")
-        else:
-            # Pokud konektor není k dispozici v state, vytvořit novou instanci
+        # Přístup k MCP konektoru - inicializace s výchozí hodnotou None
+        mcp_connector = None
+        
+        try:
+            if hasattr(state, "mcp_connector") and state.mcp_connector is not None:
+                mcp_connector = state.mcp_connector
+                logger.info("Používám existující MCP konektor ze state.mcp_connector")
+            elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
+                mcp_connector = state.get_mcp_connector()
+                logger.info("Používám MCP konektor získaný přes state.get_mcp_connector()")
+            
+            # Kontrola, zda se podařilo získat konektor
+            if mcp_connector is None:
+                # Pokud konektor není k dispozici v state, vytvořit novou instanci
+                from memory_agent.tools import MockMCPConnector
+                mcp_connector = MockMCPConnector()
+                logger.info("Vytvářím nový MCP konektor - konektor nebyl nalezen nebo byl None")
+        except Exception as e:
+            # Pokud nastane jakákoli chyba, vytvoříme novou instanci
+            logger.error(f"Chyba při získávání MCP konektoru: {str(e)}")
             from memory_agent.tools import MockMCPConnector
             mcp_connector = MockMCPConnector()
-            logger.info("Vytvářím nový MCP konektor")
+            logger.info("Vytvářím nový MCP konektor po chybě")
         
-        # Připojit konektor do state pro další použití
-        state.mcp_connector = mcp_connector
+        # Připojit konektor do state pro další použití - jen pokud byl úspěšně inicializován
+        if mcp_connector is not None:
+            state.mcp_connector = mcp_connector
+        else:
+            logger.critical("Nepodařilo se inicializovat MCP konektor!")
         
         # Speciální případ pro MB TOOL - přidáme fallback data
         if company_name.upper() == "MB TOOL":
@@ -269,23 +282,69 @@ def retrieve_additional_company_data(state: State) -> State:
         
         logger.info(f"Získávám doplňující data pro společnost ID: {company_id}")
         
-        # Přístup k MCP konektoru přes různé možnosti
-        if hasattr(state, "mcp_connector"):
-            mcp_connector = state.mcp_connector
-        elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
-            mcp_connector = state.get_mcp_connector()
-        else:
-            # Pokud konektor není k dispozici v state, vytvořit novou instanci
+        # Přístup k MCP konektoru přes různé možnosti s robustní kontrolou a ochranou proti None
+        mcp_connector = None
+        
+        try:
+            if hasattr(state, "mcp_connector") and state.mcp_connector is not None:
+                mcp_connector = state.mcp_connector
+                logger.info("Používám existující MCP konektor ze state.mcp_connector")
+            elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
+                try:
+                    mcp_connector = state.get_mcp_connector()
+                    logger.info("Získán MCP konektor přes state.get_mcp_connector()")
+                except Exception as e:
+                    logger.error(f"Chyba při volání state.get_mcp_connector(): {str(e)}")
+                    mcp_connector = None
+        except Exception as e:
+            logger.error(f"Chyba při přístupu k mcp_connector: {str(e)}")
+            mcp_connector = None
+        
+        # Pokud konektor není k dispozici nebo je None, vytvořit novou instanci
+        if mcp_connector is None:
             from memory_agent.tools import MockMCPConnector
+            logger.info("Vytvářím novou instanci MockMCPConnector")
             mcp_connector = MockMCPConnector()
             # Připojit konektor do state pro další použití
-            state.mcp_connector = mcp_connector
+            try:
+                state.mcp_connector = mcp_connector
+                logger.info("MCP konektor úspěšně přidán do state")
+            except Exception as e:
+                logger.error(f"Nelze přidat mcp_connector do state: {str(e)}")
         
-        # Získání finančních dat
-        financial_data = mcp_connector.get_company_financials(company_id)
+        # Bezpečné získání finančních dat s robustní kontrolou a ošetřením chyb
+        financial_data = {}
+        relationships = {}
         
-        # Získání vztahů
-        relationships = mcp_connector.get_company_relationships(company_id)
+        try:
+            if mcp_connector is not None and hasattr(mcp_connector, 'get_company_financials'):
+                try:
+                    financial_data = mcp_connector.get_company_financials(company_id)
+                    logger.info(f"Úspěšně získána finanční data pro společnost {company_id}")
+                except Exception as e:
+                    logger.error(f"Chyba při volání get_company_financials: {str(e)}")
+                    financial_data = {"status": "error", "message": str(e)}
+            else:
+                logger.error("MCP konektor není dostupný nebo nemá metodu get_company_financials")
+                financial_data = {"status": "unavailable", "error": "Missing get_company_financials method"}
+                
+            # Získání vztahů s kontrolou existence metody a ošetřením chyb
+            if mcp_connector is not None and hasattr(mcp_connector, 'get_company_relationships'):
+                try:
+                    relationships = mcp_connector.get_company_relationships(company_id)
+                    logger.info(f"Úspěšně získány vztahy pro společnost {company_id}")
+                except Exception as e:
+                    logger.error(f"Chyba při volání get_company_relationships: {str(e)}")
+                    relationships = {"status": "error", "message": str(e)}
+            else:
+                logger.error("MCP konektor není dostupný nebo nemá metodu get_company_relationships")
+                relationships = {"status": "unavailable", "error": "Missing get_company_relationships method"}
+        except Exception as e:
+            logger.error(f"Chyba při volání metod MCP konektoru: {str(e)}")
+            if not financial_data:
+                financial_data = {"status": "error", "message": str(e)}
+            if not relationships:
+                relationships = {"status": "error", "message": str(e)}
         
         return {
             "company_data": {

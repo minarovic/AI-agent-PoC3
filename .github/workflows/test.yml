@@ -1,0 +1,53 @@
+name: Test AI-agent-Ntier
+
+on:
+  push:
+    branches: [ main, deployment-fix ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.11]
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: pip
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+    
+    - name: Create mock .env file for testing
+      run: |
+        cat > .env << EOL
+        OPENAI_API_KEY=sk-mock-key-for-testing
+        ANTHROPIC_API_KEY=sk-ant-mock-key-for-testing
+        LANGSMITH_API_KEY=ls-mock-key-for-testing
+        LANGSMITH_PROJECT=AI-agent-Ntier-Test
+        LOG_LEVEL=DEBUG
+        TEST_MODE=mock
+        EOL
+    
+    - name: Run tests
+      run: |
+        pytest --cov=src
+    
+    - name: Run linters
+      run: |
+        black --check .
+        ruff check .
+        
+    - name: Verify deployment configuration
+      run: |
+        python -c "import json; f = open('langgraph.json'); config = json.load(f); assert 'graphs' in config, 'Missing graphs in langgraph.json'"
