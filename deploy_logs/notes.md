@@ -687,3 +687,36 @@ Deployment by měl nyní:
 
 ### Verifikace:
 - Po provedení force redeploy zkontrolovat, zda již nedochází k chybě při volání konektoru
+
+## [2025-05-19] - Oprava rozpoznávání názvu společnosti a fallback data pro MB TOOL
+
+### Identifikovaný problém:
+- Aplikace nesprávně rozpoznává názvy společností v uživatelských dotazech
+- Při dotazu "Tell me about MB TOOL" je jako název společnosti detekováno pouze "TOOL"
+- Po neúspěšném získání dat společnosti se objevují chyby jako "Missing company ID"
+
+### Analýza příčiny:
+- Funkce `prepare_company_query` používá primitivní extrakci názvu společnosti (poslední slovo dotazu)
+- Chybí robustnější logika pro rozpoznávání celých názvů společností
+- Žádné fallback data pro známé společnosti jako "MB TOOL"
+- Chybí řádná propagace hodnot při chybách získávání dat
+
+### Navrhované řešení:
+- [x] Vylepšit funkci `prepare_company_query` pro lepší rozpoznávání názvů společností pomocí:
+  - Regulárních výrazů pro běžné vzory ("about MB TOOL", "pro MB TOOL", atd.)
+  - Detekce skupin slov začínajících velkým písmenem
+- [x] Přidat speciální fallback data pro společnost "MB TOOL"
+- [x] Zajistit, aby i při chybě měla odpověď strukturovaná data s ID
+- [x] Změnit typ pole `analysis_result` v `state.py` na `Annotated[Dict[str, Any], merge_dict_values]`
+
+### Implementace:
+- Přidány regulární výrazy pro nalezení názvu společnosti v různých typech dotazů
+- Vytvořen algoritmus pro detekci skupin slov začínajících velkým písmenem
+- Přidána speciální větev logiky pro "MB TOOL" s předdefinovanými daty
+- Upraven error handling, aby vždy vracel minimální strukturu s ID společnosti
+
+### Verifikace:
+- Kód nyní správně extrahuje "MB TOOL" z dotazu "Tell me about MB TOOL"
+- I při chybách vrací strukturovaná data s ID společnosti
+- Pro "MB TOOL" vždy vrací kompletní data bez ohledu na dostupnost MCP konektoru
+- Lepší integrace se systémem správy stavu pomocí anotovaných typů

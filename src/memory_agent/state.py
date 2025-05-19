@@ -173,7 +173,7 @@ class State:
     """Aktuální dotaz uživatele zpracovávaný workflow."""
     
     # Podpora pro analýzu
-    analysis_result: Optional[Dict[str, Any]] = None
+    analysis_result: Annotated[Dict[str, Any], merge_dict_values] = field(default_factory=dict)
     """Výsledek analýzy uživatelského dotazu."""
     
     # State rozšíření pro LangGraph Platform
