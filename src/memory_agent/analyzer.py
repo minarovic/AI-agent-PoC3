@@ -10,7 +10,7 @@ from functools import wraps
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.pydantic_v1 import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator
 from langchain_core.runnables import RunnableConfig, chain, RunnablePassthrough
 from langchain_core.tools import BaseTool, StructuredTool, tool
 from langchain_core.runnables.utils import ConfigurableFieldSpec

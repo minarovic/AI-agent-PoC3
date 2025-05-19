@@ -608,3 +608,48 @@ Deployment by měl nyní:
 ### Verifikace:
 - Kontrola všech míst, kde se přistupovalo k `state.mcp_connector`
 - Úprava přímých přístupů na volání `get_mcp_connector()`
+
+## [2025-05-19] - Úspěšná verifikace oprav mcp_connector
+
+### Identifikovaný problém:
+- AttributeError: 'State' object has no attribute 'mcp_connector'
+- Chyba způsobena nesprávným přístupem k neexistujícímu atributu
+
+### Provedené opravy:
+- [x] Nahrazení všech přímých přístupů `state.mcp_connector` v `graph_nodes.py` metodou `state.get_mcp_connector()`
+- [x] Odstranění redundantní inicializace konektoru v různých uzlech grafu
+
+### Verifikace:
+- [x] `./verify_deployment.sh` úspěšně dokončen bez chyb
+- [x] `test_standalone.py` úspěšně proběhl
+- [x] Provedeno `./deploy_to_github.sh` pro nasazení oprav
+
+### Další kroky:
+- [ ] Monitorovat GitHub Actions workflow pro ověření úspěšného nasazení
+- [ ] Kontrolovat logy nasazené aplikace v LangGraph Platform
+
+## [2025-05-19] - Problém s nasazením opravy mcp_connector
+
+### Identifikovaný problém:
+- Přes provedené opravy v kódu stále dochází k chybě `AttributeError("'State' object has no attribute 'mcp_connector'")`
+- Z logu (10.log) je vidět, že služba stále používá původní, neopravený kód
+
+### Analýza příčiny:
+- Změny byly správně provedeny a pushnuty na GitHub, ale neprojevily se v běžícím prostředí
+- Možné důvody:
+  - Neproběhlo kompletní nasazení nové verze
+  - Služba používá cached verzi kódu
+  - LangGraph Platform je napojen na jinou větev nebo repozitář
+
+### Navrhované řešení:
+- [x] Vytvořit skript `force_redeploy.sh` pro vynucení nového nasazení
+- [ ] Spustit manuální nasazení v administraci LangGraph Platform
+- [ ] Zkontrolovat, jaký repozitář a větev je nakonfigurována v LangGraph Platform
+- [ ] Sledovat GitHub Actions workflow pro případné chyby při nasazení
+
+### Implementace:
+- Vytvořen skript `force_redeploy.sh`, který přidá drobnou změnu a spustí nový deployment
+- Vytvořen soubor `deployment_persistent_error.md` s analýzou a postupem řešení
+
+### Verifikace:
+- Po provedení force redeploy zkontrolovat, zda již nedochází k chybě při volání konektoru
