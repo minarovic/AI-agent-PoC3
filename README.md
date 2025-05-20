@@ -14,6 +14,12 @@ AI-agent-Ntier je proof-of-concept implementace analytického agenta, který vyu
 - **Specializované prompty**: Optimalizované prompty pro různé typy analýz
 - **LangGraph Platform kompatibilita**: Připraveno pro nasazení na LangGraph Platform
 
+## Aktuální stav (20.05.2025)
+
+- **Nasazeno na LangGraph Platform**: Aplikace je nasazena a dostupná pro testování
+- **Zjednodušené workflow**: Aktuální verze podporuje především dotazy na společnosti
+- **Opraveny importy**: Vyřešen problém s chybějícími funkcemi v graph_nodes.py
+
 ## Struktura projektu
 
 ```
@@ -21,14 +27,30 @@ AI-agent-Ntier/
 ├── src/
 │   └── memory_agent/         # Hlavní kód projektu
 │       ├── graph.py          # Definice LangGraph workflow
+│       ├── graph_nodes.py    # Uzly pro workflow graf
 │       ├── analyzer.py       # Analýza uživatelských dotazů
 │       ├── prompts.py        # Specializované prompty
 │       └── tools.py          # Nástroje pro přístup k datům
 ├── mock_data/                # Testovací data
-├── doc/                      # Dokumentace
+├── doc/
+│   └── PlantUML/             # Diagramy workflow a architektury
+├── deploy_logs/              # Dokumentace postupu nasazení
 ├── langgraph.json            # Konfigurace pro LangGraph Platform
 └── run_langgraph_dev.sh      # Skript pro spuštění vývojového serveru
 ```
+
+## Nedávné opravy a vylepšení
+
+### 20.05.2025 - Oprava importů v graph.py a zjednodušení workflow
+
+- Vyřešen problém s importováním neexistujících funkcí z graph_nodes.py
+- Zjednodušeno workflow pro základní zpracování dotazů na společnosti
+- Implementovány lokální náhrady chybějících funkcí přímo v graph.py
+- Úspěšné nasazení na LangGraph Platform
+
+Podrobnosti v souborech:
+- `deploy_logs/deployment_summary_20_05_2025.md`
+- `doc/PlantUML/workflow_fix_20_05_2025.puml`
 
 ## Začínáme
 
