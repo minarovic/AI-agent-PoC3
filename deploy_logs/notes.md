@@ -773,3 +773,61 @@ Příklad:
 ```bash
 ./check_deployment_status.sh https://platform.langgraph.com/apps/ai-agent-ntier/api
 ```
+
+## [2025-05-19] - Pokračující analýza deploymentu na LangGraph Platform
+
+### Identifikovaný problém:
+- Je nutné verifikovat správný deployment aplikace na LangGraph Platform
+- Je třeba ověřit, že opravy provedené pro rozpoznání společností (zejména MB TOOL) fungují správně
+- Je třeba ověřit, že robustnost MCP konektoru je dostatečná
+
+### Analýza současného stavu:
+- Opravy v `graph_nodes.py` a `analyzer.py` byly implementovány pro robustnější detekci společností
+- Přidána funkce `analyze_company_query` v `analyzer.py` pro přímou LLM analýzu společností
+- Vylepšeno ošetření chyb při volání metod MCP konektoru
+- Konfigurační soubor `langgraph.json` byl upraven s cestou `"agent": "./src/memory_agent/graph.py:graph"`
+
+### Navrhované řešení:
+- [ ] Ověřit správnost konfigurace v `langgraph.json`
+- [ ] Otestovat deployment přes `deploy_to_github.sh`
+- [ ] Zkontrolovat logování při nasazení na LangGraph Platform
+- [ ] Verifikovat integraci s GitHub repozitářem pro automatické nasazení
+
+### Implementace:
+- Průběžně aktualizovat tento soubor během postupu
+
+### Verifikace:
+- Použít skript `verify_deployment.sh` pro ověření připravenosti kódu
+- Sledovat logy z nasazení na LangGraph Platform
+
+## [2025-05-19] - Analýza kompatibility dat a workflow
+
+### Identifikovaný problém:
+- Nesoulad mezi workflow v projektu a strukturou dat v mock_data_2
+- Chybí explicitní rozlišení typů analýz (risk_comparison, supplier_analysis, general)
+- Workflow nepracuje efektivně s různými typy souborů v mock_data_2
+
+### Analýza současného stavu:
+- Data v mock_data_2 jsou strukturována pro různé typy analýz:
+  - entity_detail_*.json a entity_search_*.json pro risk_comparison
+  - relationships_*.json a supply_chain_*.json pro supplier_analysis
+  - kombinace souborů pro general analýzu
+- Současné workflow v projektu neobsahuje jasné rozlišení těchto typů analýz
+- MockMCPConnector pravděpodobně nepracuje optimálně se všemi typy souborů
+
+### Navrhované řešení:
+- [ ] Implementovat explicitní podporu pro typy analýz v workflow
+- [ ] Vytvořit mapování mezi typy analýz a příslušnými soubory
+- [ ] Upravit retrieve_additional_company_data pro načítání dat podle typu analýzy
+- [ ] Přizpůsobit MockMCPConnector pro práci s více typy souborů
+
+### Implementace:
+- Vytvořeny dokumenty:
+  - N8N_analyzy.md - analýza N8N workflow a datových toků
+  - mock_data_workflow_kompatibilita.md - porovnání dat a workflow
+- Vytvořeny diagramy:
+  - N8N_workflow_analyza.puml - vizualizace N8N workflow
+  - optimalizovane_workflow.puml - návrh optimalizovaného workflow
+
+### Verifikace:
+- Po implementaci změn bude nutné ověřit správnou funkčnost se všemi typy analýz
