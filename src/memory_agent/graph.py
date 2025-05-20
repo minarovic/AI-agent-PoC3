@@ -146,15 +146,29 @@ def create_graph(config: Optional[Config] = None) -> StateGraph:
         lambda x: x.query_type if hasattr(x, "query_type") else "error",
         {
             "company": "prepare_company_query",
-            # Zjednodušeno - všechny ostatní typy vedou na error
-            "error": "handle_error"
-        },
-        default_dest="handle_error"  # Default pro všechny nezpracované typy
+            # Všechny ostatní známé typy explicitně přesměrovat na error handler
+            "error": "handle_error",
+            "person": "handle_error",
+            "relationship": "handle_error", 
+            "custom": "handle_error",
+            "unknown": "handle_error"
+        }
     )
     
-    # Zjednodušený company workflow
+    # Optimalizovaný company workflow s podporou typů analýzy
     builder.add_edge("prepare_company_query", "retrieve_additional_company_data")
-    builder.add_edge("retrieve_additional_company_data", "analyze_company_data")
+    
+    # Podmíněné větve podle typu analýzy pro retrieve_additional_company_data
+    builder.add_conditional_edges(
+        "retrieve_additional_company_data",
+        lambda x: "error" if hasattr(x, "error_state") else "continue",
+        {
+            "continue": "analyze_company_data",
+            "error": "handle_error"
+        }
+    )
+    
+    # Standardní dokončení workflow pro všechny typy analýz
     builder.add_edge("analyze_company_data", "generate_response")
     
     # Error handling

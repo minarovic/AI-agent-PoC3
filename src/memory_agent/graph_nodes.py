@@ -37,7 +37,7 @@ logger = logging.getLogger("memory_agent.graph_nodes")
 
 def determine_analysis_type(state: State) -> State:
     """
-    Zjednodušená funkce pro určení typu analýzy z dotazu.
+    Rozšířená funkce pro určení typu analýzy z dotazu.
     
     Podporované typy analýz:
     - risk_comparison: Analýza rizik a compliance
@@ -65,11 +65,28 @@ def determine_analysis_type(state: State) -> State:
         # Záložní řešení pokud import selže
         logger.warning(f"Nelze použít analyzer.detect_analysis_type: {str(e)}")
         
-        # Jednoduchá detekce klíčových slov
-        if any(kw in query for kw in ["risk", "riziko", "sankce", "compliance"]):
+        # Rozšířená detekce klíčových slov
+        risk_keywords = [
+            "risk", "rizik", "rizic", "compliance", "sanctions", "sankce", 
+            "bezpečnost", "security", "regulace", "regulation",
+            "aml", "kyc", "fatf", "ofac", "embargo", "reputace"
+        ]
+        
+        supplier_keywords = [
+            "supplier", "dodavatel", "supply chain", "relationships", 
+            "vztahy", "dodávky", "tier", "odběratel", "procurement",
+            "logistics", "logistika", "distributor", "vendor", "nákup"
+        ]
+        
+        if any(kw in query for kw in risk_keywords):
             analysis_type = "risk_comparison"
-        elif any(kw in query for kw in ["supplier", "dodavatel", "supply chain"]):
+        elif any(kw in query for kw in supplier_keywords):
             analysis_type = "supplier_analysis"
+    
+    # Ověření, že typ analýzy je jeden z podporovaných
+    if analysis_type not in ["general", "risk_comparison", "supplier_analysis"]:
+        logger.warning(f"Detekován nepodporovaný typ analýzy: {analysis_type}, používám 'general'")
+        analysis_type = "general"
     
     logger.info(f"Dotaz '{query[:30]}...' určen jako typ analýzy: {analysis_type}")
     return {"analysis_type": analysis_type}
@@ -114,13 +131,14 @@ def prepare_company_query(state: State) -> State:
         state: Aktuální stav workflow
         
     Returns:
-        Aktualizovaný stav s parametry dotazu
+        Aktualizovaný stav s parametry dotazu a základními daty společnosti
     """
     logger.info(f"Připravuji dotaz pro společnost: {state.current_query}")
     
     # Rozpoznání názvu společnosti z dotazu
     query = state.current_query if state.current_query else ""
     company_name = "Unknown"
+    analysis_type = getattr(state, "analysis_type", "general")  # Získání typu analýzy ze state
     
     # Pokud máme výsledek analýzy a společnosti, použijeme ho
     if hasattr(state, "analysis_result") and state.analysis_result:
@@ -134,10 +152,15 @@ def prepare_company_query(state: State) -> State:
             from memory_agent.analyzer import analyze_company_query
             
             # Analyzujeme dotaz pomocí zjednodušené funkce
-            company, analysis_type = analyze_company_query(query)
+            company, detected_analysis_type = analyze_company_query(query)
             if company and company != "Unknown Company":
                 company_name = company
                 logger.info(f"Analyzér rozpoznal společnost: {company_name}")
+                
+                # Pokud nemáme typ analýzy, použijeme detekovaný
+                if analysis_type == "general" and detected_analysis_type != "general":
+                    analysis_type = detected_analysis_type
+                    logger.info(f"Aktualizace typu analýzy na: {analysis_type}")
         except Exception as e:
             logger.error(f"Chyba při analýze dotazu: {str(e)}")
             # Pro PoC použijeme defaultní hodnoty, pokud analýza selže
@@ -156,7 +179,65 @@ def prepare_company_query(state: State) -> State:
         "company_name": company_name
     }
     
-    return {"company_name": company_name}
+    # Iniciální načtení dat o společnosti
+    try:
+        # Vytvoření MCP konektoru pro získání dat
+        from memory_agent.tools import MockMCPConnector
+        mcp_connector = MockMCPConnector()
+        
+        logger.info(f"Získávám základní data pro společnost: {company_name}")
+        
+        # Zde načteme základní data společnosti podle názvu
+        company_data = None
+        try:
+            # Nejprve zkusíme načíst podle názvu
+            company_data = mcp_connector.get_company_by_name(company_name)
+            logger.info(f"Úspěšně načtena data o společnosti podle názvu: {company_name}")
+        except Exception as e:
+            logger.warning(f"Nelze načíst data podle názvu: {str(e)}")
+            # Záložní řešení - vyhledání společnosti
+            try:
+                from memory_agent.tools import CompanyQueryParams
+                search_results = mcp_connector.search_companies(CompanyQueryParams(name=company_name))
+                if search_results and len(search_results) > 0:
+                    company_data = search_results[0]
+                    logger.info(f"Nalezena společnost vyhledáváním: {company_data.get('label', company_name)}")
+            except Exception as search_error:
+                logger.error(f"Nelze vyhledat společnost: {str(search_error)}")
+        
+        # Pokud nemáme data, vytvoříme minimální strukturu
+        if not company_data:
+            logger.warning(f"Nepodařilo se načíst data o společnosti {company_name}, vytvářím prázdnou strukturu")
+            company_data = {
+                "label": company_name,
+                "id": company_name.lower().replace(" ", "_"),
+                "basic_info": {
+                    "name": company_name,
+                    "id": company_name.lower().replace(" ", "_")
+                }
+            }
+        
+        # Zajištění základního formátu dat
+        if "basic_info" not in company_data:
+            company_data["basic_info"] = {
+                "name": company_data.get("label", company_name),
+                "id": company_data.get("id", company_name.lower().replace(" ", "_"))
+            }
+        
+        # Ukládáme základní data a MCP konektor do state
+        return {
+            "company_name": company_name,
+            "analysis_type": analysis_type,
+            "company_data": company_data,
+            "mcp_connector": mcp_connector
+        }
+    except Exception as e:
+        logger.error(f"Chyba při získávání dat společnosti: {str(e)}")
+        return {
+            "company_name": company_name,
+            "analysis_type": analysis_type,
+            "error_state": {"error": f"Chyba při získávání dat: {str(e)}", "error_type": "data_access_error"}
+        }
 
 def analyze_company_data(state: State) -> State:
     """
@@ -355,18 +436,45 @@ def analyze_company_data(state: State) -> State:
 
 def retrieve_additional_company_data(state: State) -> State:
     """
-    Zjednodušená funkce pro získání dat pro analýzu podle typu analýzy.
+    Funkce pro získání dodatečných dat pro analýzu podle typu analýzy.
+    Podporuje různé typy analýz (general, risk_comparison, supplier_analysis)
+    a načítá odpovídající data z mock zdrojů.
     
     Args:
         state: Aktuální stav workflow
         
     Returns:
-        Aktualizovaný stav s doplňujícími daty
+        Aktualizovaný stav s doplňujícími daty podle typu analýzy
     """
     try:
-        company_id = state.company_data.get("basic_info", {}).get("id")
-        # Získání typu analýzy z state (výchozí hodnota "general")
+        # Získání základních údajů ze state
+        company_name = getattr(state, "company_name", None)
         analysis_type = getattr(state, "analysis_type", "general")
+        company_data = getattr(state, "company_data", {})
+        
+        # Pokud nemáme company_data, zkontrolujeme, zda máme alespoň jméno společnosti
+        if not company_data:
+            if not company_name:
+                logger.error("Nelze získat další data - chybí jak company_data, tak company_name")
+                return {"error_state": {"error": "Missing company data and name", "error_type": "invalid_data"}}
+            
+            # Vytvoříme minimální strukturu company_data
+            company_data = {
+                "basic_info": {
+                    "name": company_name,
+                    "id": company_name.lower().replace(" ", "_")
+                }
+            }
+        
+        # Získání ID společnosti z company_data
+        company_id = company_data.get("basic_info", {}).get("id")
+        if not company_id and company_name:
+            # Pokud nemáme ID, ale máme jméno, vytvoříme ID z názvu
+            company_id = company_name.lower().replace(" ", "_")
+            if "basic_info" not in company_data:
+                company_data["basic_info"] = {}
+            company_data["basic_info"]["id"] = company_id
+            logger.warning(f"Používám náhradní ID odvozené z názvu: {company_id}")
         
         if not company_id:
             logger.error("Nelze získat další data - chybí ID společnosti")
@@ -374,13 +482,12 @@ def retrieve_additional_company_data(state: State) -> State:
         
         logger.info(f"Získávám doplňující data pro společnost ID: {company_id}, typ analýzy: {analysis_type}")
         
-        # Zjednodušený přístup k MCP konektoru - vždy vytvořit novou instanci pro PoC
-        from memory_agent.tools import MockMCPConnector
-        logger.info("Vytvářím novou instanci MockMCPConnector pro PoC")
-        mcp_connector = MockMCPConnector()
-        
-        # Připojit konektor do state
-        state.mcp_connector = mcp_connector
+        # Zkontrolujeme, jestli máme MCP konektor v state, jinak vytvoříme nový
+        mcp_connector = getattr(state, "mcp_connector", None)
+        if not mcp_connector:
+            from memory_agent.tools import MockMCPConnector
+            logger.info("Vytvářím novou instanci MockMCPConnector")
+            mcp_connector = MockMCPConnector()
         
         # Inicializace návratových dat
         financial_data = {}
@@ -389,45 +496,109 @@ def retrieve_additional_company_data(state: State) -> State:
         supply_chain_data = {}
         risk_factors_data = {}
         
-        # Zjednodušené načítání dat podle typu analýzy
+        # Načítání dat podle typu analýzy
         try:
             logger.info(f"Načítání dat pro typ analýzy: {analysis_type}")
             
             # Pro všechny typy analýz načteme základní finanční data
-            financial_data = mcp_connector.get_company_financials(company_id)
+            try:
+                financial_data = mcp_connector.get_company_financials(company_id)
+                logger.info("✅ Úspěšně načtena finanční data")
+            except Exception as fin_error:
+                logger.warning(f"⚠️ Nepodařilo se načíst finanční data: {str(fin_error)}")
+                financial_data = {}
             
             # Načteme dodatečná data podle typu analýzy
             if analysis_type == "general":
-                search_info = mcp_connector.get_company_search_data(company_id)
-            elif analysis_type == "risk_comparison":
-                risk_factors_data = mcp_connector.get_risk_factors_data(company_id)
-            elif analysis_type == "supplier_analysis":
-                relationships = mcp_connector.get_company_relationships(company_id)
-                relationships_data = {company_id: relationships}
+                try:
+                    search_info = mcp_connector.get_company_search_data(company_id)
+                    logger.info("✅ Úspěšně načtena search data pro general analýzu")
+                except Exception as search_error:
+                    logger.warning(f"⚠️ Nepodařilo se načíst search data: {str(search_error)}")
+                    search_info = {}
                 
-                supply_chain = mcp_connector.get_supply_chain_data(company_id)
-                supply_chain_data = {company_id: supply_chain}
+            elif analysis_type == "risk_comparison":
+                try:
+                    risk_factors_data = mcp_connector.get_risk_factors_data(company_id)
+                    logger.info("✅ Úspěšně načtena risk data pro risk_comparison analýzu")
+                except Exception as risk_error:
+                    logger.warning(f"⚠️ Nepodařilo se načíst risk data: {str(risk_error)}")
+                    risk_factors_data = {
+                        "company_id": company_id,
+                        "risk_score": None,
+                        "all_risk_factors": []
+                    }
+                
+            elif analysis_type == "supplier_analysis":
+                try:
+                    relationships = mcp_connector.get_company_relationships(company_id)
+                    relationships_data = {company_id: relationships}
+                    logger.info("✅ Úspěšně načtena data o vztazích pro supplier_analysis analýzu")
+                except Exception as rel_error:
+                    logger.warning(f"⚠️ Nepodařilo se načíst data o vztazích: {str(rel_error)}")
+                    relationships_data = {company_id: []}
+                
+                try:
+                    supply_chain = mcp_connector.get_supply_chain_data(company_id)
+                    supply_chain_data = {company_id: supply_chain}
+                    logger.info("✅ Úspěšně načtena data o supply chain pro supplier_analysis analýzu")
+                except Exception as sc_error:
+                    logger.warning(f"⚠️ Nepodařilo se načíst data o supply chain: {str(sc_error)}")
+                    supply_chain_data = {company_id: []}
         
         except Exception as e:
             logger.error(f"Chyba při načítání dat: {str(e)}")
-            # Pro PoC nebudeme řešit detailní chyby
+            # Pro PoC nebudeme řešit detailní chyby, ale zkusíme pokračovat s tím, co máme
         
-        # Sestavení výsledku podle typu analýzy
+        # Zkopírujeme existující company_data aby nedošlo k přepsání už načtených dat
+        updated_company_data = dict(company_data)
+        
+        # Zachování původní basic_info
+        if "basic_info" not in updated_company_data and company_data.get("basic_info"):
+            updated_company_data["basic_info"] = company_data["basic_info"]
+        
+        # Doplnění dat podle typu analýzy
+        if analysis_type == "general":
+            updated_company_data["financials"] = financial_data
+            updated_company_data["search_info"] = search_info
+            
+            # Zajištění, že máme všechny potřebné struktury dat
+            if "basic_info" not in updated_company_data or not updated_company_data["basic_info"]:
+                updated_company_data["basic_info"] = {
+                    "name": company_name if company_name else "Unknown Company",
+                    "id": company_id
+                }
+        
+        elif analysis_type == "risk_comparison":
+            updated_company_data["financials"] = financial_data
+            
+            # Pro risk analýzu potřebujeme také základní data společnosti
+            if not updated_company_data.get("search_info"):
+                try:
+                    search_info = mcp_connector.get_company_search_data(company_id)
+                    updated_company_data["search_info"] = search_info
+                except Exception:
+                    updated_company_data["search_info"] = {}
+        
+        elif analysis_type == "supplier_analysis":
+            updated_company_data["financials"] = financial_data
+            
+            # Pro supplier analýzu můžeme potřebovat i základní data
+            if not updated_company_data.get("search_info"):
+                try:
+                    search_info = mcp_connector.get_company_search_data(company_id)
+                    updated_company_data["search_info"] = search_info
+                except Exception:
+                    updated_company_data["search_info"] = {}
+        
+        # Sestavení výsledku
         result = {
-            "company_data": {},
+            "company_data": updated_company_data,
             "mcp_connector": mcp_connector
         }
         
-        # Přidání dat podle typu analýzy
-        if analysis_type == "general":
-            result["company_data"] = {
-                "financials": financial_data,
-                "search_info": search_info
-            }
-        elif analysis_type == "risk_comparison":
-            result["company_data"] = {
-                "financials": financial_data
-            }
+        # Přidání specializovaných dat podle typu analýzy
+        if analysis_type == "risk_comparison":
             result["risk_factors_data"] = risk_factors_data
         elif analysis_type == "supplier_analysis":
             result["relationships_data"] = relationships_data
@@ -437,4 +608,5 @@ def retrieve_additional_company_data(state: State) -> State:
     
     except Exception as e:
         logger.error(f"Chyba při získávání dat: {e}")
-        return {"error_state": {"error": "Data retrieval error", "error_type": "data_access_error"}}
+        logger.error(traceback.format_exc())
+        return {"error_state": {"error": f"Data retrieval error: {str(e)}", "error_type": "data_access_error"}}
