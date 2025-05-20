@@ -20,6 +20,7 @@ from memory_agent.tools import (
 
 from memory_agent.state import State
 from memory_agent.analyzer import analyze_query_sync
+from memory_agent import utils
 
 # Import prompt registry
 from memory_agent.prompts import (
@@ -34,9 +35,48 @@ logger = logging.getLogger("memory_agent.graph_nodes")
 
 # Uzly grafu pro LangGraph
 
+def determine_analysis_type(state: State) -> State:
+    """
+    Zjednodušená funkce pro určení typu analýzy z dotazu.
+    
+    Podporované typy analýz:
+    - risk_comparison: Analýza rizik a compliance
+    - supplier_analysis: Analýza dodavatelských vztahů
+    - general: Obecné informace o společnosti
+    
+    Args:
+        state: Aktuální stav workflow
+        
+    Returns:
+        Aktualizovaný stav s určeným typem analýzy
+    """
+    # Výchozí typ analýzy
+    analysis_type = "general"
+    
+    # Získání dotazu
+    query = state.current_query.lower() if state.current_query else ""
+    
+    # Využití funkce z analyzer.py místo duplikace kódu
+    try:
+        from memory_agent.analyzer import detect_analysis_type
+        analysis_type = detect_analysis_type(query)
+        logger.info(f"Analýza typu pomocí analyze.py: {analysis_type}")
+    except Exception as e:
+        # Záložní řešení pokud import selže
+        logger.warning(f"Nelze použít analyzer.detect_analysis_type: {str(e)}")
+        
+        # Jednoduchá detekce klíčových slov
+        if any(kw in query for kw in ["risk", "riziko", "sankce", "compliance"]):
+            analysis_type = "risk_comparison"
+        elif any(kw in query for kw in ["supplier", "dodavatel", "supply chain"]):
+            analysis_type = "supplier_analysis"
+    
+    logger.info(f"Dotaz '{query[:30]}...' určen jako typ analýzy: {analysis_type}")
+    return {"analysis_type": analysis_type}
+
 def route_query(state: State) -> State:
     """
-    Analyzuje vstupní dotaz a určí, jaký typ dotazu to je.
+    Zjednodušená verze funkce pro analýzu vstupního dotazu.
     
     Args:
         state: Aktuální stav workflow
@@ -49,19 +89,26 @@ def route_query(state: State) -> State:
         last_message = state.messages[-1]
         state.current_query = last_message.content
     
-    if state.current_query:
-        query_type = analyze_query_sync(state.current_query)
-        
-        logger.info(f"Dotaz '{state.current_query[:30]}...' klasifikován jako typ: {query_type}")
-        
-        return {"query_type": query_type}
-    else:
+    if not state.current_query:
         logger.error("Nebyl nalezen žádný dotaz k analýze")
         return {"query_type": "error", "error_state": {"error": "Nebyl nalezen žádný dotaz k analýze"}}
+    
+    # Standardní analýza pomocí analyze_query_sync
+    query_type = analyze_query_sync(state.current_query)
+    logger.info(f"Dotaz '{state.current_query[:30]}...' klasifikován jako typ: {query_type}")
+    
+    # Určení typu analýzy
+    updated_state = determine_analysis_type(state)
+    analysis_type = updated_state.get("analysis_type", "general")
+    
+    return {
+        "query_type": query_type,
+        "analysis_type": analysis_type
+    }
 
 def prepare_company_query(state: State) -> State:
     """
-    Připraví parametry pro dotaz na společnost.
+    Zjednodušená funkce pro přípravu dotazu na společnost.
     
     Args:
         state: Aktuální stav workflow
@@ -80,239 +127,235 @@ def prepare_company_query(state: State) -> State:
         if "company_name" in state.analysis_result:
             company_name = state.analysis_result["company_name"]
     
-    # Použijeme LLM analyzér místo regex vzorů
+    # Přímé využití již existující funkce z analyzer.py
     if company_name == "Unknown" and query:
         try:
             # Import analyzér z modulu analyzer
             from memory_agent.analyzer import analyze_company_query
             
-            # Analyzujeme dotaz pomocí LLM
-            try:
-                company, analysis_type = analyze_company_query(query)
-                if company and company != "Unknown Company":
-                    company_name = company
-                    logger.info(f"LLM analyzér rozpoznal společnost: {company_name}")
-            except Exception as e:
-                logger.error(f"Chyba při analýze dotazu pomocí LLM: {str(e)}")
-                # Pokračujeme dále s regex zálohou
-        except ImportError:
-            logger.warning("Nelze importovat analyze_company_query, použijeme regex analýzu")
-    
-    # Záložní řešení s regex vzory pokud LLM selhal
-    if company_name == "Unknown":
-        # Vzory pro nalezení názvu společnosti v dotazu
-        patterns = [
-            r"about\s+([A-Z][A-Za-z0-9\s\-]+)",  # "Tell me about MB TOOL"
-            r"pro\s+([A-Za-z0-9\s\-]+)",    # "Analýza rizik pro MB TOOL"
-            r"společnost\s+([A-Za-z0-9\s\-]+)",  # "Informace o společnosti MB TOOL"
-            r"([A-Za-z][A-Za-z0-9\s\-]+)(?:\s+závod|\s+společnost|\s+firmu|\s+a\.s\.|\s+s\.r\.o\.)", # "MB TOOL závod"
-            r"[Mm]á\s+([A-Za-z][A-Za-z0-9\s\-]+)\s+nějaké", # "Má MB TOOL nějaké sankce?"
-            r"sankce.*?(?:pro|u)\s+([A-Za-z][A-Za-z0-9\s\-]+)" # "sankce u MB TOOL"
-        ]
-        
-        import re
-        for pattern in patterns:
-            matches = re.search(pattern, query, re.IGNORECASE)
-            if matches:
-                company_name = matches.group(1).strip()
-                logger.info(f"Regex vzor rozpoznal společnost: {company_name}")
-                break
-                
-        # Pokud jsme nenašli podle vzorů, hledáme velká písmena skupiny slov
-        if company_name == "Unknown":
-            words = query.split()
-            # Hledáme skupiny slov začínající velkým písmenem
-            company_parts = []
-            for word in words:
-                if word and word[0].isupper():
-                    company_parts.append(word)
-                elif company_parts:  # Pokud už máme nějaké části a narazíme na malé písmeno
-                    break
-            
-            if company_parts:
-                company_name = " ".join(company_parts)
-                logger.info(f"Nalezeny části společnosti podle velkých písmen: {company_name}")
-    
-    # Speciální případ pro dotaz "Má MB TOOL nějaké sankce?"
-    if "MB TOOL" in query and "sankce" in query.lower() and company_name == "Unknown":
-        company_name = "MB TOOL"
-        logger.info("Speciální případ: Rozpoznán MB TOOL v dotazu o sankcích")
-    
-    logger.info(f"Finální rozpoznaný název společnosti: {company_name}")
-    
-    internal_data = {
-        "query_params": {
-            "company_name": company_name,
-            "time_period": "last_year"
-        }
-    }
-    
-    return {"internal_data": internal_data}
-
-def retrieve_company_data(state: State) -> State:
-    """
-    Získá data o společnosti z MCP.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s daty společnosti
-    """
-    try:
-        query_params = state.internal_data.get("query_params", {})
-        company_name = query_params.get("company_name")
-        
-        # Kontrola, zda máme platný název společnosti
-        if not company_name or company_name == "Unknown":
-            logger.error("Neplatný název společnosti")
-            return {
-                "error_state": {
-                    "error": "Nepodařilo se identifikovat název společnosti v dotazu",
-                    "error_type": "invalid_company_name"
-                },
-                "company_data": {
-                    "basic_info": {
-                        "name": "Neznámá společnost",
-                        "id": "unknown_id"
-                    }
-                }
-            }
-        
-        logger.info(f"Získávám data pro společnost: {company_name}")
-        
-        # Přístup k MCP konektoru - inicializace s výchozí hodnotou None
-        mcp_connector = None
-        
-        try:
-            if hasattr(state, "mcp_connector") and state.mcp_connector is not None:
-                mcp_connector = state.mcp_connector
-                logger.info("Používám existující MCP konektor ze state.mcp_connector")
-            elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
-                mcp_connector = state.get_mcp_connector()
-                logger.info("Používám MCP konektor získaný přes state.get_mcp_connector()")
-            
-            # Kontrola, zda se podařilo získat konektor
-            if mcp_connector is None:
-                # Pokud konektor není k dispozici v state, vytvořit novou instanci
-                from memory_agent.tools import MockMCPConnector
-                mcp_connector = MockMCPConnector()
-                logger.info("Vytvářím nový MCP konektor - konektor nebyl nalezen nebo byl None")
+            # Analyzujeme dotaz pomocí zjednodušené funkce
+            company, analysis_type = analyze_company_query(query)
+            if company and company != "Unknown Company":
+                company_name = company
+                logger.info(f"Analyzér rozpoznal společnost: {company_name}")
         except Exception as e:
-            # Pokud nastane jakákoli chyba, vytvoříme novou instanci
-            logger.error(f"Chyba při získávání MCP konektoru: {str(e)}")
-            from memory_agent.tools import MockMCPConnector
-            mcp_connector = MockMCPConnector()
-            logger.info("Vytvářím nový MCP konektor po chybě")
-        
-        # Připojit konektor do state pro další použití - jen pokud byl úspěšně inicializován
-        if mcp_connector is not None:
-            state.mcp_connector = mcp_connector
-        else:
-            logger.critical("Nepodařilo se inicializovat MCP konektor!")
-        
-        # Speciální případ pro MB TOOL - přidáme fallback data
-        if company_name.upper() == "MB TOOL":
-            logger.info("Používám speciální fallback data pro společnost MB TOOL")
-            company_data = {
-                "name": "MB TOOL",
-                "id": "mb_tool_123",
-                "description": "Společnost MB TOOL se specializuje na výrobu nástrojů a forem pro automobilový průmysl",
-                "industry": "Automotive",
-                "founding_year": 1995,
-                "headquarters": "Mladá Boleslav, Česká republika",
-                "employees": 120,
-                "revenue_category": "10-50M EUR"
-            }
-            return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
-        else:
-            # Získání dat společnosti s robustním ošetřením chyb
-            try:
-                # Kontrola, zda má konektor potřebnou metodu
-                if mcp_connector is not None and hasattr(mcp_connector, 'get_company_by_name'):
-                    try:
-                        company_data = mcp_connector.get_company_by_name(company_name)
-                        logger.info(f"Úspěšně získána data společnosti {company_name}")
-                        
-                        # Kontrola, zda data obsahují ID
-                        if not company_data or "id" not in company_data:
-                            logger.error(f"Data společnosti neobsahují ID: {company_data}")
-                            # Vytvoření alespoň minimálního objektu s ID
-                            company_data = {
-                                "name": company_name,
-                                "id": f"{company_name.lower().replace(' ', '_')}_id"
-                            }
-                    except Exception as e:
-                        logger.error(f"Chyba při volání get_company_by_name: {str(e)}")
-                        company_data = {
-                            "name": company_name,
-                            "id": f"{company_name.lower().replace(' ', '_')}_id",
-                            "status": "error",
-                            "message": str(e)
-                        }
-                else:
-                    logger.error("MCP konektor není dostupný nebo nemá metodu get_company_by_name")
-                    company_data = {
-                        "name": company_name,
-                        "id": f"{company_name.lower().replace(' ', '_')}_id",
-                        "status": "unavailable",
-                        "error": "Missing get_company_by_name method"
-                    }
-                
-                return {"company_data": {"basic_info": company_data}, "mcp_connector": mcp_connector}
-                
-            except Exception as e:
-                logger.error(f"Chyba při získávání dat společnosti {company_name}: {str(e)}")
-                # Vytvoření náhradních dat, abychom mohli pokračovat
-                company_data = {
-                    "name": company_name,
-                    "id": f"{company_name.lower().replace(' ', '_')}_id",
-                    "error": str(e)
-                }
-                return {
-                    "company_data": {"basic_info": company_data},
-                    "mcp_connector": mcp_connector,
-                    "error_state": {"error": str(e), "error_type": "data_retrieval_error"}
-                }
+            logger.error(f"Chyba při analýze dotazu: {str(e)}")
+            # Pro PoC použijeme defaultní hodnoty, pokud analýza selže
+            if "MB TOOL" in query:
+                company_name = "MB TOOL"
+            elif "ŠKODA AUTO" in query:
+                company_name = "ŠKODA AUTO"
+            elif "ADIS TACHOV" in query:
+                company_name = "ADIS TACHOV"
+            elif "Flídr plast" in query:
+                company_name = "Flídr plast"
     
-    except EntityNotFoundError as e:
-        logger.error(f"Společnost nenalezena: {e}")
-        return {"error_state": {"error": str(e), "error_type": "entity_not_found"}}
+    # Uložení výsledku dotazu na společnost
+    state.company_query = {
+        "query": query,
+        "company_name": company_name
+    }
     
-    except (DataFormatError, ConnectionError, MockMCPConnectorError) as e:
-        logger.error(f"Chyba při získávání dat společnosti: {e}")
-        return {"error_state": {"error": str(e), "error_type": "data_access_error"}}
+    return {"company_name": company_name}
 
-def plan_company_analysis(state: State) -> State:
+def analyze_company_data(state: State) -> State:
     """
-    Naplánuje analýzu společnosti na základě dostupných dat.
+    Provede analýzu dat společnosti podle určeného typu analýzy.
     
     Args:
         state: Aktuální stav workflow
         
     Returns:
-        Aktualizovaný stav s plánem analýzy
+        Aktualizovaný stav s výsledky analýzy
     """
-    logger.info("Plánuji analýzu společnosti")
+    # Získání typu analýzy z state (výchozí hodnota "general")
+    analysis_type = getattr(state, "analysis_type", "general")
+    logger.info(f"Analyzuji data společnosti pro typ analýzy: {analysis_type}")
     
-    # Placeholder pro plánování analýzy
-    analysis_plan = {
-        "steps": [
-            "basic_info_analysis",
-            "financial_analysis",
-            "relationship_analysis"
-        ],
-        "required_data": [
-            "financial_reports",
-            "relationships"
-        ]
+    company_name = state.company_data.get("basic_info", {}).get("name", "Unknown Company")
+    company_id = state.company_data.get("basic_info", {}).get("id", "unknown_id")
+    
+    # Inicializace základní struktury výsledku analýzy
+    analysis_result = {
+        "company_name": company_name,
+        "company_id": company_id,
+        "analysis_type": analysis_type,
+        "timestamp": utils.get_current_timestamp(),
     }
     
-    return {"internal_data": {"analysis_plan": analysis_plan}}
+    # Specializovaná analýza podle typu
+    if analysis_type == "general":
+        # Pro general analýzu využíváme search_info a financials
+        search_info = state.company_data.get("search_info", {})
+        financials = state.company_data.get("financials", {})
+        
+        # Základní informace o společnosti
+        basic_info = {
+            "name": company_name,
+            "id": company_id
+        }
+        
+        # Rozšíření o data ze search_info
+        if search_info and search_info != {}:
+            if "countries" in search_info:
+                basic_info["countries"] = search_info.get("countries", [])
+            if "addresses" in search_info:
+                basic_info["addresses"] = search_info.get("addresses", [])
+            if "identifiers" in search_info:
+                basic_info["identifiers"] = search_info.get("identifiers", [])
+            if "meta" in search_info:
+                basic_info["meta"] = search_info.get("meta", {})
+        
+        # Finanční informace a aktivity
+        financial_overview = {}
+        if financials and financials != {}:
+            if "supplier_since" in financials:
+                financial_overview["supplier_since"] = financials.get("supplier_since", "")
+            if "quality_rating" in financials:
+                financial_overview["quality_rating"] = financials.get("quality_rating", "")
+            if "compliance_status" in financials:
+                financial_overview["compliance_status"] = financials.get("compliance_status", "")
+            if "identified_activities" in financials:
+                financial_overview["activities"] = financials.get("identified_activities", [])
+            if "geographic_presence" in financials:
+                financial_overview["geographic_presence"] = financials.get("geographic_presence", [])
+        
+        # Sestavení analýzy pro general typ
+        analysis_result.update({
+            "summary": f"Obecná analýza společnosti {company_name}",
+            "basic_info": basic_info,
+            "financial_overview": financial_overview,
+            "key_findings": [
+                f"Společnost {company_name} je aktivní v odvětví {'automotive' if 'industry' in financials else 'neznámém'}",
+                f"Primární lokace: {', '.join(basic_info.get('countries', ['neznámá']))}"
+            ],
+        })
+        
+    elif analysis_type == "risk_comparison":
+        # Pro risk analýzu využíváme detail společnosti a rizikové faktory
+        company_detail = state.company_data.get("basic_info", {})
+        risk_factors_data = getattr(state, "risk_factors_data", {})
+        
+        # Extrakce rizikových faktorů z dostupných zdrojů
+        risk_factors = []
+        risk_score = None
+        
+        # Nejprve zkusíme rizikové faktory z risk_factors_data získaného pomocí get_risk_factors_data
+        if risk_factors_data:
+            if "all_risk_factors" in risk_factors_data:
+                risk_factors = risk_factors_data.get("all_risk_factors", [])
+            if "risk_score" in risk_factors_data:
+                risk_score = risk_factors_data.get("risk_score")
+        
+        # Pokud nejsou žádné rizikové faktory z risk_factors_data, zkusíme je extrahovat z company_detail
+        if not risk_factors and "risk" in company_detail:
+            risk_section = company_detail.get("risk", {})
+            
+            # Extrakce rizikového skóre
+            if "risk_score" in risk_section and not risk_score:
+                risk_score = risk_section.get("risk_score")
+            
+            # Zpracování rizikových faktorů
+            for key, value in risk_section.items():
+                if key == "risk_score":
+                    continue
+                
+                if isinstance(value, bool) and value:
+                    risk_factors.append({
+                        "factor": key,
+                        "category": "general",
+                        "level": "identified"
+                    })
+                elif isinstance(value, dict) and "level" in value:
+                    level = value.get("level")
+                    category = key
+                    if "factors" in value and isinstance(value["factors"], list):
+                        for factor in value["factors"]:
+                            risk_factors.append({
+                                "factor": factor,
+                                "category": category,
+                                "level": level
+                            })
+        
+        # Sestavení analýzy pro risk_comparison typ
+        analysis_result.update({
+            "summary": f"Analýza rizik pro společnost {company_name}",
+            "risk_score": risk_score,
+            "risk_factors": risk_factors,
+            "key_findings": [
+                f"Rizikové skóre: {risk_score if risk_score else 'Nedostupné'}",
+                f"Identifikováno {len(risk_factors)} rizikových faktorů"
+            ],
+        })
+        
+    elif analysis_type == "supplier_analysis":
+        # Pro supplier analýzu využíváme vztahy a supply chain
+        relationships_data = getattr(state, "relationships_data", {}).get(company_id, [])
+        supply_chain_data = getattr(state, "supply_chain_data", {}).get(company_id, [])
+        
+        # Extrakce dodavatelů ze vztahů
+        suppliers = []
+        if isinstance(relationships_data, list):
+            for relation in relationships_data:
+                # Kontrola, zda jde o vztah typu "has_supplier" a zda společnost je zdrojem
+                if relation.get("type") == "has_supplier" and relation.get("source", {}).get("id") == company_id:
+                    target = relation.get("target", {})
+                    metadata = relation.get("metadata", {})
+                    suppliers.append({
+                        "name": target.get("label", "Unknown Supplier"),
+                        "id": target.get("id", ""),
+                        "tier": metadata.get("tier", "Unknown"),
+                        "category": metadata.get("category", "Unknown")
+                    })
+        
+        # Extrakce dodavatelů z supply chain dat
+        supply_chain_suppliers = []
+        if isinstance(supply_chain_data, list):
+            for item in supply_chain_data:
+                supplier_info = item.get("target", {})
+                supplier_name = supplier_info.get("label", "")
+                supplier_id = supplier_info.get("id", "")
+                
+                # Jen pokud máme alespoň název nebo ID
+                if supplier_name or supplier_id:
+                    # Kontrola, zda tento dodavatel už není v seznamu
+                    if not any(s.get("id") == supplier_id for s in supply_chain_suppliers if supplier_id):
+                        supply_chain_suppliers.append({
+                            "name": supplier_name,
+                            "id": supplier_id,
+                            "tier": item.get("tier", "Unknown"),
+                            "risk_factors": item.get("risk_factors", [])
+                        })
+        
+        # Sestavení analýzy pro supplier_analysis typ
+        analysis_result.update({
+            "summary": f"Analýza dodavatelského řetězce pro společnost {company_name}",
+            "suppliers": suppliers,
+            "supply_chain": supply_chain_suppliers,
+            "key_findings": [
+                f"Identifikováno {len(suppliers)} přímých dodavatelů",
+                f"Analýza dodavatelského řetězce obsahuje {len(supply_chain_suppliers)} dodavatelů",
+                f"Zahrnuto {sum(1 for s in supply_chain_suppliers if s.get('risk_factors'))} dodavatelů s identifikovanými riziky" if supply_chain_suppliers else "Žádná rizika v dodavatelském řetězci nebyla identifikována"
+            ],
+            "data_quality": "high" if supply_chain_suppliers else "medium"
+        })
+    
+    else:
+        # Obecná analýza pro neznámý typ
+        analysis_result.update({
+            "summary": f"Analýza společnosti {company_name}",
+            "key_findings": [
+                "Neznámý typ analýzy, poskytnuty pouze základní informace",
+                f"Společnost ID: {company_id}"
+            ],
+            "data_quality": "low"
+        })
+    
+    return {"analysis_result": analysis_result}
 
 def retrieve_additional_company_data(state: State) -> State:
     """
-    Získá další data potřebná pro analýzu společnosti.
+    Zjednodušená funkce pro získání dat pro analýzu podle typu analýzy.
     
     Args:
         state: Aktuální stav workflow
@@ -322,442 +365,76 @@ def retrieve_additional_company_data(state: State) -> State:
     """
     try:
         company_id = state.company_data.get("basic_info", {}).get("id")
+        # Získání typu analýzy z state (výchozí hodnota "general")
+        analysis_type = getattr(state, "analysis_type", "general")
         
         if not company_id:
             logger.error("Nelze získat další data - chybí ID společnosti")
             return {"error_state": {"error": "Missing company ID", "error_type": "invalid_data"}}
         
-        logger.info(f"Získávám doplňující data pro společnost ID: {company_id}")
+        logger.info(f"Získávám doplňující data pro společnost ID: {company_id}, typ analýzy: {analysis_type}")
         
-        # Přístup k MCP konektoru přes různé možnosti s robustní kontrolou a ochranou proti None
-        mcp_connector = None
+        # Zjednodušený přístup k MCP konektoru - vždy vytvořit novou instanci pro PoC
+        from memory_agent.tools import MockMCPConnector
+        logger.info("Vytvářím novou instanci MockMCPConnector pro PoC")
+        mcp_connector = MockMCPConnector()
         
-        try:
-            if hasattr(state, "mcp_connector") and state.mcp_connector is not None:
-                mcp_connector = state.mcp_connector
-                logger.info("Používám existující MCP konektor ze state.mcp_connector")
-            elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
-                try:
-                    mcp_connector = state.get_mcp_connector()
-                    logger.info("Získán MCP konektor přes state.get_mcp_connector()")
-                except Exception as e:
-                    logger.error(f"Chyba při volání state.get_mcp_connector(): {str(e)}")
-                    mcp_connector = None
-        except Exception as e:
-            logger.error(f"Chyba při přístupu k mcp_connector: {str(e)}")
-            mcp_connector = None
+        # Připojit konektor do state
+        state.mcp_connector = mcp_connector
         
-        # Pokud konektor není k dispozici nebo je None, vytvořit novou instanci
-        if mcp_connector is None:
-            from memory_agent.tools import MockMCPConnector
-            logger.info("Vytvářím novou instanci MockMCPConnector")
-            mcp_connector = MockMCPConnector()
-            # Připojit konektor do state pro další použití
-            try:
-                state.mcp_connector = mcp_connector
-                logger.info("MCP konektor úspěšně přidán do state")
-            except Exception as e:
-                logger.error(f"Nelze přidat mcp_connector do state: {str(e)}")
-        
-        # Bezpečné získání finančních dat s robustní kontrolou a ošetřením chyb
+        # Inicializace návratových dat
         financial_data = {}
-        relationships = {}
+        search_info = {}
+        relationships_data = {}
+        supply_chain_data = {}
+        risk_factors_data = {}
         
+        # Zjednodušené načítání dat podle typu analýzy
         try:
-            if mcp_connector is not None and hasattr(mcp_connector, 'get_company_financials'):
-                try:
-                    financial_data = mcp_connector.get_company_financials(company_id)
-                    logger.info(f"Úspěšně získána finanční data pro společnost {company_id}")
-                except Exception as e:
-                    logger.error(f"Chyba při volání get_company_financials: {str(e)}")
-                    financial_data = {"status": "error", "message": str(e)}
-            else:
-                logger.error("MCP konektor není dostupný nebo nemá metodu get_company_financials")
-                financial_data = {"status": "unavailable", "error": "Missing get_company_financials method"}
+            logger.info(f"Načítání dat pro typ analýzy: {analysis_type}")
+            
+            # Pro všechny typy analýz načteme základní finanční data
+            financial_data = mcp_connector.get_company_financials(company_id)
+            
+            # Načteme dodatečná data podle typu analýzy
+            if analysis_type == "general":
+                search_info = mcp_connector.get_company_search_data(company_id)
+            elif analysis_type == "risk_comparison":
+                risk_factors_data = mcp_connector.get_risk_factors_data(company_id)
+            elif analysis_type == "supplier_analysis":
+                relationships = mcp_connector.get_company_relationships(company_id)
+                relationships_data = {company_id: relationships}
                 
-            # Získání vztahů s kontrolou existence metody a ošetřením chyb
-            if mcp_connector is not None and hasattr(mcp_connector, 'get_company_relationships'):
-                try:
-                    relationships = mcp_connector.get_company_relationships(company_id)
-                    logger.info(f"Úspěšně získány vztahy pro společnost {company_id}")
-                except Exception as e:
-                    logger.error(f"Chyba při volání get_company_relationships: {str(e)}")
-                    relationships = {"status": "error", "message": str(e)}
-            else:
-                logger.error("MCP konektor není dostupný nebo nemá metodu get_company_relationships")
-                relationships = {"status": "unavailable", "error": "Missing get_company_relationships method"}
-        except Exception as e:
-            logger.error(f"Chyba při volání metod MCP konektoru: {str(e)}")
-            if not financial_data:
-                financial_data = {"status": "error", "message": str(e)}
-            if not relationships:
-                relationships = {"status": "error", "message": str(e)}
+                supply_chain = mcp_connector.get_supply_chain_data(company_id)
+                supply_chain_data = {company_id: supply_chain}
         
-        return {
-            "company_data": {
-                "financials": financial_data
-            },
-            "relationships_data": {
-                company_id: relationships
-            },
+        except Exception as e:
+            logger.error(f"Chyba při načítání dat: {str(e)}")
+            # Pro PoC nebudeme řešit detailní chyby
+        
+        # Sestavení výsledku podle typu analýzy
+        result = {
+            "company_data": {},
             "mcp_connector": mcp_connector
         }
-    
-    except Exception as e:
-        logger.error(f"Chyba při získávání doplňujících dat: {e}")
-        return {"error_state": {"error": str(e), "error_type": "data_access_error"}}
-
-def analyze_company_data(state: State) -> State:
-    """
-    Provede analýzu dat společnosti.
-    
-    Args:
-        state: Aktuální stav workflow
         
-    Returns:
-        Aktualizovaný stav s výsledky analýzy
-    """
-    logger.info("Analyzuji data společnosti")
-    
-    # Placeholder pro skutečnou analýzu
-    company_name = state.company_data.get("basic_info", {}).get("name", "Unknown Company")
-    
-    analysis_result = {
-        "company_name": company_name,
-        "summary": f"Analýza společnosti {company_name}",
-        "key_findings": [
-            "Nalezeno několik významných obchodních vztahů",
-            "Finanční údaje ukazují stabilní růst"
-        ],
-        "data_quality": "high"
-    }
-    
-    return {"analysis_result": analysis_result}
-
-def prepare_person_query(state: State) -> State:
-    """
-    Připraví parametry pro dotaz na osobu.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s parametry dotazu
-    """
-    logger.info(f"Připravuji dotaz pro osobu: {state.current_query}")
-    
-    # Placeholder pro extrakci parametrů osoby
-    person_name = state.current_query.split()[-1] if state.current_query else "Unknown"
-    
-    internal_data = {
-        "query_params": {
-            "person_name": person_name
-        }
-    }
-    
-    return {"internal_data": internal_data}
-
-def retrieve_person_data(state: State) -> State:
-    """
-    Získá data o osobě z MCP.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s daty osoby
-    """
-    try:
-        query_params = state.internal_data.get("query_params", {})
-        person_name = query_params.get("person_name")
-        
-        logger.info(f"Získávám data pro osobu: {person_name}")
-        
-        # Přístup k MCP konektoru přes různé možnosti s robustní kontrolou a ochranou proti None
-        mcp_connector = None
-        
-        try:
-            if hasattr(state, "mcp_connector") and state.mcp_connector is not None:
-                mcp_connector = state.mcp_connector
-                logger.info("Používám existující MCP konektor ze state.mcp_connector")
-            elif hasattr(state, "get_mcp_connector") and callable(state.get_mcp_connector):
-                try:
-                    mcp_connector = state.get_mcp_connector()
-                    logger.info("Získán MCP konektor přes state.get_mcp_connector()")
-                except Exception as e:
-                    logger.error(f"Chyba při volání state.get_mcp_connector(): {str(e)}")
-                    mcp_connector = None
-        except Exception as e:
-            logger.error(f"Chyba při přístupu k mcp_connector: {str(e)}")
-            mcp_connector = None
-            
-        # Pokud konektor není k dispozici nebo je None, vytvořit novou instanci
-        if mcp_connector is None:
-            from memory_agent.tools import MockMCPConnector
-            logger.info("Vytvářím novou instanci MockMCPConnector")
-            mcp_connector = MockMCPConnector()
-            # Připojit konektor do state pro další použití
-            try:
-                state.mcp_connector = mcp_connector
-                logger.info("MCP konektor úspěšně přidán do state")
-            except Exception as e:
-                logger.error(f"Nelze přidat mcp_connector do state: {str(e)}")
-        
-        # Získání dat osoby s ošetřením chyb
-        try:
-            if mcp_connector is not None and hasattr(mcp_connector, 'get_person_by_name'):
-                person_data = mcp_connector.get_person_by_name(person_name)
-                logger.info(f"Úspěšně získána data osoby {person_name}")
-            else:
-                logger.error("MCP konektor není dostupný nebo nemá metodu get_person_by_name")
-                person_data = {
-                    "name": person_name,
-                    "id": f"{person_name.lower().replace(' ', '_')}_id",
-                    "status": "unavailable",
-                    "error": "Missing get_person_by_name method"
-                }
-        except Exception as e:
-            logger.error(f"Chyba při získávání dat osoby {person_name}: {str(e)}")
-            person_data = {
-                "name": person_name,
-                "id": f"{person_name.lower().replace(' ', '_')}_id",
-                "status": "error",
-                "message": str(e)
+        # Přidání dat podle typu analýzy
+        if analysis_type == "general":
+            result["company_data"] = {
+                "financials": financial_data,
+                "search_info": search_info
             }
-            
-        return {"internal_data": {"person_data": person_data}, "mcp_connector": mcp_connector}
+        elif analysis_type == "risk_comparison":
+            result["company_data"] = {
+                "financials": financial_data
+            }
+            result["risk_factors_data"] = risk_factors_data
+        elif analysis_type == "supplier_analysis":
+            result["relationships_data"] = relationships_data
+            result["supply_chain_data"] = supply_chain_data
+        
+        return result
     
     except Exception as e:
-        logger.error(f"Chyba při získávání dat osoby: {e}")
-        return {"error_state": {"error": str(e), "error_type": "data_access_error"}}
-
-def analyze_person_data(state: State) -> State:
-    """
-    Provede analýzu dat osoby.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s výsledky analýzy
-    """
-    logger.info("Analyzuji data osoby")
-    
-    person_data = state.internal_data.get("person_data", {})
-    person_name = person_data.get("name", "Unknown Person")
-    
-    analysis_result = {
-        "person_name": person_name,
-        "summary": f"Analýza osoby {person_name}",
-        "key_findings": [
-            "Osoba má několik významných rolí ve společnostech",
-            "Nalezeno několik relevantních vztahů"
-        ]
-    }
-    
-    return {"analysis_result": analysis_result}
-
-def prepare_relationship_query(state: State) -> State:
-    """
-    Připraví parametry pro dotaz na vztahy.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s parametry dotazu
-    """
-    logger.info(f"Připravuji dotaz pro vztahy: {state.current_query}")
-    
-    # Placeholder pro extrakci entit vztahu
-    entities = state.current_query.split(" a ") if state.current_query else []
-    
-    internal_data = {
-        "query_params": {
-            "entities": entities,
-            "relationship_type": "all"
-        }
-    }
-    
-    return {"internal_data": internal_data}
-
-def retrieve_relationship_data(state: State) -> State:
-    """
-    Získá data o vztazích z MCP.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s daty vztahů
-    """
-    try:
-        query_params = state.internal_data.get("query_params", {})
-        entities = query_params.get("entities", [])
-        
-        logger.info(f"Získávám data pro vztahy mezi entitami: {entities}")
-        
-        # Mockovaná funkce - ve skutečnosti by volala MCP connector
-        relationship_data = []
-        for entity in entities:
-            # Placeholder - předstíráme, že získáváme data pro každou entitu
-            entity_data = {"entity": entity, "relationships": [{"type": "business", "target": "Example Corp"}]}
-            relationship_data.append(entity_data)
-        
-        return {"internal_data": {"relationship_data": relationship_data}}
-    
-    except Exception as e:
-        logger.error(f"Chyba při získávání dat o vztazích: {e}")
-        return {"error_state": {"error": str(e), "error_type": "data_access_error"}}
-
-def analyze_relationship_data(state: State) -> State:
-    """
-    Provede analýzu dat o vztazích.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s výsledky analýzy
-    """
-    logger.info("Analyzuji data o vztazích")
-    
-    relationship_data = state.internal_data.get("relationship_data", [])
-    entities = [data.get("entity") for data in relationship_data]
-    
-    analysis_result = {
-        "entities_analyzed": entities,
-        "summary": f"Analýza vztahů mezi {', '.join(entities)}",
-        "key_findings": [
-            "Nalezeno několik přímých obchodních vazeb",
-            "Identifikovány potenciální nepřímé vztahy"
-        ]
-    }
-    
-    return {"analysis_result": analysis_result}
-
-def prepare_custom_query(state: State) -> State:
-    """
-    Připraví parametry pro vlastní dotaz.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s parametry dotazu
-    """
-    logger.info(f"Připravuji vlastní dotaz: {state.current_query}")
-    
-    # Placeholder pro identifikaci parametrů vlastního dotazu
-    internal_data = {
-        "query_params": {
-            "custom_query": state.current_query,
-            "query_type": "generic"
-        }
-    }
-    
-    return {"internal_data": internal_data}
-
-def execute_custom_query(state: State) -> State:
-    """
-    Provede vlastní dotaz.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s výsledky dotazu
-    """
-    try:
-        query_params = state.internal_data.get("query_params", {})
-        custom_query = query_params.get("custom_query")
-        
-        logger.info(f"Provádím vlastní dotaz: {custom_query}")
-        
-        # Placeholder pro provedení vlastního dotazu
-        custom_results = {"query": custom_query, "results": ["Výsledek 1", "Výsledek 2"]}
-        
-        return {"internal_data": {"custom_results": custom_results}}
-    
-    except Exception as e:
-        logger.error(f"Chyba při provádění vlastního dotazu: {e}")
-        return {"error_state": {"error": str(e), "error_type": "query_execution_error"}}
-
-def analyze_custom_results(state: State) -> State:
-    """
-    Analyzuje výsledky vlastního dotazu.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s analýzou výsledků
-    """
-    logger.info("Analyzuji výsledky vlastního dotazu")
-    
-    custom_results = state.internal_data.get("custom_results", {})
-    query = custom_results.get("query", "Neznámý dotaz")
-    
-    analysis_result = {
-        "query": query,
-        "summary": f"Analýza výsledků pro dotaz: {query}",
-        "key_findings": [
-            "Nalezeno několik relevantních výsledků",
-            "Výsledky poskytují odpověď na dotaz"
-        ]
-    }
-    
-    return {"analysis_result": analysis_result}
-
-def generate_response(state: State) -> State:
-    """
-    Vygeneruje odpověď na základě analýzy.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s odpovědí
-    """
-    logger.info("Generuji odpověď")
-    
-    analysis_result = state.analysis_result or {}
-    error_state = state.error_state or {}
-    
-    if error_state:
-        response = f"Omlouvám se, ale došlo k chybě: {error_state.get('error', 'Neznámá chyba')}"
-    else:
-        summary = analysis_result.get("summary", "Nemám dostatek informací pro odpověď.")
-        key_findings = analysis_result.get("key_findings", [])
-        
-        response = f"{summary}\n\nKlíčová zjištění:\n"
-        for finding in key_findings:
-            response += f"- {finding}\n"
-    
-    return {"messages": [{"role": "assistant", "content": response}]}
-
-def handle_error(state: State) -> State:
-    """
-    Zpracuje chybový stav a připraví informace pro odpověď.
-    
-    Args:
-        state: Aktuální stav workflow
-        
-    Returns:
-        Aktualizovaný stav s informacemi o chybě
-    """
-    logger.error(f"Zpracovávám chybový stav: {state.error_state}")
-    
-    error_message = "Omlouvám se, ale nemohu zpracovat váš dotaz."
-    if state.error_state and "error" in state.error_state:
-        error_message += f" Důvod: {state.error_state['error']}"
-    
-    analysis_result = {
-        "summary": error_message,
-        "key_findings": [
-            "Došlo k chybě při zpracování dotazu",
-            "Zkuste přeformulovat svůj dotaz nebo poskytnout více informací"
-        ]
-    }
-    
-    return {"analysis_result": analysis_result}
+        logger.error(f"Chyba při získávání dat: {e}")
+        return {"error_state": {"error": "Data retrieval error", "error_type": "data_access_error"}}

@@ -13,7 +13,11 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 
 from langchain_core.messages import AnyMessage
-from langgraph.graph import add_messages
+try:
+    from langgraph.graph import add_messages
+except ImportError:
+    # Použití mock implementace, pokud langgraph není dostupný
+    from memory_agent.mock_langgraph import add_messages
 from typing_extensions import Annotated
 
 # Import pro MockMCPConnector
