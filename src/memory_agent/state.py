@@ -9,6 +9,7 @@ reducerů stavu prostřednictvím Annotated typů.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 
@@ -22,6 +23,9 @@ from typing_extensions import Annotated
 
 # Import pro MockMCPConnector
 from memory_agent.tools import MockMCPConnector
+
+# Nastavení loggeru
+logger = logging.getLogger(__name__)
 
 # Import AnalysisResult odstraněn, používáme Dict[str, Any] s reducery
 
@@ -43,7 +47,17 @@ def merge_dict_values(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, 
     if not right:
         return left
     
-    result = left.copy() if left else {}
+    # Bezpečné kopírování: řeší problém s objekty, které nemají metodu copy()
+    if left is None:
+        result = {}
+    else:
+        try:
+            result = left.copy()
+        except AttributeError:
+            # Pokud objekt nemá metodu copy(), vytvoříme nový slovník
+            result = {}
+            logger.warning(f"Objekt typu {type(left)} nemá metodu copy(), vytvářím nový slovník")
+    
     result.update(right)
     return result
 

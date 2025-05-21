@@ -8,6 +8,7 @@ MockMCPConnector pro získávání dat pro různé typy analýz.
 from typing import Dict, Any, List, Optional, Literal
 from typing_extensions import TypedDict
 import logging
+import traceback
 
 from memory_agent.tools import (
     MockMCPConnector, 
@@ -224,12 +225,12 @@ def prepare_company_query(state: State) -> State:
                 "id": company_data.get("id", company_name.lower().replace(" ", "_"))
             }
         
-        # Ukládáme základní data a MCP konektor do state
+        # Ukládáme pouze základní data do state (bez MCP konektoru, který není serializovatelný)
         return {
             "company_name": company_name,
             "analysis_type": analysis_type,
-            "company_data": company_data,
-            "mcp_connector": mcp_connector
+            "company_data": company_data
+            # NEUKLÁDAT mcp_connector do state - není serializovatelný pro checkpointy
         }
     except Exception as e:
         logger.error(f"Chyba při získávání dat společnosti: {str(e)}")
@@ -482,12 +483,10 @@ def retrieve_additional_company_data(state: State) -> State:
         
         logger.info(f"Získávám doplňující data pro společnost ID: {company_id}, typ analýzy: {analysis_type}")
         
-        # Zkontrolujeme, jestli máme MCP konektor v state, jinak vytvoříme nový
-        mcp_connector = getattr(state, "mcp_connector", None)
-        if not mcp_connector:
-            from memory_agent.tools import MockMCPConnector
-            logger.info("Vytvářím novou instanci MockMCPConnector")
-            mcp_connector = MockMCPConnector()
+        # Vždy vytvoříme novou instanci MockMCPConnector - neukládáme ji do stavu
+        from memory_agent.tools import MockMCPConnector
+        logger.info("Vytvářím novou instanci MockMCPConnector")
+        mcp_connector = MockMCPConnector()
         
         # Inicializace návratových dat
         financial_data = {}
@@ -591,10 +590,10 @@ def retrieve_additional_company_data(state: State) -> State:
                 except Exception:
                     updated_company_data["search_info"] = {}
         
-        # Sestavení výsledku
+        # Sestavení výsledku - neukládáme mcp_connector do stavu
         result = {
-            "company_data": updated_company_data,
-            "mcp_connector": mcp_connector
+            "company_data": updated_company_data
+            # NEUKLÁDAT mcp_connector do state - není serializovatelný pro checkpointy
         }
         
         # Přidání specializovaných dat podle typu analýzy
