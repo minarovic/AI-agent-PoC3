@@ -1,383 +1,85 @@
 import logging
-import traceback
-import re
-from typing import Dict, List, Literal, Optional, Union, Any, Tuple
-from typing_extensions import TypedDict
-import asyncio
-from functools import wraps
+import os
+from typing import Optional, Any
 
 # LangChain Core imports
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from pydantic import BaseModel, Field, validator
-from langchain_core.runnables import RunnableConfig, chain, RunnablePassthrough
-from langchain_core.tools import BaseTool, StructuredTool, tool
-from langchain_core.runnables.utils import ConfigurableFieldSpec
-from langchain_core.exceptions import OutputParserException
-
-# LangChain imports
-from langchain.chat_models import init_chat_model
-
-from memory_agent import utils
+from langchain_core.runnables import RunnableConfig
+from langchain_anthropic import ChatAnthropic
+from langchain_core.messages import SystemMessage, HumanMessage
 
 logger = logging.getLogger(__name__)
 
-# UPDATED: Definition of analysis types with Literal instead of enum
-AnalysisType = Literal["risk_comparison", "supplier_analysis", "general"]
-
-# Valid analysis types constant
-VALID_ANALYSIS_TYPES = ["risk_comparison", "supplier_analysis", "general"]
-
-# NEW: Define Pydantic model for analysis result
-class AnalysisResult(BaseModel):
-    """Result of user input analysis."""
-    companies: List[str] = Field(description="List of identified companies")
-    company: str = Field(description="Primary company (first in the list)")
-    analysis_type: AnalysisType = Field(description="Type of analysis to perform")
-    query: str = Field(description="Original user query")
-    is_company_analysis: bool = Field(description="Indicates whether the query is about company analysis")
-    confidence: float = Field(ge=0.0, le=1.0, description="Analysis confidence level (0.0 - 1.0)")
+# Initialize Anthropic LLM globally
+def get_anthropic_llm():
+    """Initialize Anthropic LLM with API key from environment."""
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        logger.warning("ANTHROPIC_API_KEY not found in environment, using fallback")
+        return None
     
-    model_config = {"extra": "forbid"}
+    try:
+        return ChatAnthropic(
+            model="claude-3-5-sonnet-20241022",
+            api_key=api_key,
+            temperature=0
+        )
+    except Exception as e:
+        logger.error(f"Failed to initialize Anthropic LLM: {e}")
+        return None
 
-# NEW: Few-shot examples for each type of analysis
-RISK_EXAMPLES = [
-    {
-        "query": "What are the risks for MB TOOL?",
-        "reasoning": "This query is asking about risk factors specific to MB TOOL.",
-        "analysis_type": "risk_comparison"
-    },
-    {
-        "query": "Jaká jsou compliance rizika pro ADIS TACHOV?",
-        "reasoning": "This query is asking about compliance risks for ADIS TACHOV.",
-        "analysis_type": "risk_comparison"
-    },
-    {
-        "query": "Má MB TOOL nějaké sankce?",
-        "reasoning": "This query is asking about possible sanctions against MB TOOL, which is a risk factor.",
-        "analysis_type": "risk_comparison"
+# Fallback function for company name extraction using simple regex
+def extract_company_fallback(query: str) -> str:
+    """Fallback company extraction using simple patterns."""
+    import re
+    
+    # Known companies mapping
+    known_companies = {
+        "MB TOOL": "MB TOOL",
+        "ŠKODA AUTO": "ŠKODA AUTO", 
+        "ADIS TACHOV": "ADIS TACHOV",
+        "Flídr plast": "Flídr plast",
+        "BOS AUTOMOTIVE": "BOS AUTOMOTIVE",
+        "BOS": "BOS",
+        "FLIDR": "FLIDR",
+        "Adis": "Adis",
+        "Škoda": "Škoda"
     }
-]
-
-SUPPLIER_EXAMPLES = [
-    {
-        "query": "Show me suppliers for BOS AUTOMOTIVE",
-        "reasoning": "This query is asking about the suppliers of BOS AUTOMOTIVE.",
-        "analysis_type": "supplier_analysis"
-    },
-    {
-        "query": "Kdo dodává komponenty pro Flídr plast?",
-        "reasoning": "This query is asking about the suppliers for Flídr plast.",
-        "analysis_type": "supplier_analysis"
-    },
-    {
-        "query": "Ukaž mi dodavatelský řetězec pro BOS AUTOMOTIVE - CZE závod",
-        "reasoning": "This query is asking about the supply chain for BOS AUTOMOTIVE - CZE.",
-        "analysis_type": "supplier_analysis"
-    }
-]
-
-GENERAL_EXAMPLES = [
-    {
-        "query": "Tell me about MB TOOL",
-        "reasoning": "This is a general query about MB TOOL without specific focus.",
-        "analysis_type": "general"
-    },
-    {
-        "query": "Co je to Flídr plast?",
-        "reasoning": "This is a general query about what Flídr plast is.",
-        "analysis_type": "general"
-    },
-    {
-        "query": "Poskytni mi informace o společnosti ADIS TACHOV",
-        "reasoning": "This is a general request for information about ADIS TACHOV.",
-        "analysis_type": "general"
-    }
-]
-
-# NEW: Reasoning steps for analysis type detection
-REASONING_STEPS = """
-Follow these steps to analyze the query:
-
-1. ENTITY EXTRACTION
-   - Identify all company names mentioned
-   - Look for specific entities (products, locations, etc.)
-
-2. INTENT ANALYSIS
-   - Determine if query is about risks/compliance
-   - Determine if query is about suppliers/supply chain
-   - Determine if query is a general information request
-
-3. TYPE DETERMINATION
-   - If risk/compliance related → "risk_comparison"
-   - If supplier/supply chain related → "supplier_analysis"
-   - Otherwise → "general"
-"""
-
-# Updated analyzer prompt with few-shot examples and reasoning steps
-ANALYZER_PROMPT = ChatPromptTemplate.from_template(
-    """Analyze this question and determine the company and analysis type.
     
-    Follow these steps:
-    {reasoning_steps}
+    # Check known companies first
+    for company in known_companies:
+        if company.lower() in query.lower():
+            return company
     
-    Examples:
-    {examples}
+    # Simple regex for company-like names (capitalized words)
+    pattern = r'\b([A-Z][A-Za-z]+(?:\s+[A-Z][A-Za-z]+)*)\b'
+    matches = re.findall(pattern, query)
     
-    Question: {question}
+    if matches:
+        return matches[0]
     
-    Provide your analysis in this format:
-    ENTITY EXTRACTION: <identified companies>
-    INTENT ANALYSIS: <intent of the query>
-    TYPE DETERMINATION: <appropriate analysis type>
-    
-    Analysis:
-    """
-)
+    return "Unknown Company"
 
-# Helper function to format examples for prompt
-def format_examples(examples: List[Dict]) -> str:
-    """Format examples for inclusion in prompt."""
-    formatted = ""
-    for ex in examples:
-        formatted += f"Query: \"{ex['query']}\"\n"
-        formatted += f"ENTITY EXTRACTION: Company \"{ex['query'].split()[3 if 'for' in ex['query'].lower() else 2]}\" is mentioned.\n"
-        formatted += f"INTENT ANALYSIS: {ex['reasoning']}\n"
-        formatted += f"TYPE DETERMINATION: This is a {ex['analysis_type']} analysis.\n\n"
-    return formatted
-
-# Removed complexity_score function for simplification
-
-# Simplified function to detect analysis type
-def detect_analysis_type(query: str, response: str = "") -> AnalysisType:
-    """
-    Detekuje typ analýzy na základě klíčových slov v dotazu.
+def determine_analysis_type_fallback(query: str) -> str:
+    """Fallback analysis type detection using keywords."""
+    query_lower = query.lower()
     
-    Podporované typy analýz:
-    - risk_comparison: Analýza rizik a compliance
-    - supplier_analysis: Analýza dodavatelských vztahů
-    - general: Obecné informace o společnosti
-    
-    Args:
-        query: Text uživatelského dotazu
-        response: Volitelná odpověď modelu (používá se pro kontext)
-        
-    Returns:
-        AnalysisType: Zjištěný typ analýzy
-    """
-    # Standard detection based on keywords
-    response = response.lower() if response else ""
-    query = query.lower()
-    
-    # Rozšířené seznamy klíčových slov pro lepší detekci
-    risk_keywords = [
-        "risk", "rizik", "rizic", "compliance", "sanctions", "sankce", 
-        "bezpečnost", "security", "regulace", "regulation",
-        "aml", "kyc", "fatf", "ofac", "embargo", "reputace"
-    ]
-    
-    supplier_keywords = [
-        "supplier", "dodavatel", "supply chain", "relationships", 
-        "vztahy", "dodávky", "tier", "odběratel", "procurement",
-        "logistics", "logistika", "distributor", "vendor", "nákup"
-    ]
-    
-    if any(kw in response or kw in query for kw in risk_keywords):
+    # Risk comparison keywords
+    risk_keywords = ["risk", "rizik", "compliance", "sankce", "sanctions"]
+    if any(keyword in query_lower for keyword in risk_keywords):
         return "risk_comparison"
-    elif any(kw in response or kw in query for kw in supplier_keywords):
+    
+    # Supplier analysis keywords  
+    supplier_keywords = ["supplier", "dodavatel", "supply chain", "vztahy"]
+    if any(keyword in query_lower for keyword in supplier_keywords):
         return "supplier_analysis"
-    else:
-        return "general"
-
-# Removed advanced analysis functions for simplification
-# Functions advanced_analysis_with_llm, extract_analysis_type_from_reasoning, and process_with_reasoning have been removed
-
-# Simplified parse response function
-def parse_response(response: str, original_query: str) -> AnalysisResult:
-    """Simplified parsing of LLM response."""
-    try:
-        # Extract companies from response
-        companies = []
-        entity_extraction = re.search(r'ENTITY EXTRACTION:\s*(.*?)(?:\n|$)', response)
-        if entity_extraction:
-            entity_text = entity_extraction.group(1)
-            company_pattern = r'\"([^\"]+)\"'
-            company_matches = re.findall(company_pattern, entity_text)
-            if company_matches:
-                companies = company_matches
-            else:
-                # Simple company extraction
-                company_pattern = r'[A-Z][A-Za-z0-9\s\-]+'
-                companies = re.findall(company_pattern, original_query)
-                companies = [c.strip() for c in companies if len(c.strip()) > 2]
-        
-        # Extract analysis type
-        analysis_type = "general"  # Default
-        type_determination = re.search(r'TYPE DETERMINATION:\s*(.*?)(?:\n|$)', response)
-        if type_determination:
-            type_text = type_determination.group(1).lower()
-            if "risk_comparison" in type_text:
-                analysis_type = "risk_comparison"
-            elif "supplier_analysis" in type_text:
-                analysis_type = "supplier_analysis"
-        else:
-            # If not found in the structured output, detect based on keywords
-            analysis_type = detect_analysis_type(original_query, response)
-        
-        # Create structured result
-        return AnalysisResult(
-            companies=companies,
-            company=companies[0] if companies else "",
-            analysis_type=analysis_type,
-            query=original_query,
-            is_company_analysis=bool(companies),
-            confidence=0.8 if companies else 0.6
-        )
-    except Exception as e:
-        logger.error(f"Error parsing response: {str(e)}")
-        # Basic fallback
-        company_pattern = r'[A-Z][A-Za-z0-9\s\-]+'
-        companies = re.findall(company_pattern, original_query)
-        companies = [c.strip() for c in companies if len(c.strip()) > 2]
-        
-        return AnalysisResult(
-            companies=companies,
-            company=companies[0] if companies else "",
-            analysis_type="general",
-            query=original_query,
-            is_company_analysis=bool(companies),
-            confidence=0.5
-        )
-
-# Removed Error Handler class for simplification
-
-# Simplified analyze_query function
-async def analyze_query(
-    user_input: str, 
-    config: Optional[RunnableConfig] = None,
-    model: Optional[str] = None, 
-    mcp_connector: Any = None
-) -> AnalysisResult:
-    """Simplified function to analyze user query."""
-    try:
-        # Initialize model
-        model_name = "anthropic/claude-3-sonnet-20240229"
-        if config:
-            from langchain_core.runnables.config import Configuration
-            configurable = Configuration.from_runnable_config(config or {})
-            if configurable.model:
-                model_name = utils.split_model_and_provider(configurable.model)[1]
-        elif model:
-            model_name = utils.split_model_and_provider(model)[1]
-            
-        llm = init_chat_model(model=model_name)
-        
-        # Combine examples based on query content
-        examples = []
-        examples.append(RISK_EXAMPLES[0])
-        examples.append(SUPPLIER_EXAMPLES[0])
-        examples.append(GENERAL_EXAMPLES[0])
-        
-        # Create LCEL chain
-        analyzer_chain = (
-            {
-                "question": lambda x: x, 
-                "reasoning_steps": lambda _: REASONING_STEPS,
-                "examples": lambda _: format_examples(examples)
-            }
-            | ANALYZER_PROMPT
-            | llm
-            | StrOutputParser()
-        )
-        
-        # Get LLM analysis response
-        response = await analyzer_chain.ainvoke(user_input)
-        logger.info(f"LLM analysis response: {response[:100]}...")
-        
-        # Parse the response into structured format
-        result = parse_response(response, user_input)
-        logger.info(f"Analysis result: {result}")
-        return result
-            
-    except Exception as e:
-        logger.error(f"Error in analyze_query: {str(e)}")
-        logger.error(traceback.format_exc())
-        
-        # Basic fallback
-        company_pattern = r'[A-Z][A-Za-z0-9\s\-]+'
-        companies = re.findall(company_pattern, user_input)
-        companies = [c.strip() for c in companies if len(c.strip()) > 2]
-        
-        return AnalysisResult(
-            companies=companies,
-            company=companies[0] if companies else "",
-            analysis_type="general",
-            query=user_input,
-            is_company_analysis=bool(companies),
-            confidence=0.4
-        )
-
-# Synchronní wrapper pro analyze_query
-import asyncio
-
-def analyze_query_sync(
-    user_input: str, 
-    config: Optional[RunnableConfig] = None,
-    model: Optional[str] = None, 
-    mcp_connector: Any = None
-) -> str:
-    """
-    Simplified synchronous wrapper for analyze_query.
     
-    Args:
-        user_input: User input to analyze
-        config: Optional runnable configuration
-        model: Optional model name
-        mcp_connector: Optional MCP connector
-        
-    Returns:
-        Query type as string: "company", "person", "relationship", "custom", or "error"
+    # Default to general
+    return "general"
+
+def analyze_company_query(query: str) -> tuple[str, str]:
     """
-    # Direct check for known companies
-    if "MB TOOL" in user_input or "ŠKODA AUTO" in user_input or "ADIS TACHOV" in user_input or "Flídr plast" in user_input:
-        return "company"
-
-    try:
-        # Get event loop
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        # Create new loop if not available
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-    
-    try:
-        # Run async function synchronously
-        result = loop.run_until_complete(
-            analyze_query(user_input, config, model, mcp_connector)
-        )
-        
-        # Map results to query type
-        if result.companies:
-            return "company"
-        elif any(keyword in user_input.lower() for keyword in ["osoba", "person", "člověk", "human", "zaměstnanec", "employee"]):
-            return "person"
-        elif any(keyword in user_input.lower() for keyword in ["vztah", "relationship", "vazba", "connection", "dodavatel", "supplier"]):
-            return "relationship"
-        else:
-            return "custom"
-            
-    except Exception as e:
-        logger.error(f"Error in analyze_query_sync: {str(e)}")
-        return "error"
-
-# Alias for the asynchronous function
-analyze_query_async = analyze_query
-
-# Simplified direct company recognition function
-def analyze_company_query(query: str) -> Tuple[str, str]:
-    """
-    Simplified function to extract company name and analysis type.
+    Analyze query to extract company name and analysis type using LLM.
+    Falls back to regex if LLM is unavailable.
     
     Args:
         query: User query to analyze
@@ -385,32 +87,154 @@ def analyze_company_query(query: str) -> Tuple[str, str]:
     Returns:
         Tuple of (company_name, analysis_type)
     """
-    # Hard-coded common companies for quick lookup
-    known_companies = {
-        "MB TOOL": "risk_comparison",
-        "ŠKODA AUTO": "general",
-        "ADIS TACHOV": "general", 
-        "Flídr plast": "supplier_analysis",
-        "BOS AUTOMOTIVE": "supplier_analysis"
-    }
+    llm = get_anthropic_llm()
     
-    # Check for known companies first
-    for company, analysis_type in known_companies.items():
-        if company in query:
-            return company, analysis_type
+    if llm is None:
+        logger.warning("LLM not available, using fallback method")
+        company = extract_company_fallback(query)
+        analysis_type = determine_analysis_type_fallback(query)
+        return company, analysis_type
     
-    # Simple regex for company extraction
-    company_pattern = r'[A-Z][A-Za-z0-9\s\-]+'
-    matches = re.findall(company_pattern, query)
-    company = matches[0] if matches else "Unknown Company"
-    
-    # Simple analysis type detection
-    lower_query = query.lower()
-    if any(kw in lower_query for kw in ["risk", "riziko", "compliance", "sanctions", "sankce"]):
-        analysis_type = "risk_comparison"
-    elif any(kw in lower_query for kw in ["supplier", "dodavatel", "supply chain", "vztahy", "dodávky"]):
-        analysis_type = "supplier_analysis"
-    else:
-        analysis_type = "general"
+    try:
+        # Create LLM prompt for analysis
+        system_message = SystemMessage(content="""You are an expert at analyzing business queries. 
+Your task is to extract the company name and determine the analysis type from user queries.
+
+Return your response in this EXACT format:
+Company Name; analysis_type
+
+Where analysis_type must be one of: risk_comparison, supplier_analysis, general
+
+Examples:
+- "What are the risks of MB TOOL company?" → "MB TOOL; risk_comparison"
+- "Tell me about supplier relationships with BOS" → "BOS; supplier_analysis"
+- "General information about Škoda Auto" → "Škoda Auto; general"
+
+If no clear company name is found, use "Unknown Company".
+If unsure about analysis type, use "general".""")
         
-    return company, analysis_type
+        human_message = HumanMessage(content=f"Analyze this query: {query}")
+        
+        # Get LLM response
+        response = llm.invoke([system_message, human_message])
+        result = response.content.strip()
+        
+        # Parse response
+        if ";" in result:
+            parts = result.split(";", 1)
+            company = parts[0].strip()
+            analysis_type = parts[1].strip()
+            
+            # Validate analysis type
+            valid_types = ["risk_comparison", "supplier_analysis", "general"]
+            if analysis_type not in valid_types:
+                analysis_type = "general"
+                
+            logger.info(f"LLM analysis: company='{company}', type='{analysis_type}'")
+            return company, analysis_type
+        else:
+            logger.warning(f"LLM returned unexpected format: {result}")
+            # Fall back to regex method
+            company = extract_company_fallback(query)
+            analysis_type = determine_analysis_type_fallback(query)
+            return company, analysis_type
+            
+    except Exception as e:
+        logger.error(f"Error in LLM analysis: {e}, falling back to regex")
+        company = extract_company_fallback(query)
+        analysis_type = determine_analysis_type_fallback(query)
+        return company, analysis_type
+
+def analyze_query_sync(
+    user_input: str,
+    config: Optional[RunnableConfig] = None,
+    model: Optional[str] = None,
+    mcp_connector: Any = None
+) -> str:
+    """
+    Analyze query type for LangGraph workflow.
+    Always returns "company" for company-related queries.
+    
+    Args:
+        user_input: User query
+        config: Not used
+        model: Not used  
+        mcp_connector: Not used
+        
+    Returns:
+        Query type: "company", "person", "relationship", "custom", or "error"
+    """
+    if not user_input or not user_input.strip():
+        logger.warning("Empty query provided")
+        return "error"
+    
+    try:
+        # For LangGraph workflow, we primarily handle company queries
+        # Use LLM to determine if this is a company-related query
+        llm = get_anthropic_llm()
+        
+        if llm is None:
+            # Fallback: simple keyword detection
+            query_lower = user_input.lower()
+            company_indicators = ["company", "společnost", "firma", "corporation", "s.r.o.", "a.s."]
+            if any(indicator in query_lower for indicator in company_indicators):
+                return "company"
+            return "custom"
+        
+        try:
+            system_message = SystemMessage(content="""Determine if this query is about a company/business entity.
+Return only: "company" or "other"
+
+Company queries include:
+- Questions about specific companies
+- Business analysis requests
+- Corporate information queries
+- Risk or supplier analysis
+
+Other queries include:
+- Personal information requests
+- General questions not about businesses
+- Technical or procedural questions""")
+            
+            human_message = HumanMessage(content=f"Classify this query: {user_input}")
+            
+            response = llm.invoke([system_message, human_message])
+            result = response.content.strip().lower()
+            
+            if "company" in result:
+                logger.info(f"LLM classified as company query: {user_input[:50]}...")
+                return "company"
+            else:
+                logger.info(f"LLM classified as non-company query: {user_input[:50]}...")
+                return "custom"
+                
+        except Exception as e:
+            logger.error(f"LLM classification error: {e}, using fallback")
+            # Simple fallback classification
+            query_lower = user_input.lower()
+            company_indicators = ["company", "společnost", "firma", "corporation", "s.r.o.", "a.s.", "risk", "supplier"]
+            if any(indicator in query_lower for indicator in company_indicators):
+                return "company"
+            return "custom"
+            
+    except Exception as e:
+        logger.error(f"Error in analyze_query_sync: {e}")
+        return "error"
+
+# Extract company name function for backward compatibility
+def extract_company_name(query: str) -> str:
+    """
+    Extract company name from query.
+    
+    Args:
+        query: User query
+        
+    Returns:
+        Company name or empty string
+    """
+    company, _ = analyze_company_query(query)
+    return company if company != "Unknown Company" else ""
+
+# Backwards compatibility aliases
+analyze_query_async = analyze_query_sync
+analyze_query = analyze_query_sync
