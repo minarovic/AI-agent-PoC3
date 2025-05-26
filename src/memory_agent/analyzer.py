@@ -145,6 +145,58 @@ If unsure about analysis type, use "general".""")
         analysis_type = determine_analysis_type_fallback(query)
         return company, analysis_type
 
+def detect_analysis_type(query: str) -> str:
+    """
+    Detect the type of analysis required based on the query.
+    Uses LLM if available, with fallback to keyword-based detection.
+    
+    Args:
+        query: A string containing the user query.
+        
+    Returns:
+        A string representing the analysis type ('general', 'risk_comparison', or 'supplier_analysis').
+    """
+    llm = get_anthropic_llm()
+    
+    if llm is None:
+        # Fallback to keyword-based detection if LLM is not available
+        return determine_analysis_type_fallback(query)
+    
+    try:
+        # Use LLM to detect analysis type
+        system_message = SystemMessage(content="""You are an expert at analyzing business queries.
+Your task is to determine the analysis type from the user query.
+
+Return ONLY ONE WORD from these options: risk_comparison, supplier_analysis, general
+
+Examples:
+- "What are the risks of MB TOOL company?" → "risk_comparison"
+- "Tell me about supplier relationships with BOS" → "supplier_analysis"
+- "General information about Škoda Auto" → "general"
+
+risk_comparison: Queries about risks, compliance, sanctions, or regulatory issues
+supplier_analysis: Queries about suppliers, supply chain, vendor relationships
+general: Any other type of query or if unsure""")
+        
+        human_message = HumanMessage(content=f"Determine the analysis type for this query: {query}")
+        
+        # Get LLM response
+        response = llm.invoke([system_message, human_message])
+        result = response.content.strip().lower()
+        
+        # Validate response
+        valid_types = ["risk_comparison", "supplier_analysis", "general"]
+        if result in valid_types:
+            logger.info(f"LLM detected analysis type: {result}")
+            return result
+        else:
+            logger.warning(f"LLM returned unexpected analysis type: {result}, falling back to default")
+            return determine_analysis_type_fallback(query)
+            
+    except Exception as e:
+        logger.error(f"Error in LLM analysis type detection: {e}, falling back to keyword detection")
+        return determine_analysis_type_fallback(query)
+
 def analyze_query_sync(
     user_input: str,
     config: Optional[RunnableConfig] = None,
