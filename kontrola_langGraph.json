@@ -1,0 +1,17 @@
+# Kontrola souborů
+import json
+
+# Načtu langgraph.json
+with open('langgraph.json', 'r') as f:
+    config = json.load(f)
+    print("Aktuální langgraph.json:")
+    print(json.dumps(config, indent=2))
+
+# Zkontroluju, co je v graph.py
+with open('src/memory_agent/graph.py', 'r') as f:
+    content = f.read()
+    # Hledám název grafu
+    if 'memory_agent = StateGraph' in content:
+        print("\n✅ Graf se jmenuje 'memory_agent'")
+    elif 'graph = StateGraph' in content:
+        print("\n❌ Graf se jmenuje 'graph'")

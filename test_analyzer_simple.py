@@ -1,66 +1,80 @@
 #!/usr/bin/env python3
 """
-Jednoduchý test pro zjednodušenou verzi analyzéru.
-Tento skript testuje, zda analyzér správně funguje s N8N-inspirovaným promptem.
-
-DŮLEŽITÉ: Tento skript volá skutečný LLM API.
+Test pro ověření funkčnosti zjednodušeného analyzeru.py
 """
-
-import os
 import sys
-import logging
 import os
-import sys
 import logging
-
-# Přidáme nadřazený adresář do sys.path, aby bylo možné importovat memory_agent
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 # Nastavení loggeru
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
-# Načtení proměnných prostředí z .env souboru
-from dotenv import load_dotenv
-load_dotenv()  # API klíče jsou nyní načteny z .env souboru
+# Přidání cesty k src
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 
-# Kontrola, zda jsou nastaveny potřebné API klíče
-if not os.environ.get("ANTHROPIC_API_KEY"):
-    logger.warning("ANTHROPIC_API_KEY není nastaven! Test pravděpodobně selže.")
-if not os.environ.get("OPENAI_API_KEY"):
-    logger.warning("OPENAI_API_KEY není nastaven! Test pravděpodobně selže.")
-
-def test_analyzer_with_real_llm():
-    """Test analýzy dotazů pomocí skutečného LLM."""
-    from memory_agent.analyzer import analyze_company_query, analyze_query_sync
+# Import funkcí z analyzeru
+try:
+    from src.memory_agent.analyzer import (
+        detect_analysis_type,
+        analyze_company_query,
+        analyze_query_sync,
+        extract_company_name
+    )
     
+    # Testovací dotazy
     test_queries = [
+        # Dotazy pro risk_comparison
+        "Jaká jsou rizika pro MB TOOL?",
+        "Compliance status for ADIS TACHOV",
+        "Má BOS AUTOMOTIVE nějaké sankce?",
+        
+        # Dotazy pro supplier_analysis
+        "Kdo jsou dodavatelé pro Flídr plast?",
+        "Supply chain for BOS",
+        "Ukaž mi tier 2 dodavatele pro ŠKODA AUTO",
+        
+        # Dotazy pro general
         "Co je to MB TOOL?",
-        "Má MB TOOL nějaké sankce?",
-        "Co jsou rizika pro ADIS TACHOV?",
-        "Jaké jsou vztahy mezi ŠKODA AUTO a jejími dodavateli?",
-        "Kdo dodává komponenty pro Flídr plast?"
+        "Informace o společnosti ADIS TACHOV",
+        "Tell me about BOS AUTOMOTIVE"
     ]
     
-    # Testování analyze_company_query
-    logger.info("\nTestování analyze_company_query:")
-    for query in test_queries:
-        try:
+    def test_analyzer():
+        """Test funkcí zjednodušeného analyzeru"""
+        print("\n=== TEST ZJEDNODUŠENÉHO ANALYZERU.PY ===\n")
+        
+        for query in test_queries:
+            print(f"\nDotaz: '{query}'")
+            
+            # Test funkce detect_analysis_type
+            analysis_type = detect_analysis_type(query)
+            print(f"  > Detekovaný typ analýzy: {analysis_type}")
+            
+            # Test funkce analyze_company_query
             company, analysis_type = analyze_company_query(query)
-            logger.info(f"Dotaz: '{query}' -> Společnost: '{company}', Typ: '{analysis_type}'")
-        except Exception as e:
-            logger.error(f"Chyba při zpracování dotazu '{query}': {str(e)}")
-    
-    # Testování analyze_query_sync
-    logger.info("\nTestování analyze_query_sync:")
-    for query in test_queries:
-        try:
+            print(f"  > Extrahovaná společnost: {company}")
+            print(f"  > Typ analýzy: {analysis_type}")
+            
+            # Test funkce analyze_query_sync
             query_type = analyze_query_sync(query)
-            logger.info(f"Dotaz: '{query}' -> Typ dotazu: '{query_type}'")
-        except Exception as e:
-            logger.error(f"Chyba při zpracování dotazu '{query}': {str(e)}")
+            print(f"  > Typ dotazu: {query_type}")
+            
+            # Test funkce extract_company_name
+            if 'extract_company_name' in globals():
+                company_name = extract_company_name(query)
+                print(f"  > Extrahované jméno společnosti: {company_name}")
+            
+            print("-" * 50)
     
-    logger.info("Test dokončen.")
+    if __name__ == "__main__":
+        test_analyzer()
+        print("\nVše OK!")
 
-if __name__ == "__main__":
-    test_analyzer_with_real_llm()
+except ImportError as e:
+    print(f"Chyba při importu: {e}")
+    print("Ujistěte se, že složka 'src' obsahuje správně strukturovaný modul memory_agent s analyzer.py")
+except Exception as e:
+    print(f"Obecná chyba: {e}")

@@ -7,6 +7,10 @@ __pycache__/
 *.so
 .langgraph_api
 
+# Sandbox - experimentální a testovací kód (NEPOŠÍLAT NA GITHUB)
+sandbox/
+**/sandbox/
+
 # Docker soubory (lokální testování)
 Dockerfile
 Dockerfile.local
@@ -139,3 +143,4 @@ docker-compose*.yml
 # Dokumentace pro lokální použití - nepotřebné pro deployment
 deploy_logs/
 doc/PlantUML/
+*backup*.py

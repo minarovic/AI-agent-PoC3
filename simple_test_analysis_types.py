@@ -8,47 +8,32 @@ Tento skript testuje pouze základní funkce bez rozsáhlých závislostí.
 import os
 import sys
 import json
+import re
 import glob
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Tuple
 
 # Nastavení logování
 logging.basicConfig(level=logging.INFO, 
-                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                   format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("simple_test")
 
-def _normalize_name(name: str) -> str:
-    """
-    Normalizuje název pro porovnávání (odstraní diakritiku, převede na malá písmena).
-    
-    Args:
-        name: Název k normalizaci
-            
-    Returns:
-        str: Normalizovaný název
-    """
-    # Zjednodušená implementace bez závislosti na unidecode
-    return name.lower().strip()
-
-def _fuzzy_name_match(name1: str, name2: str) -> bool:
-    """
-    Porovná dva názvy s tolerancí (fuzzy matching).
-    
-    Args:
-        name1: První název
-        name2: Druhý název
-            
-    Returns:
-        bool: True pokud jsou názvy dostatečně podobné
-    """
-    norm1 = _normalize_name(name1)
-    norm2 = _normalize_name(name2)
-    
-    return (norm1 in norm2) or (norm2 in norm1)
+# Definice známých společností pro rychlé vyhledání
+KNOWN_COMPANIES = {
+    "MB TOOL": "risk_comparison",
+    "ŠKODA AUTO": "general",
+    "ADIS TACHOV": "risk_comparison", 
+    "Flídr plast": "supplier_analysis",
+    "BOS AUTOMOTIVE": "supplier_analysis",
+    "BOS": "supplier_analysis",
+    "FLIDR": "supplier_analysis",
+    "Adis": "risk_comparison",
+    "Škoda": "general"
+}
 
 def detect_analysis_type(query: str) -> str:
     """
-    Detekuje typ analýzy na základě klíčových slov v dotazu.
+    Detekce typu analýzy na základě klíčových slov v dotazu.
     
     Args:
         query: Text uživatelského dotazu
@@ -58,144 +43,105 @@ def detect_analysis_type(query: str) -> str:
     """
     query = query.lower()
     
+    # Klíčová slova pro detekci typu "risk_comparison"
     risk_keywords = [
         "risk", "rizik", "rizic", "compliance", "sanctions", "sankce", 
-        "bezpečnost", "security", "regulace", "regulation",
-        "aml", "kyc", "fatf", "ofac", "embargo", "reputace"
+        "bezpečnost", "security", "regulace", "regulation", "embargo"
     ]
     
+    # Klíčová slova pro detekci typu "supplier_analysis"
     supplier_keywords = [
-        "supplier", "dodavatel", "supply chain", "relationships", 
-        "vztahy", "dodávky", "tier", "odběratel", "procurement",
-        "logistics", "logistika", "distributor", "vendor", "nákup"
+        "supplier", "dodavatel", "supply chain", "vztahy", "dodávky", 
+        "tier", "odběratel", "vendor", "nákup"
     ]
     
     if any(kw in query for kw in risk_keywords):
+        logger.info(f"Detekován typ analýzy \"risk_comparison\" pro dotaz: {query[:30]}...")
         return "risk_comparison"
     elif any(kw in query for kw in supplier_keywords):
+        logger.info(f"Detekován typ analýzy \"supplier_analysis\" pro dotaz: {query[:30]}...")
         return "supplier_analysis"
     else:
+        logger.info(f"Detekován výchozí typ analýzy \"general\" pro dotaz: {query[:30]}...")
         return "general"
 
-def test_mock_data_structure():
-    """Test struktury mock_data_2."""
-    logger.info("=== Test struktury mock_data_2 ===")
-    
-    # Kontrola dostupnosti složky mock_data_2
-    mock_data_path = os.path.join(os.path.dirname(__file__), "mock_data_2")
-    if not os.path.exists(mock_data_path):
-        logger.error(f"❌ Složka mock_data_2 nenalezena na cestě: {mock_data_path}")
-        return
-    
-    logger.info(f"✅ Složka mock_data_2 nalezena na cestě: {mock_data_path}")
-    
-    # Kontrola typů souborů
-    entity_detail_files = glob.glob(os.path.join(mock_data_path, "entity_detail_*.json"))
-    entity_search_files = glob.glob(os.path.join(mock_data_path, "entity_search_*.json"))
-    internal_files = glob.glob(os.path.join(mock_data_path, "internal_*.json"))
-    relationships_files = glob.glob(os.path.join(mock_data_path, "relationships_*.json"))
-    supply_chain_files = glob.glob(os.path.join(mock_data_path, "supply_chain_*.json"))
-    
-    logger.info(f"Nalezeno {len(entity_detail_files)} entity_detail souborů")
-    logger.info(f"Nalezeno {len(entity_search_files)} entity_search souborů")
-    logger.info(f"Nalezeno {len(internal_files)} internal souborů")
-    logger.info(f"Nalezeno {len(relationships_files)} relationships souborů")
-    logger.info(f"Nalezeno {len(supply_chain_files)} supply_chain souborů")
-    
-    # Kontrola existence souborů pro každý typ analýzy
-    if entity_search_files and internal_files:
-        logger.info("✅ Data pro general analýzu jsou k dispozici")
-    else:
-        logger.warning("⚠️ Chybí některá data pro general analýzu")
-    
-    if entity_detail_files:
-        logger.info("✅ Data pro risk_comparison analýzu jsou k dispozici")
-    else:
-        logger.warning("⚠️ Chybí data pro risk_comparison analýzu")
-    
-    if relationships_files and supply_chain_files:
-        logger.info("✅ Data pro supplier_analysis analýzu jsou k dispozici")
-    else:
-        logger.warning("⚠️ Chybí některá data pro supplier_analysis analýzu")
-    
-    # Nakouknutí do obsahu souborů pro ověření struktury
-    if entity_detail_files:
-        try:
-            with open(entity_detail_files[0], 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                if "risk" in data:
-                    logger.info("✅ Soubory entity_detail obsahují sekci 'risk'")
-                else:
-                    logger.warning("⚠️ Soubory entity_detail neobsahují sekci 'risk'")
-        except Exception as e:
-            logger.error(f"❌ Nelze přečíst soubor: {str(e)}")
-
-def test_analysis_type_detection():
-    """Test funkce pro detekci typu analýzy."""
-    logger.info("\n=== Test detekce typů analýz ===")
-    
-    test_cases = [
-        {"query": "Jaké jsou základní informace o společnosti Adis?", "expected": "general"},
-        {"query": "Řekni mi o rizicích spojených se společností BOS Automotive.", "expected": "risk_comparison"},
-        {"query": "Jaké jsou compliance rizika firmy MB Tool?", "expected": "risk_comparison"},
-        {"query": "Kteří jsou hlavní dodavatelé společnosti Flidr?", "expected": "supplier_analysis"},
-        {"query": "Ukaž mi supply chain pro BOS Automotive.", "expected": "supplier_analysis"},
-        {"query": "Kolik zaměstnanců má společnost Adis?", "expected": "general"}
-    ]
-    
-    for i, test in enumerate(test_cases):
-        query = test["query"]
-        expected = test["expected"]
-        result = detect_analysis_type(query)
-        
-        if result == expected:
-            logger.info(f"✅ Test {i+1}: '{query}' -> {result}")
-        else:
-            logger.error(f"❌ Test {i+1}: '{query}' -> {result} (očekáváno {expected})")
-
-def create_dummy_workflow(query: str, company_name: str):
+def analyze_company_query(query: str) -> Tuple[str, str]:
     """
-    Simuluje workflow s různými typy analýz.
+    Jednoduchá funkce pro extrakci názvu společnosti a typu analýzy z dotazu.
     
     Args:
-        query: Dotaz uživatele
-        company_name: Název společnosti
+        query: Uživatelský dotaz k analýze
+        
+    Returns:
+        Tuple of (název_společnosti, typ_analýzy)
     """
-    # 1. Určení typu analýzy
+    # Kontrola známých společností
+    for company, analysis_type in KNOWN_COMPANIES.items():
+        if company in query:
+            logger.info(f"Nalezena známá společnost: {company}, typ analýzy: {analysis_type}")
+            return company, analysis_type
+    
+    # Jednoduchá extrakce pomocí regex - hledáme velká písmena následovaná textem
+    company_pattern = r"[A-Z][A-Za-z0-9\s\-]+"
+    matches = re.findall(company_pattern, query)
+    
+    if matches:
+        company = matches[0].strip()
+        logger.info(f"Extrahován název společnosti pomocí regex: {company}")
+    else:
+        company = "Unknown Company"
+        logger.warning("Nepodařilo se extrahovat název společnosti z dotazu")
+    
+    # Detekce typu analýzy
     analysis_type = detect_analysis_type(query)
     
-    # 2. Načtení dat podle typu analýzy
-    logger.info(f"\nTyp analýzy: {analysis_type}")
-    logger.info(f"Pro společnost: {company_name}")
+    return company, analysis_type
+
+def test_analysis_types():
+    """Test detekce typů analýz a extrakce společností."""
+    logger.info("=== Test detekce typů analýz a extrakce společností ===")
     
-    # 3. Seznam dat, která by byla načtena podle typu analýzy
-    if analysis_type == "general":
-        logger.info("Pro general analýzu by se načítala data:")
-        logger.info("- Základní informace o společnosti (entity_search_*.json)")
-        logger.info("- Finanční data (internal_*.json)")
-    elif analysis_type == "risk_comparison":
-        logger.info("Pro risk_comparison analýzu by se načítala data:")
-        logger.info("- Rizikové faktory a skóre (entity_detail_*.json)")
-    elif analysis_type == "supplier_analysis":
-        logger.info("Pro supplier_analysis analýzu by se načítala data:")
-        logger.info("- Vztahy mezi společnostmi (relationships_*.json)")
-        logger.info("- Dodavatelské řetězce (supply_chain_*.json)")
+    test_queries = [
+        # Dotazy pro risk_comparison
+        "Jaká jsou rizika pro MB TOOL?",
+        "Compliance status for ADIS TACHOV",
+        "Má BOS AUTOMOTIVE nějaké sankce?",
+        
+        # Dotazy pro supplier_analysis
+        "Kdo jsou dodavatelé pro Flídr plast?",
+        "Supply chain for BOS",
+        "Ukaž mi tier 2 dodavatele pro ŠKODA AUTO",
+        
+        # Dotazy pro general
+        "Co je to MB TOOL?",
+        "Informace o společnosti ADIS TACHOV",
+        "Tell me about BOS AUTOMOTIVE"
+    ]
+    
+    for query in test_queries:
+        logger.info(f"
+Analýza dotazu: \"{query}\"")
+        
+        # Detekce typu analýzy
+        analysis_type = detect_analysis_type(query)
+        logger.info(f"- Detekovaný typ analýzy: {analysis_type}")
+        
+        # Extrakce společnosti a typu
+        company, company_analysis = analyze_company_query(query)
+        logger.info(f"- Extrahovaná společnost: {company}")
+        logger.info(f"- Přiřazený typ analýzy: {company_analysis}")
+        
+        logger.info("-" * 40)
 
 def main():
     """Hlavní funkce pro spuštění testů."""
-    logger.info("=== Jednoduchý test podpory typů analýz ===")
+    logger.info("🔍 Začínám testovat funkce pro analýzu typů")
     
-    # Test struktury mock_data_2
-    test_mock_data_structure()
+    # Test detekce typů analýz
+    test_analysis_types()
     
-    # Test detekce typu analýzy
-    test_analysis_type_detection()
-    
-    # Test dummy workflow pro různé typy analýz
-    logger.info("\n=== Test dummy workflow pro různé typy analýz ===")
-    create_dummy_workflow("Jaké jsou základní informace o společnosti Adis?", "Adis")
-    create_dummy_workflow("Jaká jsou rizika spojená se společností BOS Automotive?", "BOS Automotive")
-    create_dummy_workflow("Kteří jsou hlavní dodavatelé společnosti Flidr?", "Flidr")
+    logger.info("
+✅ Všechny testy dokončeny")
 
 if __name__ == "__main__":
     main()

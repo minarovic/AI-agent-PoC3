@@ -20,6 +20,40 @@ if [ ! -d "./src/memory_agent" ]; then
     exit 1
 fi
 
+# Validace produkčního kódu před nasazením
+echo -e "${YELLOW}Validace produkčního kódu před nasazením...${NC}"
+if ! ./validate_production_code.sh; then
+    echo -e "${RED}Validace produkčního kódu selhala. Opravte problémy před nasazením.${NC}"
+    exit 1
+fi
+
+# Upozornění na GitHub Actions workflow
+echo -e "${YELLOW}DŮLEŽITÉ: Pro běžný vývoj preferujte testování přes GitHub Actions!${NC}"
+echo -e "${YELLOW}Lokální testy by měly být používány pouze ve speciálních případech.${NC}"
+
+# Potvrzení pro spuštění lokálních testů
+read -p "Chcete přesto spustit lokální testy? (y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Spuštění jednotkových testů
+    echo -e "${YELLOW}Spouštění jednotkových testů...${NC}"
+    if ! ./run_tests.sh; then
+        echo -e "${RED}Testy selhaly. Opravte testy před nasazením.${NC}"
+        exit 1
+    fi
+else
+    echo -e "${GREEN}Přeskakuji lokální testy. Doporučuji ověřit výsledky GitHub Actions testů.${NC}"
+fi
+
+# Validace čistého produkčního kódu
+echo -e "${YELLOW}=== Validace produkčního kódu ===${NC}"
+./validate_production_code.sh
+if [ $? -ne 0 ]; then
+    echo -e "${RED}Error: Validace produkčního kódu selhala!${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ Produkční kód je validní${NC}"
+
 # Kontrola existence klíčových souborů
 if [ ! -f "langgraph.json" ]; then
     echo -e "${RED}Error: langgraph.json nenalezen! Tento soubor je nutný pro deployment na LangGraph Platform.${NC}"
