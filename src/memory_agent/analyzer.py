@@ -4,7 +4,6 @@ from typing import Optional, Any
 
 # LangChain Core imports
 from langchain_core.runnables import RunnableConfig
-from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import SystemMessage, HumanMessage
 
 logger = logging.getLogger(__name__)
