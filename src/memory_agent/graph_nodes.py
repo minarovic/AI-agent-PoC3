@@ -1,4 +1,5 @@
 """
+from memory_agent.analyzer import analyze_company_query
 Graph nodes pro integraci MockMCPConnector s LangGraph workflow.
 
 Tento modul obsahuje implementaci uzlů grafu pro StateGraph, které využívají
@@ -674,3 +675,19 @@ def retrieve_additional_company_data(state: State) -> State:
         logger.error(f"❌ Kritická chyba při zpracování dat: {str(e)}")
         logger.error(traceback.format_exc())
         return {"error_state": {"error": f"Chyba při získávání dat: {str(e)}", "error_type": "data_access_error"}}
+
+async def analyze_node(state: State) -> State:
+    company, analysis_type = analyze_company_query(state.input)
+    state.company_name = company
+    state.analysis_type = analysis_type
+    return state
+
+async def load_data_node(state: State) -> State:
+    connector = MockMCPConnector()
+    state.company_data = connector.read_resource(state.company_name)
+    return state
+
+async def format_response_node(state: State) -> State:
+    # Jednoduchý template
+    state.output = f"Company: {state.company_name}\nData: {state.company_data}"
+    return state
