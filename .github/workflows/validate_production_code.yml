@@ -19,5 +19,5 @@ jobs:
       with:
         python-version: '3.11'
     
-    - name: Skip Black formatting check temporarily
-      run: echo "Black formatting check disabled for deployment"
+    - name: Skip validation for deployment
+      run: echo "Validation temporarily disabled for initial deployment"
