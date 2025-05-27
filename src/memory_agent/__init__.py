@@ -1,7 +1,6 @@
-"""Memory Agent package for AI-agent-Ntier."""
+"""Memory Agent package."""
 
-__version__ = "0.1.0"
+from . import utils
+from .graph import memory_agent
 
-# Exportujeme důležité moduly
-from memory_agent import utils
-from memory_agent import schema
+__all__ = ["memory_agent", "utils"]
