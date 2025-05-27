@@ -244,3 +244,6 @@ def create_graph(config: Optional[Config] = None) -> StateGraph:
 
 # Vytvoření grafu pro nasazení na LangGraph Platform
 graph = create_graph()
+
+# Alias pro kompatibilitu s langgraph.json
+memory_agent = graph
