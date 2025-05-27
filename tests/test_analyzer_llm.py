@@ -6,7 +6,7 @@ import unittest
 import os
 from unittest.mock import patch, MagicMock
 
-from memory_agent.analyzer import (
+from src.memory_agent.analyzer import (
     analyze_company_query, 
     analyze_query_sync, 
     get_anthropic_llm,
