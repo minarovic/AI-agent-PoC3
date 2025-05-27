@@ -4,8 +4,8 @@ Test pro analyzer.py, zejména pro synchronní wrapper analyze_query_sync.
 
 import unittest
 import os
-from memory_agent.analyzer import analyze_query_sync
-from memory_agent.tools import MockMCPConnector
+from src.memory_agent.analyzer import analyze_query_sync
+from src.memory_agent.tools import MockMCPConnector
 
 class TestAnalyzer(unittest.TestCase):
 
