@@ -15,7 +15,6 @@ from pathlib import Path
 
 # LangChain/LangGraph imports
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
-from langchain_openai import ChatOpenAI
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnablePassthrough
 from langgraph.graph import StateGraph, START, END
