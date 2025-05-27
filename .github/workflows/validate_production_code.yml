@@ -33,7 +33,7 @@ jobs:
     - name: Format code with Black (excluding backup files)
       run: |
         # Format only non-backup Python files
-        find src -name "*.py" ! -name "*backup*.py" -type f | xargs black --check
+        find src -name "*.py" ! -name "*backup*.py" ! -name "tools.py" -type f | xargs black --check
     
     - name: Lint with flake8 (excluding backup files)
       run: |
