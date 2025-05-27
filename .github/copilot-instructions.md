@@ -42,7 +42,7 @@ Konfigurace:
 
 ## 🔧 Aktuální problémy k řešení
 1. **langgraph.json** - Špatná reference grafu
-2. **GitHub Secrets** - Chybí ANTHROPIC_API_KEY
+2. ~~**GitHub Secrets** - Chybí ANTHROPIC_API_KEY~~ ✅ HOTOVO
 3. **Záložní soubory** - Přesunout do ./old
 
 ## 📝 Pro další kroky viz
