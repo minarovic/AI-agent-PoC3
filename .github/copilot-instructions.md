@@ -1,3 +1,5 @@
+
+````instructions
 # AI-agent-Ntier: Minimální instrukce pro nasazení
 
 ## 🎯 JEDINÝ CÍL
@@ -6,7 +8,7 @@
 ## ✅ Aktuální checklist
 - [x] Zjednodušit analyzer.py na minimum
 - [x] Opravit Python verze v GitHub Actions
-- [ ] Opravit langgraph.json konfigurace
+- [x] Opravit langgraph.json konfigurace ✅
 - [x] Přidat ANTHROPIC_API_KEY do GitHub Secrets
 - [ ] Úspěšné testy v GitHub Actions
 - [ ] Nasazení na LangGraph Platform
@@ -45,7 +47,27 @@ Konfigurace:
 2. ~~**GitHub Secrets** - Chybí ANTHROPIC_API_KEY~~ ✅ HOTOVO
 3. **Záložní soubory** - Přesunout do ./old
 
-## 📝 Pro další kroky viz
-- Detailní workflow: `.github/prompts/testing.prompt.md`
-- Deploy instrukce: `.github/prompts/deploy.prompt.md`
-- Aktuální stav: `deploy_logs/current_status.md`
+## 🚦 Prioritizace chyb z GitHub Actions
+1. **Blokující chyby** (workflow se zastaví) → Opravit ihned
+   - Syntax errors, import errors, missing dependencies
+2. **Test failures** → IGNOROVAT pro nasazení
+   - Podle instrukcí: "Netestuj a neměň kód podle testů"
+3. **Warnings** → Ignorovat
+
+## 📝 Dokumentace iterací
+Při každé opravě zapiš do `deploy_logs/testing_iteration_log.md`:
+- Co bylo opraveno
+- Proč (ne "aby to fungovalo", ale konkrétní důvod)
+- Co očekáváš (ne "bude fungovat", ale "projde validation fáze")
+
+## ⚙️ Řešení chyb v GitHub Actions
+graph TD
+    A[Chyba z Actions] --> B{Blokuje deploy?}
+    B -->|Ano| C[Opravit ihned]
+    B -->|Ne| D{Blokuje další vývoj?}
+    D -->|Ano| E[Opravit teď]
+    D -->|Ne| F[Zalogovat a pokračovat]
+    
+    F --> G[Dokončit větší celek]
+    G --> H[Vrátit se k opravám]
+````
