@@ -1,6 +1,11 @@
-
 ````instructions
-# AI-agent-Ntier: Minimální instrukce pro nasazení
+# AI## ❌ NIKDY
+- **Nepřidávaj funkce během oprav**
+- **Netestuj a neměň kód podle testů**
+- **Nedeployuj automaticky**
+- **Nepřidávej složité error handling**
+- **Neoslavuj předčasně** - URL ještě neznamená funkční aplikaci
+- **Nepřeháněj s pozitivitou** - čekáme na výsledky testůt-Ntier: Minimální instrukce pro nasazení
 
 ## 🎯 JEDINÝ CÍL
 **Zprovoznit nejjednodušší možnou verzi na LangGraph Platform**
@@ -18,6 +23,8 @@
 2. **Oprav chyby z logů** - Přesně podle chybových zpráv
 3. **Commit pouze nutné soubory** - src/, requirements.txt, langgraph.json
 4. **NETESTUJ LOKÁLNĚ** - Push a čekej na GitHub Actions
+5. **ZEPTEJ SE PŘED ZMĚNAMI** - Před opravou kódu nebo přidáním features se vždy zeptat uživatele na potvrzení
+6. **UČIT SE Z HISTORIE** - Vždy přečti posledních 5 iterací před akcí
 
 ## ❌ NIKDY
 - **Nepřidávej funkce během oprav**
@@ -60,6 +67,31 @@ Při každé opravě zapiš do `deploy_logs/testing_iteration_log.md`:
 - Proč (ne "aby to fungovalo", ale konkrétní důvod)
 - Co očekáváš (ne "bude fungovat", ale "projde validation fáze")
 
+## 🧠 SAMOUČÍCÍ PROCES
+### Před každou akcí:
+1. **Přečti posledních 5 iterací** z testing_iteration_log.md
+2. **Identifikuj podobné situace** - stejné chyby, podobné problémy
+3. **Aplikuj naučené vzory** - co fungovalo, co ne
+4. **Formuluj konkrétní očekávání** - ne obecné "bude fungovat"
+
+### Po každé akci:
+1. **Zhodnoť přesnost odhadu** - byl očekávaný výsledek správný?
+2. **Zapiš lesson learned** - co se potvrdilo, co bylo špatně
+3. **Aktualizuj decision tree** - nové if/then pravidlo
+4. **Trackuj confidence level** - jak moc si byl jistý
+
+### Pattern Recognition:
+- **ModuleNotFoundError + grep nepoužívaný** → Odstranit import (Iterace 21,30)
+- **"No configuration schema"** → Přidat ConfigSchema (Iterace 60)
+- **Prázdné objekty {}** → Naplnit return hodnoty (Iterace 60)
+- **sed selhává** → Python skript (Iterace 39)
+- **URL existuje ≠ aplikace funguje** → Čekat na skutečné testy
+
+### Anti-patterns (NEDĚLAT):
+- **Předčasné oslavování** - URL není funkčnost
+- **Optimistické odhady** - raději pesimisticky
+- **Ignorování instrukcí** - NETESTUJ LOKÁLNĚ znamená NETESTUJ LOKÁLNĚ
+
 ## ⚙️ Řešení chyb v GitHub Actions
 graph TD
     A[Chyba z Actions] --> B{Blokuje deploy?}
@@ -70,4 +102,21 @@ graph TD
     
     F --> G[Dokončit větší celek]
     G --> H[Vrátit se k opravám]
+
+## 🎯 DECISION FRAMEWORK pro samoučení
+### Před opravou:
+```
+1. Čti testing_iteration_log.md (posledních 5 iterací)
+2. Hledej pattern: "Stejná chyba byla v iteraci X"
+3. Zkontroluj: "Co tehdy fungovalo/nefungovalo?"
+4. Odhad confidence: Jistý 90% / Nejistý 50% / Nevím 10%
+5. Konkrétní očekávání: "Projde X fáze" místo "bude fungovat"
+```
+
+### Po opravě:
+```
+1. Skutečný výsledek vs. odhad
+2. Confidence level se potvrdil? (90% → skutečně prošlo?)
+3. Lesson learned pro další iterace
+4. Aktualizuj pattern recognition
 ````
