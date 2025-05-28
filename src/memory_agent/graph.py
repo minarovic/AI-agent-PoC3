@@ -4,7 +4,7 @@ Minimální implementace podle LangGraph dokumentace.
 """
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
-from .analyzer import analyze_company
+from memory_agent.analyzer import analyze_company
 
 
 def create_memory_agent():
