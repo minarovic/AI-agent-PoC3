@@ -19,7 +19,7 @@ def create_memory_agent():
     
     # Vytvoření agenta s tool funkcí
     agent = create_react_agent(
-        model="anthropic:claude-3-7-sonnet-latest",
+        model="openai:gpt-4",
         tools=[analyze_company],
         prompt="You are a helpful business intelligence assistant. Use the analyze_company tool to get information about companies and provide detailed, structured analysis based on the retrieved data.",
         checkpointer=checkpointer
