@@ -202,77 +202,8 @@ def analyze_query_sync(
     model: Optional[str] = None,
     mcp_connector: Any = None
 ) -> str:
-    """
-    Analyze query type for LangGraph workflow.
-    Always returns "company" for company-related queries.
-    
-    Args:
-        user_input: User query
-        config: Not used
-        model: Not used  
-        mcp_connector: Not used
-        
-    Returns:
-        Query type: "company", "person", "relationship", "custom", or "error"
-    """
-    if not user_input or not user_input.strip():
-        logger.warning("Empty query provided")
-        return "error"
-    
-    try:
-        # For LangGraph workflow, we primarily handle company queries
-        # Use LLM to determine if this is a company-related query
-        llm = get_anthropic_llm()
-        
-        if llm is None:
-            # Fallback: simple keyword detection
-            query_lower = user_input.lower()
-            company_indicators = ["company", "společnost", "firma", "corporation", "s.r.o.", "a.s."]
-            if any(indicator in query_lower for indicator in company_indicators):
-                return "company"
-            return "custom"
-        
-        try:
-            system_message = SystemMessage(content="""Determine if this query is about a company/business entity.
-Return only: "company" or "other"
-
-Company queries include:
-- Questions about specific companies
-- Business analysis requests
-- Corporate information queries
-- Risk or supplier analysis
-
-Other queries include:
-- Personal information requests
-- General questions not about businesses
-- Technical or procedural questions""")
-            
-            human_message = HumanMessage(content=f"Classify this query: {user_input}")
-            
-            response = llm.invoke([system_message, human_message])
-            result = response.content.strip().lower()
-            
-            if "company" in result:
-                logger.info(f"LLM classified as company query: {user_input[:50]}...")
-                return "company"
-            else:
-                logger.info(f"LLM classified as non-company query: {user_input[:50]}...")
-                return "custom"
-                
-        except Exception as e:
-            logger.error(f"LLM classification error: {e}, using fallback")
-            # Simple fallback classification
-            query_lower = user_input.lower()
-            company_indicators = ["company", "společnost", "firma", "corporation", "s.r.o.", "a.s.", "risk", "supplier"]
-            if any(indicator in query_lower for indicator in company_indicators):
-                return "company"
-            return "custom"
-            
-    except Exception as e:
-        logger.error(f"Error in analyze_query_sync: {e}")
-        return "error"
-
-# Extract company name function for backward compatibility
+    """Always returns 'company' for PoC."""
+    return "company"
 def extract_company_name(query: str) -> str:
     """
     Extract company name from query.
