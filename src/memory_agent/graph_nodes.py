@@ -535,7 +535,31 @@ def analyze_company_data(state: State) -> State:
         })
     
     logger.info(f"✅ Analýza společnosti {company_name} (typ: {analysis_type}) dokončena")
-    return {"analysis_result": analysis_result}
+    
+    # Návratová hodnota musí naplnit všechny potřebné objekty state
+    # Podle Testing Iteration Log jsou company_data, internal_data, relationships_data prázdné {}
+    return {
+        "analysis_result": analysis_result,
+        "company_data": {
+            "name": company_name,
+            "id": company_id,
+            "analysis_type": analysis_type,
+            "basic_info": analysis_result.get("basic_info", {}),
+            "last_updated": analysis_result.get("timestamp")
+        },
+        "internal_data": {
+            "processing_status": "completed",
+            "data_sources": ["mcp_connector"],
+            "analysis_metadata": {
+                "analysis_type": analysis_type,
+                "company_id": company_id,
+                "timestamp": analysis_result.get("timestamp")
+            }
+        },
+        "relationships_data": {
+            company_id: analysis_result.get("supplier_relationships", [])
+        }
+    }
 
 def retrieve_additional_company_data(state: State) -> State:
     """
@@ -657,7 +681,14 @@ def retrieve_additional_company_data(state: State) -> State:
         
         # Sestavení výsledného stavu - opět, neukládáme mcp_connector do stavu
         result = {
-            "company_data": updated_company_data
+            "company_data": updated_company_data,
+            "internal_data": {
+                "data_retrieval_status": "completed",
+                "analysis_type": analysis_type,
+                "company_id": company_id,
+                "mcp_connector_available": True,
+                "data_sources_accessed": ["company_basic", "search_info"]
+            }
         }
         
         # Přidání specializovaných dat podle typu analýzy

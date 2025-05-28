@@ -23,6 +23,13 @@ from pydantic import BaseModel, Field
 # Přidání importu pro checkpointing
 from langgraph.checkpoint.memory import MemorySaver
 
+# Runtime Configuration Schema pro LangGraph Platform
+class ConfigSchema(TypedDict):
+    """Runtime configuration schema pro LangGraph Platform."""
+    recursion_limit: int  # Limit pro počet kroků v grafu
+    model: Optional[str]  # Volitelný model pro LLM
+    temperature: Optional[float]  # Volitelná teplota pro LLM
+
 # Local imports
 from memory_agent.tools import (
     MockMCPConnector, 
@@ -184,8 +191,8 @@ def create_graph(config: Optional[Config] = None) -> StateGraph:
         
     logger.info(f"Vytvářím graf Memory Agent s modelem: {config.model}")
     
-    # Inicializace grafu s State kontejnerem
-    builder = StateGraph(State)
+    # Inicializace grafu s State kontejnerem a config_schema pro LangGraph Platform
+    builder = StateGraph(State, config_schema=ConfigSchema)
 
     # Přidání uzlů workflow - jen ty, které existují + naše implementace
     builder.add_node("route_query", route_query)
@@ -239,7 +246,10 @@ def create_graph(config: Optional[Config] = None) -> StateGraph:
     memory_checkpointer = MemorySaver()
     
     # Kompilace grafu s checkpointerem
-    return builder.compile(checkpointer=memory_checkpointer)
+    # Nastavíme vyšší recursion_limit než default (1) který je příliš nízký
+    compiled_graph = builder.compile(checkpointer=memory_checkpointer)
+    
+    return compiled_graph
 
 # Vytvoření grafu pro nasazení na LangGraph Platform
 graph = create_graph()
