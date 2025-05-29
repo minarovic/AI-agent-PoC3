@@ -34,18 +34,33 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
     
-    - name: Create mock .env file for testing
+    - name: Set up environment variables
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
       run: |
         cat > .env << EOL
-        OPENAI_API_KEY=sk-mock-key-for-testing
-        ANTHROPIC_API_KEY=sk-ant-mock-key-for-testing
-        LANGSMITH_API_KEY=ls-mock-key-for-testing
+        OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
+        LANGSMITH_API_KEY=${{ secrets.LANGSMITH_API_KEY }}
         LANGSMITH_PROJECT=AI-agent-Ntier-Test
         LOG_LEVEL=DEBUG
-        TEST_MODE=mock
+        TEST_MODE=production
         EOL
     
+    - name: Test API Keys Configuration
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      run: python test_api_keys.py
+    
     - name: Run tests
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
       run: |
         echo "PYTHONPATH is: $PYTHONPATH"
         python -c "import sys; print('Python path:', sys.path)"
