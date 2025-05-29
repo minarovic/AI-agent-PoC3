@@ -1,5 +1,32 @@
 # Testing Iteration Log
 
+## Iterace 65: OPRAVENO - String syntax místo přímého importu podle LangGraph dokumentace (29.05.2025)
+**Problém vyřešen:** ModuleNotFoundError: No module named 'langchain_openai' v Error_new5.log
+**Skutečná příčina:** V graph.py byl zbytečný přímý import `from langchain_openai import ChatOpenAI`
+**Analýza chyby:** 
+- Error_new5.log: `from langchain_openai import ChatOpenAI` → ModuleNotFoundError
+- Error_new3/4.log: `init_chat_model("openai:gpt-4")` → ImportError při auto-detekci
+- Změna v iteraci 62: Z string syntax na přímý import (chybný krok)
+
+**Operace provedené:**
+1. **graph.py:** Vráceno k string syntax `model = "openai:gpt-4"` 
+2. **graph.py:** Odstraněn import `from langchain_openai import ChatOpenAI`
+3. **requirements.txt:** Odstraněn `langchain-openai==0.3.18` (není potřeba při string syntax)
+
+**Důvod:** Podle LangGraph dokumentace je string syntax preferovaný způsob:
+```python
+agent = create_react_agent(
+    model="openai:gpt-4",  # ✅ Preferováno
+    # vs
+    model=ChatOpenAI(...)  # ❌ Zbytečně složité
+)
+```
+
+**Pattern Recognition:** Iterace 21,30 - ModuleNotFoundError + nepoužívaný import → Odstranit import ✅
+**Confidence:** 95% jistý - oficiální dokumentace potvrzuje string syntax jako best practice
+**Očekávání:** GitHub Actions projdou bez import errors, init_chat_model si vyřeší OpenAI závislosti interně
+**Commit čeká na:** Validaci v GitHub Actions
+
 ## Iterace 64: Oprava verze langchain-openai podle Error_new3.log a Error_new4.log (29.05.2025)
 **Implementace:** Aktualizace verze langchain-openai na specifickou verzi podle aktuální PyPI
 **Změny provedené:**

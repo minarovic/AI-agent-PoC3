@@ -1,0 +1,52 @@
+@startuml "Module-Dependencies"
+
+title "Module Dependencies in AI-agent-Ntier"
+
+package "LangChain Core" {
+  [langchain_core.messages]
+  [langchain_core.output_parsers]
+  [langchain_core.prompts]
+  [langchain_core.runnables]
+  [langchain_core.tools]
+  [langchain_core.exceptions]
+}
+
+package "Model Providers" {
+  [langchain_openai] 
+  [langchain_anthropic] #lightgray
+}
+
+package "memory_agent" {
+  [graph.py]
+  [analyzer.py]
+  [tools.py]
+  [state.py]
+  [configuration.py]
+}
+
+note right of [langchain_anthropic]
+  Not currently used but 
+  may be needed in future
+end note
+
+[graph.py] --> [langchain_core.messages]
+[graph.py] --> [langchain_core.output_parsers]
+[graph.py] --> [langchain_core.runnables]
+[graph.py] --> [langchain_openai]: Imports ChatOpenAI
+[graph.py] --> [state.py]
+[graph.py] --> [tools.py]
+
+[analyzer.py] --> [langchain_core.messages]
+[analyzer.py] --> [langchain_core.output_parsers]
+[analyzer.py] --> [langchain_core.prompts]
+[analyzer.py] --> [langchain_core.runnables]
+[analyzer.py] --> [langchain_core.tools]
+[analyzer.py] --> [langchain_core.exceptions]
+[analyzer.py] --> [langchain_openai]: Uses ChatOpenAI via get_chat_model()
+
+note bottom of [analyzer.py]
+  Previously used langchain.chat_models.init_chat_model
+  Now uses custom get_chat_model() function
+end note
+
+@enduml

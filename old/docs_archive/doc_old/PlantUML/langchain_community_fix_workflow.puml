@@ -1,0 +1,40 @@
+@startuml "Langchain-Community-Fix-Workflow"
+' Diagram řešení chyby s chybějícím balíčkem langchain_community
+
+start
+:Identifikace chyby v logu;
+note right: ModuleNotFoundError: No module named 'langchain_community'
+
+:Analýza problému;
+note right: LangChain framework byl rozdělen do více balíčků,\n'langchain_community' chybí v závislostech
+
+:Identifikace potřebných změn;
+fork
+  :Přidání do requirements.txt;
+  note right: langchain_community>=0.1.0
+fork again
+  :Aktualizace GitHub workflow;
+  note right: Explicitní instalace v CI/CD
+fork again
+  :Vytvoření requirements-platform.txt;
+  note right: Specializovaný soubor pro LangGraph Platform
+fork again
+  :Aktualizace langgraph.json;
+  note right: "dependencies": [".", "./requirements-platform.txt"]
+end fork
+
+:Commit a push změn;
+note right: "Fix: Přidání chybějící závislosti langchain_community"
+
+:Monitoring GitHub Actions;
+if (Build úspěšný?) then (Ano)
+  :Stažení artefaktu;
+  :Nasazení na LangGraph Platform;
+  :Ověření funkcionalnosti;
+  note right: Testovací API request
+else (Ne)
+  :Další analýza logu;
+endif
+
+stop
+@enduml

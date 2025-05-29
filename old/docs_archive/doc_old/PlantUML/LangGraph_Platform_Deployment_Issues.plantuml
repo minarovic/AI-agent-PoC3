@@ -1,0 +1,157 @@
+@startuml "LangGraph-Platform-Deployment-Issues"
+title "AI-agent-Ntier - Problémy při nasazení na LangGraph Platform a jejich řešení"
+
+skinparam {
+    DefaultFontName "Arial"
+    DefaultFontSize 12
+    DefaultTextAlignment center
+    BackgroundColor white
+    
+    ArrowColor #CC0000
+    DiamondBackgroundColor #FFFFCC
+    DiamondBorderColor #999999
+    
+    ActivityBackgroundColor #EEEEEE
+    ActivityBorderColor #666666
+    ActivityDiamondBackgroundColor #FFFFCC
+    ActivityDiamondBorderColor #999999
+    ActivityEndColor #CC0000
+    ActivityStartColor #77AA77
+    
+    NoteBackgroundColor #FFF9C4
+    NoteBorderColor #DDDDDD
+    NoteFontColor #333333
+}
+
+start
+
+partition "Příprava projektu" {
+  :Aktualizace kódu a příprava repozitáře;
+  note right: Ověření, že kód je bez Docker souborů\na obsahuje správnou konfiguraci
+
+  :Spuštění verify_deployment.sh;
+  
+  if (Verifikace úspěšná?) then (ano)
+    :Projekt je připraven k nasazení;
+  else (ne)
+    #Pink:CHYBA: Nesplněné požadavky na konfiguraci;
+    note right: Nejčastější problémy:
+- Chybějící langgraph.json
+- Nesprávná struktura adresářů
+- Chybějící závislosti
+    :Oprava konfigurace projektu;
+    note right: Řešení: 
+- Vytvořit/opravit langgraph.json
+- Doplnit závislosti v requirements.txt
+- Opravit strukturu adresářů
+  endif
+}
+
+partition "Nasazení na GitHub" {
+  :Spuštění deploy_to_github.sh;
+  
+  if (Push na GitHub úspěšný?) then (ano)
+    :Kód je na GitHubu, připraven pro LangGraph Platform;
+  else (ne)
+    #Pink:CHYBA: Git repozitář není správně nakonfigurován;
+    note right: Možné příčiny:
+- Chybějící .git adresář
+- Není nastavený remote
+- Konflikty v souborech
+    :Kontrola a oprava Git konfigurace;
+    note right: Řešení:
+- git init pro inicializaci repozitáře
+- git remote add origin <url>
+- Vyřešení konfliktů
+  endif
+}
+
+partition "GitHub Actions workflow" {
+  :Spuštění GitHub Actions workflow;
+  
+  if (Test job úspěšný?) then (ano)
+    :Testy prošly;
+  else (ne)
+    #Pink:CHYBA: Selhání testů;
+    note right: Časté problémy:
+- Chybějící závislosti
+- Chyby v kódu
+- Nesprávné importy
+    :Oprava chyb v kódu a testech;
+    note right: Řešení:
+- Kontrola a oprava importů
+- Instalace všech závislostí
+- Vyřešení chyb v testovaném kódu
+  endif
+  
+  if (Verify-deployment job úspěšný?) then (ano)
+    :Verifikace konfigurace prošla;
+  else (ne)
+    #Pink:CHYBA: Nesprávná konfigurace grafu;
+    note right: Časté problémy:
+- Neplatný langgraph.json
+- Chybějící soubory
+- Neimportovatelné moduly
+    :Kontrola a oprava konfigurace grafu;
+    note right: Řešení:
+- Opravit cesty v langgraph.json
+- Zajistit správné importy modulů
+- Zkontrolovat dostupnost všech souborů
+  endif
+  
+  if (Deploy job úspěšný?) then (ano)
+    :Deploy na GitHub úspěšný;
+  else (ne)
+    #Pink:CHYBA: Selhání deploy jobu;
+    note right: Možné příčiny:
+- Chybějící deploy script
+- Nedostatečná oprávnění
+- Problémy s GITHUB_TOKEN
+    :Kontrola oprávnění a deploy skriptu;
+    note right: Řešení:
+- Nastavit správná oprávnění pro workflow
+- Zajistit funkčnost deploy_to_github.sh
+- Zkontrolovat nastavení GITHUB_TOKEN
+  endif
+}
+
+partition "LangGraph Platform build" {
+  :LangGraph Platform detekuje změny v GitHub;
+  
+  if (Build na platformě úspěšný?) then (ano)
+    :Build aplikace dokončen;
+  else (ne)
+    #Pink:CHYBA: Selhání buildu na platformě;
+    note right: Časté problémy:
+- Neserializovatelné objekty v grafu
+- Chybějící závislosti
+- Nevyřešené importy
+    :Kontrola serializovatelnosti objektů;
+    note right: Řešení:
+- Nahradit instance tříd za serializovatelné konfigurace
+- Přidat metody pro vytváření instancí za běhu
+- Zkontrolovat všechny závislosti v requirements.txt
+  endif
+  
+  if (Deployment aplikace úspěšný?) then (ano)
+    :Aplikace úspěšně nasazena;
+  else (ne)
+    #Pink:CHYBA: Selhání deploymentu aplikace;
+    note right: Možné příčiny:
+- Chyby při spuštění
+- Problémy s proměnnými prostředí
+- Nedostatečné oprávnění
+    :Kontrola logů a nastavení proměnných;
+    note right: Řešení:
+- Zkontrolovat logy v administraci
+- Nastavit správné proměnné prostředí
+- Ověřit přístupová oprávnění
+  endif
+}
+
+:Aplikace úspěšně nasazena a běží;
+note right: Ověřeno pomocí check_deployment_status.sh
+
+stop
+
+@enduml

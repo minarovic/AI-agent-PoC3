@@ -1,0 +1,73 @@
+@startuml "deployment-workflow"
+!theme plain
+skinparam defaultTextAlignment center
+
+title "Workflow nasazení AI-agent-Ntier na LangGraph Platform"
+
+rectangle "Lokální repozitář" as local {
+  rectangle "Zdrojové kódy" as src {
+    rectangle "src/memory_agent/" as srcFolder {
+      file "analyzer.py\n(typy analýz)" as analyzer
+      file "graph_nodes.py" as nodes
+      file "tools.py" as tools
+      file "state.py" as state
+      file "graph.py" as graph
+      file "__init__.py" as init
+      file "utils.py" as utils
+      file "prompts.py" as prompts
+      file "configuration.py" as config
+      file "schema.py" as schema
+      file "mock_langgraph.py" as mockLanggraph #lightgrey
+    }
+  }
+  
+  rectangle "Konfigurační soubory" as config {
+    file "langgraph.json" as langGraphJson
+    file "requirements.txt" as reqTxt
+    file "requirements-platform.txt" as reqPlatform
+    file "setup.py" as setupPy
+  }
+  
+  rectangle "Testovací soubory" as tests {
+    file "test_*.py" as testFiles #lightgrey
+    file "simple_test_analysis_types.py" as simpleTester #lightgrey
+  }
+  
+  rectangle "Docker soubory" as docker {
+    file "Dockerfile*" as dockerfile #lightgrey
+    file "docker-compose*.yml" as dockerCompose #lightgrey
+  }
+  
+  rectangle "Logy a dokumentace" as docs {
+    file "deploy_logs/*" as deployLogs #lightgrey
+    file "doc/*" as docFiles #lightgrey
+  }
+}
+
+rectangle "GitHub" as github {
+  rectangle "Repository" as repo {
+    rectangle "Zdrojové kódy\n(produkční)" as githubSrc
+    rectangle "Konfigurační soubory" as githubConfig
+  }
+}
+
+rectangle "LangGraph Platform" as platform {
+  rectangle "Aplikační server" as server {
+    rectangle "AI-agent-Ntier" as deployedApp
+  }
+}
+
+local --> github : deploy_analysis_types_to_github.sh\n(pouze produkční soubory)
+github --> platform : Automatické nasazení
+
+note top of local #lightgreen: Všechny produkční a testovací soubory
+note top of github #lightblue: Pouze produkční soubory
+note top of platform #lightyellow: Běžící aplikace
+
+note bottom of local #lightgrey: Soubory označené šedě nejsou\nzahrnuty v nasazení na GitHub
+
+' Nasazované soubory
+src --> github : Zdrojové kódy
+config --> github : Konfigurační soubory
+
+@enduml

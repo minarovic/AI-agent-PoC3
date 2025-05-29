@@ -4,7 +4,6 @@ Minimální implementace podle LangGraph dokumentace.
 """
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
-from langchain_openai import ChatOpenAI
 from memory_agent.analyzer import analyze_company
 
 
@@ -15,16 +14,13 @@ def create_memory_agent():
     Returns:
         Nakonfigurovaný agent připravený k použití
     """
-    # Nastavení modelu s přímým importem místo string syntax
-    model = ChatOpenAI(
-        model="gpt-4",
-        temperature=0
-    )
+    # Nastavení modelu pomocí string syntax (preferovaný způsob podle dokumentace)
+    model = "openai:gpt-4"
     
     # Nastavení checkpointeru pro persistenci
     checkpointer = InMemorySaver()
     
-    # Vytvoření agenta s tool funkcí
+    # Vytvoření agenta s tool funkcí a string syntax pro model
     agent = create_react_agent(
         model=model,
         tools=[analyze_company],

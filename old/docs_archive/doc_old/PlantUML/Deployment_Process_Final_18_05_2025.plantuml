@@ -1,0 +1,77 @@
+@startuml "AI-agent-Ntier-Deployment-Process-18-05-2025"
+!theme cerulean
+
+title "AI-agent-Ntier - Proces opravy a nasazení 18.05.2025"
+
+' Definice stylů
+skinparam backgroundColor #FEFEFE
+skinparam activityArrowColor #2C3E50
+skinparam activityBackgroundColor #3498DB
+skinparam activityBorderColor #2C3E50
+skinparam activityBorderThickness 2
+skinparam noteBackgroundColor #F1C40F
+skinparam noteBorderColor #F39C12
+skinparam noteBorderThickness 1
+
+' Rozdělení na fáze
+|Identifikace problému|
+start
+:Detekce chyby v logu;
+note right
+  TypeError: 'State' object 
+  is not subscriptable
+end note
+
+:Analýza zdrojového kódu;
+note right: Nesprávný přístup k objektu State
+:Identifikace problematického místa v graph.py;
+note right
+  lambda x: x["state"].query_type
+  místo správného
+  lambda x: x.query_type
+end note
+
+|Implementace opravy|
+:Kontrola aktuálního stavu kódu;
+if (Je kód již opraven?) then (Ano)
+  :Ověření správnosti v grafu;
+  note right
+    Kód již obsahoval správnou implementaci
+    lambda x: x.query_type
+  end note
+else (Ne)
+  :Oprava lambda funkce v graph.py;
+  note right
+    Změna z lambda x: x["state"].query_type
+    na lambda x: x.query_type
+  end note
+  :Commit změn;
+endif
+
+|Oprava GitHub Actions|
+:Identifikace problému v GitHub Actions;
+note right
+  1. Zastaralá verze actions/upload-artifact@v3
+  2. Chybějící parametry pro upload artefaktu
+  3. Chybějící parametr --local pro langgraph build
+end note
+:Aktualizace GitHub Actions workflow;
+note right
+  1. Update na actions/upload-artifact@v4
+  2. Přidání retention-days a if-no-files-found
+  3. Přidání parametru --local k langgraph build
+end note
+:Commit a push změn (77729a1, další změny);
+
+|Verifikace a dokumentace|
+:Testování nasazení;
+:Vytvoření dokumentace o provedeném procesu;
+note right
+  Přidání záznamu do notes.md
+  Vytvoření souhrnného dokumentu
+  Vytvoření PlantUML diagramu
+end note
+
+stop
+
+@enduml

@@ -1,0 +1,70 @@
+@startuml "N8N_workflow_analyza"
+' Diagram pro analýzu workflow mezi N8N a mock_data_2
+
+!define ICONURL https://raw.githubusercontent.com/tupadr3/plantuml-icon-font-sprites/master/devicons
+
+title Analýza workflow dat a typů analýz
+
+skinparam {
+    BackgroundColor white
+    RoundCorner 10
+    ArrowColor #2688d4
+    ActorBorderColor #2688d4
+    LifeLineBorderColor blue
+    LifeLineBackgroundColor #A9DCDF
+    ParticipantBorderColor #2688d4
+    ParticipantBackgroundColor #FFFFFF
+    ParticipantFontColor #2688d4
+    ActorFontColor #2688d4
+}
+
+actor Uživatel as user
+participant "User Query\nParser" as parser
+participant "Analyzer" as analyzer
+
+box "Datové zdroje" #LightBlue
+    participant "Entity Search" as entity_search
+    participant "Entity Detail" as entity_detail
+    participant "Relationships" as relationships
+    participant "Supply Chain" as supply_chain
+    participant "Internal Data" as internal
+end box
+
+participant "Analyzer\nProcessor" as processor
+participant "Result\nCombiner" as combiner
+participant "Response\nGenerator" as generator
+
+user -> parser: "Společnost; typ_analýzy"
+parser -> analyzer: Analýza dotazu
+
+' Rozhodovací bod pro typ analýzy
+alt Risk Comparison
+    analyzer -> entity_detail: Získat rizikové faktory
+    entity_detail --> analyzer: Detailní data o rizicích
+    analyzer -> entity_search: Získat základní kontext
+    entity_search --> analyzer: Základní informace o entitě
+    analyzer -> processor: Zpracování dat o rizicích
+elseif Supplier Analysis
+    analyzer -> relationships: Získat vztahová data
+    relationships --> analyzer: Vztahy entit
+    analyzer -> supply_chain: Získat dodavatelský řetězec
+    supply_chain --> analyzer: Struktura dodavatelského řetězce
+    analyzer -> entity_detail: Získat detaily entit v řetězci
+    entity_detail --> analyzer: Detaily entit
+    analyzer -> processor: Zpracování vztahových dat
+else General
+    analyzer -> entity_search: Získat základní data
+    entity_search --> analyzer: Základní informace o entitě
+    analyzer -> entity_detail: Získat detailnější data
+    entity_detail --> analyzer: Detailní informace
+    analyzer -> internal: Získat interní data
+    internal --> analyzer: Interní informace
+    analyzer -> processor: Zpracování obecných dat
+end
+
+' Společné pokračování workflow
+processor -> combiner: Zpracovaná data podle typu analýzy
+combiner -> generator: Kombinovaná data
+generator -> user: Formátovaná odpověď
+
+@enduml
