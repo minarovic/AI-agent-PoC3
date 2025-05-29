@@ -1,5 +1,14 @@
 # Testing Iteration Log
 
+## Iterace 69: Oprava formátu cesty v langgraph.json (29.05.2025)
+**Problém:** Nesprávný formát cesty v langgraph.json - langgraph využívá Python import syntax, ne cestu k souboru
+**Příčina:** Současný formát `"./src/memory_agent/graph.py:memory_agent"` místo `"src.memory_agent.graph:memory_agent"`
+**LESSON LEARNED:** LangGraph Platform používá Python import syntax, ne filesystem cesty
+**Operace provedené:**
+1. **langgraph.json:** Změna `"./src/memory_agent/graph.py:memory_agent"` na `"src.memory_agent.graph:memory_agent"`
+**Důvod:** LangGraph Platform expects a Python import path (with dots), not a file path (with slashes)
+**Očekávaný výsledek:** LangGraph Platform bude schopen importovat graph pomocí Python importu
+
 ## Iterace 68: Odstranění zastaralých testovacích souborů (29.05.2025)
 **Problém:** GitHub Actions test fails: 7 collection errors z důvodu importů neexistujících funkcí jako `analyze_query_sync` a `analyze_company_query`
 **Příčina:** Test soubory importují funkce, které již neexistují v aktuální minimální verzi `analyzer.py`
