@@ -1,5 +1,15 @@
 # Testing Iteration Log
 
+## Iterace 67: KRITICKÁ OPRAVA - String syntax potřebuje langchain-openai package (29.05.2025)
+**Problém:** Error_news6.log → ImportError: Unable to import langchain_openai při `init_chat_model("openai:gpt-4")`
+**Příčina:** String syntax není "bez-dependency" řešení - interně volá `init_chat_model()` který potřebuje langchain_openai
+**LESSON LEARNED:** String syntax je jen syntactic sugar, NENÍ náhrada za package dependencies
+**Operace provedené:**
+1. **requirements.txt:** Přidán zpět `langchain-openai>=0.3.18`
+**Důvod:** init_chat_model("openai:gpt-4") interně importuje langchain_openai package
+**GitHub Actions vs Platform:** GitHub Actions testují jen syntax - Platform testuje runtime behavior
+**Očekávání:** LangGraph Platform úspěšně naimportuje langchain_openai a vytvoří model
+
 ## Iterace 66: OPRAVENO - PYTHONPATH pro GitHub Actions workflow (29.05.2025)
 **Problém:** ModuleNotFoundError: 'memory_agent' v GitHub Actions testech
 **Příčina:** PYTHONPATH byl nastavován přes `export` ale nebyl dostupný v pytest
