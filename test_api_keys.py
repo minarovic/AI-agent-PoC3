@@ -9,31 +9,53 @@ import sys
 
 def test_api_keys():
     """Test that all required API keys are available and properly formatted."""
-    required_keys = {
+    # Critical keys for LangGraph Platform deployment
+    critical_keys = {
         'OPENAI_API_KEY': 'sk-',
         'ANTHROPIC_API_KEY': 'sk-ant-',
+    }
+    
+    # Optional keys (for monitoring and logging)
+    optional_keys = {
         'LANGSMITH_API_KEY': 'ls-'
     }
     
-    all_good = True
+    all_critical_good = True
     
     print("🔍 Testing API Keys availability...")
     print("-" * 50)
     
-    for key_name, expected_prefix in required_keys.items():
+    # Test critical keys
+    print("🚨 CRITICAL KEYS (required for deployment):")
+    for key_name, expected_prefix in critical_keys.items():
         value = os.environ.get(key_name)
         
         if not value:
             print(f"❌ {key_name}: NOT SET")
-            all_good = False
-        elif value.startswith('sk-mock-') or value.startswith('sk-ant-mock-') or value.startswith('ls-mock-'):
+            all_critical_good = False
+        elif value.startswith('sk-mock-') or value.startswith('sk-ant-mock-'):
             print(f"⚠️  {key_name}: MOCK KEY (value: {value[:20]}...)")
             print(f"   This is a mock key, not a real API key!")
+            all_critical_good = False
         elif value.startswith(expected_prefix):
             print(f"✅ {key_name}: PROPERLY SET (prefix: {expected_prefix})")
         else:
             print(f"❌ {key_name}: INVALID FORMAT (expected prefix: {expected_prefix})")
-            all_good = False
+            all_critical_good = False
+    
+    # Test optional keys
+    print("\n📊 OPTIONAL KEYS (for monitoring):")
+    for key_name, expected_prefix in optional_keys.items():
+        value = os.environ.get(key_name)
+        
+        if not value:
+            print(f"⚠️  {key_name}: NOT SET (optional)")
+        elif value.startswith('ls-mock-'):
+            print(f"⚠️  {key_name}: MOCK KEY (value: {value[:20]}...)")
+        elif value.startswith(expected_prefix):
+            print(f"✅ {key_name}: PROPERLY SET (prefix: {expected_prefix})")
+        else:
+            print(f"⚠️  {key_name}: NON-STANDARD FORMAT (expected: {expected_prefix}, might still work)")
     
     print("-" * 50)
     
@@ -49,11 +71,13 @@ def test_api_keys():
     
     print("-" * 50)
     
-    if all_good:
-        print("✅ ALL API KEYS ARE PROPERLY CONFIGURED!")
+    if all_critical_good:
+        print("✅ ALL CRITICAL API KEYS ARE PROPERLY CONFIGURED!")
+        print("🚀 Ready for LangGraph Platform deployment!")
         return True
     else:
-        print("❌ SOME API KEYS ARE NOT PROPERLY CONFIGURED!")
+        print("❌ SOME CRITICAL API KEYS ARE NOT PROPERLY CONFIGURED!")
+        print("💡 Please check your GitHub Repository Secrets")
         return False
 
 if __name__ == "__main__":
