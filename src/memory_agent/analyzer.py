@@ -414,3 +414,35 @@ def analyze_company_query(query: str) -> Tuple[str, str]:
         analysis_type = "general"
         
     return company, analysis_type
+
+@tool
+def analyze_company(query: str) -> str:
+    """
+    Analyzuje společnost podle uživatelského dotazu.
+    
+    Args:
+        query: Uživatelský dotaz týkající se společnosti
+        
+    Returns:
+        str: Analýza společnosti ve strukturovaném formátu
+    """
+    # Získání názvu společnosti a typu analýzy
+    try:
+        company, analysis_type = analyze_company_query(query)
+        
+        # Mock odpověď pro základní funkcionalitu
+        return f"""
+## Analýza společnosti: {company}
+**Typ analýzy:** {analysis_type}
+
+### Základní údaje
+- Název: {company}
+- Obor: Automotive
+- Hodnocení rizika: Střední
+
+### Detaily analýzy
+Toto je zjednodušená mock odpověď pro testing deployment.
+V produkční verzi zde bude plná analýza společnosti podle parametrů.
+"""
+    except Exception as e:
+        return f"Omlouvám se, při analýze společnosti došlo k chybě: {str(e)}"
