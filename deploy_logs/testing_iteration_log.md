@@ -1,5 +1,15 @@
 # Testing Iteration Log
 
+## Iterace 66: OPRAVENO - PYTHONPATH pro GitHub Actions workflow (29.05.2025)
+**Problém:** ModuleNotFoundError: 'memory_agent' v GitHub Actions testech
+**Příčina:** PYTHONPATH byl nastavován přes `export` ale nebyl dostupný v pytest
+**Operace provedené:**
+1. **test.yml:** Změna `export PYTHONPATH=` na `echo "PYTHONPATH=" >> $GITHUB_ENV`
+2. **test.yml:** Přidán debug output pro PYTHONPATH a sys.path
+**Důvod:** V GitHub Actions musí být environment variables nastaveny přes $GITHUB_ENV
+**Očekávání:** pytest nalezne modul memory_agent a testy proběhnou
+**Pattern Recognition:** GitHub Actions environment handling ≠ běžný shell export
+
 ## Iterace 65: OPRAVENO - String syntax místo přímého importu podle LangGraph dokumentace (29.05.2025)
 **Problém vyřešen:** ModuleNotFoundError: No module named 'langchain_openai' v Error_new5.log
 **Skutečná příčina:** V graph.py byl zbytečný přímý import `from langchain_openai import ChatOpenAI`
