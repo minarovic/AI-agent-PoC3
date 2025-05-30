@@ -1,0 +1,78 @@
+@startuml "LangGraph-Platform-Deployment-Workflow"
+title "AI-agent-Ntier - Správný workflow nasazení na LangGraph Platform"
+
+skinparam {
+    DefaultFontName "Arial"
+    DefaultFontSize 12
+    DefaultTextAlignment center
+    BackgroundColor white
+    ArrowColor #5C6BC0
+    ActorBorderColor #5C6BC0
+    LifeLineBorderColor #5C6BC0
+    LifeLineBackgroundColor #E8EAF6
+    
+    ParticipantBorderColor #5C6BC0
+    ParticipantBackgroundColor #E8EAF6
+    ParticipantFontColor #000000
+    
+    ActorBackgroundColor #E8EAF6
+    
+    NoteBackgroundColor #FFF9C4
+    NoteBorderColor #E6EE9C
+    NoteFontColor #000000
+}
+
+actor "Vývojář" as Dev
+participant "GitHub\nRepository" as GitHub
+participant "GitHub Actions" as Actions
+participant "LangGraph\nPlatform" as LangGraph
+database "Deployment\nLogs" as Logs
+
+== Lokální testování ==
+Dev -> Dev: Vývoj a testování kódu
+note right: Implementace a lokální optimalizace 
+
+Dev -> Dev: ./verify_deployment.sh
+note right: Ověření správnosti kódu\npřed odesláním na GitHub
+
+Dev -> Dev: ./deploy_to_langgraph_platform.sh
+note right: **POUZE PRO LOKÁLNÍ TESTOVÁNÍ**\n- langgraph serve\n- spuštění testů
+
+== Příprava na nasazení ==
+Dev -> GitHub: git commit & push
+note right: Commit běžného kódu\n(bez Docker souborů)
+
+GitHub -> Actions: Trigger workflow
+note right: langgraph-platform-deploy.yml
+
+== GitHub Actions Workflow ==
+Actions -> Actions: Job: test
+note right: - Základní lint\n- Spuštění testů
+
+Actions -> Actions: Job: verify-deployment
+note right: - Validace langgraph.json\n- Kontrola konfigurace\n- Spuštění verify_deployment.sh
+
+Actions -> Actions: Job: deploy
+note right: - Spuštění deploy_to_github.sh\n- Git push čistého kódu
+
+Actions -> Logs: Uložení deployment log
+note right: Zápis informací o\nprůběhu nasazení
+
+== LangGraph Platform Integrace ==
+GitHub -> LangGraph: Automatické nasazení
+note right: LangGraph Platform detekuje\nzměnu v repozitáři
+
+LangGraph -> LangGraph: Build aplikace
+note right: - Stažení kódu z GitHubu\n- Build podle langgraph.json\n- Sestavení bez Docker souborů
+
+LangGraph -> LangGraph: Deployment aplikace
+note right: - Spuštění aplikace\n- Poskytnutí URL endpointu
+
+== Verifikace nasazení ==
+Dev -> LangGraph: Kontrola nasazené aplikace
+note right: Otestování funkčnosti\naplikace přes API
+
+LangGraph --> Dev: Odpověď API
+note left: Ověření správného\nnasazení a funkčnosti
+
+@enduml

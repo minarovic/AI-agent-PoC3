@@ -1,0 +1,82 @@
+@startuml "optimalizovane_workflow_AI_agent_Ntier"
+' Diagram optimalizovaného workflow pro AI-agent-Ntier
+
+title Optimalizované workflow pro různé typy analýz v AI-agent-Ntier
+
+skinparam {
+    BackgroundColor white
+    RoundCorner 10
+    ArrowColor #2688d4
+    ActorBorderColor #2688d4
+    LifeLineBorderColor blue
+    LifeLineBackgroundColor #A9DCDF
+    ParticipantBorderColor #2688d4
+    ParticipantBackgroundColor #FFFFFF
+    ParticipantFontColor #2688d4
+    ActorFontColor #2688d4
+}
+
+actor Uživatel as user
+participant "Route Query" as route_query
+participant "Analyze Query" as analyze_query
+participant "Type Detector" as type_detector
+
+box "Data Processing" #LightGreen
+    participant "Prepare Company\nQuery" as prepare_query
+    participant "Retrieve Company\nData" as retrieve_data
+    participant "Retrieve Additional\nData" as retrieve_additional
+end box
+
+box "Specialized Analysis" #LightBlue
+    participant "Risk Analysis" as risk_analysis
+    participant "Supplier Analysis" as supplier_analysis
+    participant "General Analysis" as general_analysis
+end box
+
+participant "Generate\nResponse" as generate_response
+
+user -> route_query: "Má MB TOOL nějaké sankce?"
+route_query -> analyze_query: Analýza dotazu
+analyze_query -> type_detector: Detekce typu dotazu a společnosti
+
+note right of type_detector
+  Vylepšená detekce s LLM:
+  - company (MB TOOL)
+  - analysis_type (risk_comparison)
+end note
+
+type_detector --> route_query: company + risk_comparison
+route_query -> prepare_query: Předání parametrů dotazu
+
+prepare_query -> retrieve_data: Získání základních dat
+retrieve_data -> retrieve_additional: Získání dodatečných dat
+
+alt Risk Comparison
+    retrieve_additional -> risk_analysis: Data + typ analýzy
+    note right of risk_analysis
+      Použije primárně:
+      - entity_detail_*.json
+      - entity_search_*.json
+    end note
+    risk_analysis -> generate_response: Výsledky analýzy rizik
+elseif Supplier Analysis
+    retrieve_additional -> supplier_analysis: Data + typ analýzy
+    note right of supplier_analysis
+      Použije primárně:
+      - relationships_*.json
+      - supply_chain_*.json
+    end note
+    supplier_analysis -> generate_response: Výsledky analýzy dodavatelů
+else General
+    retrieve_additional -> general_analysis: Data + typ analýzy
+    note right of general_analysis
+      Použije primárně:
+      - entity_search_*.json
+      - internal_*.json
+    end note
+    general_analysis -> generate_response: Obecné výsledky
+end
+
+generate_response -> user: Strukturovaná odpověď
+
+@enduml

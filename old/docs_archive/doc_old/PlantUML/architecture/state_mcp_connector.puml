@@ -1,0 +1,60 @@
+@startuml "State-MCP-Connector-Architecture"
+' Diagram znázorňující architekturu řešení s mcp_connector v State objektu
+
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 12
+
+title State Object MCP Connector Architecture
+
+class State {
+  + messages: Annotated[list[AnyMessage], add_messages]
+  + company_data: Annotated[Dict[str, Any], merge_dict_values]
+  + internal_data: Annotated[Dict[str, Any], merge_dict_values]
+  + relationships_data: Annotated[Dict[str, List[Dict[str, Any]]], merge_dict_values]
+  + error_state: Dict[str, Any]
+  + output: Dict[str, Any]
+  + mcp_connector_config: Optional[Any]
+  + mcp_connector: Annotated[Any, merge_dict_values]
+  + get_mcp_connector(): MockMCPConnector
+}
+
+class MockMCPConnector {
+  + get_company_by_name(name: str): Dict[str, Any]
+  + get_company_financials(company_id: str): Dict[str, Any]
+  + get_company_relationships(company_id: str): List[Dict[str, Any]]
+  + get_person_by_name(name: str): Dict[str, Any]
+}
+
+class GraphNode {
+  + retrieve_company_data(state: State): State
+  + retrieve_additional_company_data(state: State): State
+  + retrieve_person_data(state: State): State
+}
+
+State "1" --> "0..1" MockMCPConnector: contains or creates
+GraphNode --> State: modifies
+GraphNode --> MockMCPConnector: uses
+
+note right of State::mcp_connector
+  Nově přidaný atribut s Annotated[Any, merge_dict_values]
+  pro správnou serializaci při běhu na LangGraph Platform
+end note
+
+note right of State::get_mcp_connector
+  1. Zkontroluje existenci mcp_connector
+  2. Pokud neexistuje, vytvoří novou instanci
+  3. Uloží instanci do mcp_connector
+  4. Vrátí instanci
+end note
+
+note right of GraphNode
+  Každý uzel grafu, který používá MCP connector:
+  1. Zkontroluje state.mcp_connector
+  2. Zkontroluje state.get_mcp_connector()
+  3. Vytvoří novou instanci, pokud je potřeba
+  4. Vrátí mcp_connector jako součást stavu
+end note
+
+@enduml

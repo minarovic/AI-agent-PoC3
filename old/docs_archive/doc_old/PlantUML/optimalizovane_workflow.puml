@@ -1,0 +1,65 @@
+@startuml "Optimalizovane_workflow_s_podporou_typu_analyz"
+' PlantUML diagram workflow s podporou typů analýz
+
+!theme plain
+skinparam dpi 300
+skinparam defaultFontName Arial
+skinparam activityDiamondFontSize 12
+skinparam activityFontSize 14
+skinparam noteFontSize 12
+skinparam ArrowFontSize 12
+
+title **Optimalizované workflow s podporou typů analýz**
+
+|#AliceBlue|Vstupní zpracování|
+start
+:Uživatel zadá dotaz;
+:Extrakce klíčových informací;
+split
+    :Extrakce názvů společností;
+split again
+    :Detekce typu analýzy;
+    note right: general, risk_comparison,\nsupplier_analysis
+end split
+
+|#LightYellow|Plánování analýzy|
+:Určení cílové společnosti;
+note right: Funkce determine_analysis_type()
+:Plánování strategie analýzy;
+:Určení potřebných dat;
+
+|#LightGreen|Načítání dat|
+:Získání základních dat o společnosti;
+if (typ analýzy?) then (general)
+    :Načtení entity_search_*.json;
+    :Načtení internal_*.json;
+else if (risk_comparison) then
+    :Načtení entity_detail_*.json;
+    note right: Sekce risk
+else (supplier_analysis)
+    :Načtení relationships_*.json;
+    :Načtení supply_chain_*.json;
+endif
+
+|#Pink|Analýza dat|
+if (typ analýzy?) then (general)
+    :Analýza základních informací;
+    :Analýza finančních dat;
+else if (risk_comparison) then
+    :Analýza rizikových faktorů;
+    :Kalkulace rizikového skóre;
+else (supplier_analysis)
+    :Analýza dodavatelských vztahů;
+    :Analýza dodavatelského řetězce;
+endif
+
+|#LightCyan|Generování odpovědi|
+:Strukturování výsledků analýzy;
+:Sestavení odpovědi;
+:Formátování výstupu;
+
+|#AliceBlue|Výstup|
+:Odpověď uživateli;
+stop
+
+@enduml

@@ -101,7 +101,26 @@ class MockMCPConnector:
         """
         self.data_path = data_path or self.MOCK_DATA_PATH
         logger.info(f"Inicializace MockMCPConnector s cestou k datům: {self.data_path}")
+    
+    def read_resource(self, company_name: str) -> Dict[str, Any]:
+        """
+        Načte JSON pro firmu podle názvu souboru.
         
+        Args:
+            company_name: Název společnosti (bez přípony .json)
+            
+        Returns:
+            Dict[str, Any]: Data společnosti
+            
+        Raises:
+            EntityNotFoundError: Pokud soubor společnosti nebyl nalezen
+        """
+        # Sestavení cesty k souboru
+        file_path = os.path.join(self.data_path, f"{company_name}.json")
+        
+        # Načtení a parsování JSON souboru
+        return self._load_json_file(file_path)
+    
     def _load_json_file(self, file_path: str) -> Dict[str, Any]:
         """
         Načte a parsuje JSON soubor.

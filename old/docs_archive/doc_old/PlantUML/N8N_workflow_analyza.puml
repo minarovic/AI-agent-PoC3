@@ -1,0 +1,87 @@
+@startuml "N8N_workflow_analyza"
+' PlantUML diagram porovnání N8N workflow s naší implementací
+
+!theme plain
+skinparam dpi 300
+skinparam defaultFontName Arial
+skinparam activityDiamondFontSize 12
+skinparam activityFontSize 14
+skinparam noteFontSize 12
+skinparam ArrowFontSize 12
+
+title **N8N workflow analýza a porovnání s naší implementací**
+
+|#LightBlue|N8N Workflow|
+start
+:Příjem dotazu;
+:Analýza dotazu pomocí LLM;
+note right: Extrakce entit a záměrů
+:Identifikace společností;
+:Určení typu analýzy;
+note right: Pomocí JSON formátu\na pravidel
+
+|#LightGreen|Načítání dat|
+:Získání dat z externích zdrojů;
+if (typ analýzy) then (obecná)
+    :API volání pro základní data;
+else if (rizika)
+    :API volání pro riziková data;
+else (dodavatelé)
+    :API volání pro vztahy;
+endif
+
+|#Pink|Zpracování dat|
+:Transformace a filtrování dat;
+:Kombinace informací z více zdrojů;
+:Agregace a sumarizace;
+
+|#Orange|Generování odpovědi|
+:Sestavení kontextu pro LLM;
+:Generování přirozené odpovědi;
+
+|#LightBlue|N8N Workflow|
+:Odeslání odpovědi;
+stop
+
+' Paralelní diagram pro naši implementaci
+|#LightCyan|Naše implementace|
+start
+:Příjem dotazu;
+:detect_analysis_type();
+note right: Pomocí klíčových slov\na pravidel
+:Identifikace společností;
+:determine_analysis_type();
+note right: Určení typu podle\nextrahovaného dotazu
+
+|#LightGreen|Načítání dat|
+:retrieve_additional_company_data();
+if (analysis_type) then (general)
+    :get_company_search_data();
+    :get_company_financials();
+else if (risk_comparison)
+    :get_risk_factors_data();
+else (supplier_analysis)
+    :get_company_relationships();
+    :get_supply_chain_data();
+endif
+
+|#Pink|Zpracování dat|
+:analyze_company_data();
+note right: Specializovaná analýza\npodle typu
+:Struktura podle typu analýzy;
+if (analysis_type) then (general)
+    :Analýza základních informací;
+else if (risk_comparison)
+    :Analýza rizikových faktorů;
+else (supplier_analysis)
+    :Analýza dodavatelských vztahů;
+endif
+
+|#Orange|Generování odpovědi|
+:generate_response();
+
+|#LightCyan|Naše implementace|
+:Odeslání odpovědi;
+stop
+
+@enduml

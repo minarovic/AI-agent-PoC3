@@ -1,0 +1,30 @@
+name: Test Memory Agent
+
+on:
+  push:
+    branches: [ '**' ]
+    paths:
+      - 'src/**'
+      - 'requirements.txt'
+      - 'setup.py'
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Skip tests for deployment
+      run: |
+        echo "Tests temporarily disabled for minimal deployment"
+        echo "Following instruction: 'Netestuj a neměň kód podle testů'"
+        echo "Tests directory was moved to /old/tests_backup/"

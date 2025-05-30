@@ -1,0 +1,58 @@
+@startuml "SuccessfulDeployment_18_05_2025"
+' Diagram dokumentující úspěšné nasazení AI-agent-Ntier na LangGraph Platform
+
+!theme plain
+skinparam TitleFontSize 18
+skinparam ArrowColor #333333
+skinparam NoteBackgroundColor #f0f8ff
+skinparam NoteBorderColor #87CEFA
+skinparam ActivityBackgroundColor #e6f7ff
+skinparam ActivityBorderColor #4682B4
+skinparam ActivityDiamondBackgroundColor #f0f8ff
+skinparam ActivityDiamondBorderColor #4682B4
+skinparam ActivityEndColor #4682B4
+
+title "Úspěšné nasazení AI-agent-Ntier na LangGraph Platform"
+
+start
+
+:Identifikace problému;
+note right: TypeError: 'State' object is not subscriptable
+
+:Analýza kódu v repozitáři;
+note right: Nesprávný přístup k objektu State\nv lambda funkci v graph.py
+
+:Verifikace stavu kódu;
+note right: Skript verify_and_deploy_fix.sh
+
+if (Lambda funkce je správná?) then (ano)
+  :Potvrzení správné implementace;
+  note right: lambda x: x.query_type
+else (ne)
+  :Oprava implementace;
+  note right: Nahrazení lambda x: x["state"].query_type\n-> lambda x: x.query_type
+endif
+
+:Příprava sloučení repozitářů;
+
+:Merge větve langraph-schema-fix do main;
+note right: git merge langraph-schema-fix
+
+:Commit a push změn do GitHub;
+note right: git push origin main
+
+:Oprava GitHub Actions workflow;
+note right: Správný příkaz pro vytvoření artefaktu\ntar -czvf langgraph-package.tar.gz -C artifacts/ .
+
+:Automatické nasazení na LangGraph Platform;
+note right: Spuštěno GitHub Actions workflow
+
+:Verifikace nasazení;
+note right: Aplikace funguje správně,\nchyba TypeError již nenastává
+
+:Vytvoření dokumentace;
+note right: deployment_success_18_05_2025.md
+
+stop
+
+@enduml

@@ -1,190 +1,122 @@
-# Instrukce pro Copilota: AI-agent-Ntier Deployment
+````instructions
+# AI## ❌ NIKDY
+- **Nepřidávaj funkce během oprav**
+- **Netestuj a neměň kód podle testů**
+- **Nedeployuj automaticky**
+- **Nepřidávej složité error handling**
+- **Neoslavuj předčasně** - URL ještě neznamená funkční aplikaci
+- **Nepřeháněj s pozitivitou** - čekáme na výsledky testůt-Ntier: Minimální instrukce pro nasazení
 
-> **Reference k PlantUML příručkám:** Příručky pro vytváření diagramů najdeš v `/Users/marekminarovic/AI-agent-Ntier/doc/PlantUML/`
-> - Diagram_Aktivit.md - Tvorba diagramů aktivit
-> - Sekvencni_diagram.md - Tvorba sekvenčních diagramů
-> - Diagram_Trid.md - Tvorba diagramů tříd
-> - Stavovy_diagram.md - Tvorba stavových diagramů
+## 🎯 JEDINÝ CÍL
+**Zprovoznit nejjednodušší možnou verzi na LangGraph Platform**
 
-*Strukturovaný návod s využitím CoT a MCP přístupů*
+## ✅ Aktuální checklist
+- [x] Zjednodušit analyzer.py na minimum
+- [x] Opravit Python verze v GitHub Actions
+- [x] Opravit langgraph.json konfigurace ✅
+- [x] Přidat ANTHROPIC_API_KEY do GitHub Secrets
+- [ ] Úspěšné testy v GitHub Actions
+- [ ] Nasazení na LangGraph Platform
 
-## Hlavní cíl
-Primárně se soustřeď na **úspěšný deployment aplikace** do LangGraph Platform a řešení technických překážek v tomto procesu.
+## 🚨 KRITICKÉ - Dělej pouze toto
+1. **Minimální kód** - Žádné extra funkce, pouze základní flow
+2. **Oprav chyby z logů** - Přesně podle chybových zpráv
+3. **Commit pouze nutné soubory** - src/, requirements.txt, langgraph.json
+4. **NETESTUJ LOKÁLNĚ** - Push a čekej na GitHub Actions
+5. **ZEPTEJ SE PŘED ZMĚNAMI** - Před opravou kódu nebo přidáním features se vždy zeptat uživatele na potvrzení
+6. **UČIT SE Z HISTORIE** - Vždy přečti posledních 5 iterací před akcí
 
-## Priorita úkolů
-PRIORITA: 
-1. Oprava chyb v kódu a řešení technických problémů
-2. Nasazení kódu na LangGraph Platform
-3. Ladění a testování nasazené aplikace
-4. Až po úspěšném nasazení se věnuj dokumentaci
+## ❌ NIKDY
+- **Nepřidávej funkce během oprav**
+- **Netestuj a neměň kód podle testů**
+- **Nedeployuj automaticky**
+- **Nepřidávej složité error handling**
 
-**KRITICKÉ:** Nejprve řeš kompletní opravu a nasazení, až následně se věnuj dokumentaci. Dokumentace nemá prioritu - prioritou je funkční nasazení aplikace na LangGraph Platform.
-
-## Správný workflow pro nasazení
-DŮLEŽITÉ: Pro nasazení aplikace na LangGraph Platform dodržuj následující postup:
-
-1. **Lokální testování:**
-   - Používej `deploy_to_langgraph_platform.sh` pouze pro LOKÁLNÍ testování funkčnosti
-   - Používej `verify_deployment.sh` pro kontrolu správnosti kódu
-   - NIKDY nepoužívej příkazy jako `langgraph build` nebo `langgraph deploy` při práci s GitHub
-
-2. **Nasazení na GitHub:**
-   - Pro nasazení na LangGraph Platform používej VÝHRADNĚ `deploy_to_github.sh`
-   - Tento skript odešle ČISTÝ kód na GitHub bez jakýchkoliv Docker souborů
-   - LangGraph Platform si stáhne kód přímo z GitHubu a sestaví jej podle `langgraph.json`
-
-3. **Propojení GitHub a LangGraph Platform:**
-   - V administraci LangGraph Platform propoj GitHub repozitář
-   - Nastav automatické nasazení při push do hlavní větve
-
-**NIKDY NEPOSÍLEJ** Docker soubory a konfiguraci na GitHub, způsobuje to konflikty při buildu na LangGraph Platform!
-
-## Proces řešení problémů (MCP)
-
-### 1. Identifikace a analýza chyb (Chain 1)
-Při nalezení chyby v GitHub Actions nebo logu:
-1. **Identifikace** - Extrahuj přesnou chybovou zprávu
-2. **Analýza (CoT)** - Proveď řetězec úvah:
-   - Co přesně říká chybová zpráva?
-   - V které části procesu se vyskytuje?
-   - Jaká je pravděpodobná příčina?
-   - Je to jednoduchá syntaktická chyba nebo komplexnější problém?
-3. **Návrh řešení** - Definuj konkrétní opravu s vysvětlením
-4. **Implementace** - Proveď potřebné změny
-5. **Verifikace** - Ověř, že řešení funguje
-
-### 2. Využití Context7 (Chain 2)
+## 📁 Struktura pro nasazení
 ```
-Pokud jde o komplexní problém:
-  HLEDEJ příklady řešení v Context7
-  APLIKUJ nalezená řešení s adaptací pro konkrétní situaci
-Pokud jde o jednoduchou syntaktickou chybu:
-  NEHLEDEJ v Context7
-  IMPLEMENTUJ přímé řešení podle logu
+Produkční soubory:
+src/memory_agent/
+├── analyzer.py      # HOTOVO - 40 řádků
+├── graph.py         # TODO - zjednodušit
+├── graph_nodes.py   # TODO - zjednodušit
+├── tools.py         # TODO - zjednodušit
+├── state.py         # TODO - minimalizovat
+└── __init__.py
+
+Konfigurace:
+├── langgraph.json   # OPRAVIT - změnit "agent" na "memory_agent"
+├── requirements.txt # HOTOVO
+└── .env            # Lokální API klíče
 ```
 
-### 3. Dokumentace v notes.md (Chain 3)
+## 🔧 Aktuální problémy k řešení
+1. **langgraph.json** - Špatná reference grafu
+2. ~~**GitHub Secrets** - Chybí ANTHROPIC_API_KEY~~ ✅ HOTOVO
+3. **Záložní soubory** - Přesunout do ./old
+
+## 🚦 Prioritizace chyb z GitHub Actions
+1. **Blokující chyby** (workflow se zastaví) → Opravit ihned
+   - Syntax errors, import errors, missing dependencies
+2. **Test failures** → IGNOROVAT pro nasazení
+   - Podle instrukcí: "Netestuj a neměň kód podle testů"
+3. **Warnings** → Ignorovat
+
+## 📝 Dokumentace iterací
+Při každé opravě zapiš do `deploy_logs/testing_iteration_log.md`:
+- Co bylo opraveno
+- Proč (ne "aby to fungovalo", ale konkrétní důvod)
+- Co očekáváš (ne "bude fungovat", ale "projde validation fáze")
+
+## 🧠 SAMOUČÍCÍ PROCES
+### Před každou akcí:
+1. **Přečti posledních 5 iterací** z testing_iteration_log.md
+2. **Identifikuj podobné situace** - stejné chyby, podobné problémy
+3. **Aplikuj naučené vzory** - co fungovalo, co ne
+4. **Formuluj konkrétní očekávání** - ne obecné "bude fungovat"
+
+### Po každé akci:
+1. **Zhodnoť přesnost odhadu** - byl očekávaný výsledek správný?
+2. **Zapiš lesson learned** - co se potvrdilo, co bylo špatně
+3. **Aktualizuj decision tree** - nové if/then pravidlo
+4. **Trackuj confidence level** - jak moc si byl jistý
+
+### Pattern Recognition:
+- **ModuleNotFoundError + grep nepoužívaný** → Odstranit import (Iterace 21,30)
+- **"No configuration schema"** → Přidat ConfigSchema (Iterace 60)
+- **Prázdné objekty {}** → Naplnit return hodnoty (Iterace 60)
+- **sed selhává** → Python skript (Iterace 39)
+- **URL existuje ≠ aplikace funguje** → Čekat na skutečné testy
+
+### Anti-patterns (NEDĚLAT):
+- **Předčasné oslavování** - URL není funkčnost
+- **Optimistické odhady** - raději pesimisticky
+- **Ignorování instrukcí** - NETESTUJ LOKÁLNĚ znamená NETESTUJ LOKÁLNĚ
+
+## ⚙️ Řešení chyb v GitHub Actions
+graph TD
+    A[Chyba z Actions] --> B{Blokuje deploy?}
+    B -->|Ano| C[Opravit ihned]
+    B -->|Ne| D{Blokuje další vývoj?}
+    D -->|Ano| E[Opravit teď]
+    D -->|Ne| F[Zalogovat a pokračovat]
+    
+    F --> G[Dokončit větší celek]
+    G --> H[Vrátit se k opravám]
+
+## 🎯 DECISION FRAMEWORK pro samoučení
+### Před opravou:
 ```
-Po identifikaci a řešení problému:
-  VYTVOŘ stručný zápis do ./deploy_logs/notes.md ve formátu:
-    ## [DATUM] - [PROBLÉM]
-    ### Identifikovaný problém:
-    - Stručný popis chyby z logu/GitHub Actions
-    ### Analýza příčiny:
-    - Pravděpodobná příčina problému
-    ### Navrhované řešení:
-    - [ ] Krok 1: Konkrétní akce
-    - [ ] Krok 2: Konkrétní akce
-    ### Implementace:
-    - Provedené změny
-    ### Verifikace:
-    - Výsledek opravy
-```
-
-### 4. Vizuální dokumentace (Chain 4)
-```
-Pro složitější problémy:
-  VYTVOŘ PlantUML diagram popisující workflow řešení
-  ULOŽ ho do /Users/marekminarovic/AI-agent-Ntier/doc/PlantUML
-  ZAMĚŘ SE na:
-    - Procesy deploymentu (sekvenční diagramy)
-    - Workflow řešení problémů (diagramy aktivit)
-    - Architekturu řešení (komponentové diagramy)
-```
-
-## Iterativní přístup
-- **Zaznamenávej** plán řešení jako checklist do `./deploy_logs/notes.md`
-- **Průběžně aktualizuj** status jednotlivých bodů
-- **Při změně strategie** vysvětli důvody a výhody nového přístupu
-
-## Co NEDĚLAT (CoT analýza)
-**NEVYTVÁŘEJ** rozsáhlou dokumentaci
-> *Proč?* Odvádí pozornost od hlavního cíle - úspěšného deploymentu
-> *Důležité!* Dokumentaci vytvoř až PO úspěšném nasazení aplikace
-
-**NEPOSÍLEJ** průběžně dokumentaci a diagramy na GitHub
-> *Proč?* Zpomaluje proces a tříští fokus
-
-**NEUPŘEDNOSTŇUJ** dokumentaci před opravou chyb
-> *Proč?* Dokumentace bez funkční aplikace nemá žádný přínos
-
-**NIKDY NEPOSÍLEJ** Docker soubory a konfiguraci na GitHub
-> *Proč?* Způsobuje konflikty při buildu na LangGraph Platform
-
-**NIKDY NEPOSÍLEJ** žádné soubory nesouvisející přímo s deploymentem
-> *Proč?* LangGraph Platform očekává čistý kód bez přidaných konfiguračních souborů
-
-**NEPOUŽÍVEJ** přístup pokus-omyl bez analýzy
-> *Proč?* Vede k neefektivnímu řešení a opakování chyb
-
-**NEVYTVÁŘEJ** dlouhé souhrny práce
-> *Proč?* Zbytečně spotřebovává čas, který lze využít produktivněji
-
-## Příklad řešení problému (MCP workflow)
-
-```
-Chain 1: IDENTIFIKACE A ANALÝZA
-  Log obsahuje: "Command not found: langgraph platform"
-  
-  CoT analýza:
-  1. Příkaz "langgraph platform" není nalezen
-  2. Chyba nastává v deployment skriptu
-  3. Pravděpodobná příčina: LangGraph CLI v0.2.10 nemá příkaz "platform"
-
-Chain 2: CONTEXT7 VYUŽITÍ
-  Hledání alternativních příkazů v LangGraph CLI
-  Nalezené alternativy: "build", "up"
-
-Chain 3: DOKUMENTACE
-  ## [2025-05-18] - Chybějící příkaz v LangGraph CLI
-  
-  ### Identifikovaný problém:
-  - GitHub Actions log obsahuje chybu: "Command not found: langgraph platform"
-  
-  ### Analýza příčiny:
-  - LangGraph CLI v0.2.10 nemá implementovaný příkaz "platform"
-  
-  ### Navrhované řešení:
-  - [ ] Upravit deploy_to_langgraph_platform.sh s alternativními příkazy
-  - [ ] Použít příkazy "build" a "up" místo "platform"
-  
-  ### Implementace:
-  - Změna v deploy_to_langgraph_platform.sh, řádek 23:
-    - Před: langgraph platform deploy ...
-    - Po: langgraph build && langgraph up ...
-  
-  ### Verifikace:
-  - Deployment skript proběhl úspěšně
-
-Chain 4: PLANTUM DIAGRAM
-  Sekvenční diagram procesu deploymentu s identifikací problému a řešením
+1. Čti testing_iteration_log.md (posledních 5 iterací)
+2. Hledej pattern: "Stejná chyba byla v iteraci X"
+3. Zkontroluj: "Co tehdy fungovalo/nefungovalo?"
+4. Odhad confidence: Jistý 90% / Nejistý 50% / Nevím 10%
+5. Konkrétní očekávání: "Projde X fáze" místo "bude fungovat"
 ```
 
-## Struktura PlantUML diagramu pro dokumentaci problému
-```plantuml
-@startuml "Problem-Solution-Workflow"
-' DIAGRAM PRO VLASTNÍ ZÁPIS POSTUPU ŘEŠENÍ
-
-start
-:Identifikace chyby v GitHub Actions;
-note right: Log obsahuje chybu: "Command not found: langgraph platform"
-
-:Analýza problému;
-note right: LangGraph CLI v0.2.10 neobsahuje příkaz "platform"
-
-:Hledání řešení;
-note right: Alternativní příkazy: build, up
-
-:Implementace opravy;
-note right: Úprava deploy_to_langgraph_platform.sh
-
-:Testování řešení;
-if (Úspěšné?) then (Ano)
-  :Commit změn;
-else (Ne)
-  :Další analýza;
-endif
-
-stop
-@enduml
+### Po opravě:
 ```
+1. Skutečný výsledek vs. odhad
+2. Confidence level se potvrdil? (90% → skutečně prošlo?)
+3. Lesson learned pro další iterace
+4. Aktualizuj pattern recognition
+````
