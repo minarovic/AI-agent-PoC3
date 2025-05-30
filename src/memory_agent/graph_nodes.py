@@ -708,9 +708,14 @@ def retrieve_additional_company_data(state: State) -> State:
         return {"error_state": {"error": f"Chyba při získávání dat: {str(e)}", "error_type": "data_access_error"}}
 
 async def analyze_node(state: State) -> State:
-    company, analysis_type = analyze_company_query(state.input)
-    state.company_name = company
-    state.analysis_type = analysis_type
+    # Použití nové analyze_company funkce z analyzer.py
+    from .analyzer import analyze_company
+    result = analyze_company(state.input)
+    # Parsování JSON výsledku
+    import json
+    parsed_result = json.loads(result)
+    state.company_name = parsed_result.get("query", "")
+    state.analysis_type = parsed_result.get("query_type", "company")
     return state
 
 async def load_data_node(state: State) -> State:
