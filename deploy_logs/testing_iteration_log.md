@@ -1,5 +1,16 @@
 # Testing Iteration Log
 
+## Iterace 70: Vytvoření aktualizovaného setup.py pro pip install -e . (30.05.2025)
+**Problém:** GitHub Actions selhává na `pip install -e .` s chybou "does not appear to be a Python project: neither 'setup.py' nor 'pyproject.toml' found"
+**Příčina:** Deployment workflow na řádku 27 v langgraph-platform-deploy.yml používá `pip install -e .` ale setup.py neexistuje
+**LESSON LEARNED:** setup.py je required pro editable install v GitHub Actions, i když lokálně funguje bez něj
+**Operace provedené:**
+1. **setup.py:** Vytvořen aktualizovaný setup.py s dependencies z aktuálního requirements.txt
+2. **Synchronizace:** Použity stejné verze jako v requirements.txt (langchain-openai>=0.3.18, langgraph>=0.2.10)
+**Důvod:** `pip install -e .` potřebuje setup.py pro definici Python package struktur
+**Pattern Recognition:** Main branch měl starý setup.py (2 týdny) → aktualizace podle current requirements
+**Očekávání:** GitHub Actions deployment workflow projde install fází a pokračuje k testům
+
 ## Iterace 69: Oprava formátu cesty v langgraph.json (29.05.2025)
 **Problém:** Nesprávný formát cesty v langgraph.json - langgraph využívá Python import syntax, ne cestu k souboru
 **Příčina:** Současný formát `"./src/memory_agent/graph.py:memory_agent"` místo `"src.memory_agent.graph:memory_agent"`
