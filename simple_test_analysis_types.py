@@ -119,8 +119,7 @@ def test_analysis_types():
     ]
     
     for query in test_queries:
-        logger.info(f"
-Analýza dotazu: \"{query}\"")
+        logger.info(f"Analýza dotazu: \"{query}\"")
         
         # Detekce typu analýzy
         analysis_type = detect_analysis_type(query)
@@ -140,8 +139,7 @@ def main():
     # Test detekce typů analýz
     test_analysis_types()
     
-    logger.info("
-✅ Všechny testy dokončeny")
+    logger.info("✅ Všechny testy dokončeny")
 
 if __name__ == "__main__":
     main()
