@@ -1,2 +1,0 @@
-# Dodatečné závislosti pro LangGraph Platform
-langchain_community>=0.1.0
