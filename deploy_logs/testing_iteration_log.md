@@ -1,5 +1,16 @@
 # Testing Iteration Log
 
+## Iterace 71: Vytvoření chybějícího requirements-dev.txt (30.05.2025)
+**Problém:** GitHub Actions selhává na `pip install -r requirements-dev.txt` s chybou "[Errno 2] No such file or directory: 'requirements-dev.txt'"
+**Příčina:** test.yml workflow na řádku očekává requirements-dev.txt, ale soubor neexistuje
+**LESSON LEARNED:** GitHub Actions workflows musí mít všechny referenced soubory, i když nejsou potřeba pro main aplikaci
+**Operace provedené:**
+1. **requirements-dev.txt:** Vytvořen s development dependencies (black, ruff, pytest-cov)
+2. **Minimální obsah:** Jen development tools pro linting a coverage podle test.yml workflow
+**Důvod:** `pip install -r requirements-dev.txt` potřebuje existující soubor, main dependencies jsou už v requirements.txt
+**Pattern Recognition:** Podobné iteraci 70 s setup.py - GitHub Actions potřebuje specifické soubory pro workflow
+**Očekávání:** GitHub Actions projde install dependencies fází a pokračuje k dalším stepům
+
 ## Iterace 70: Vytvoření aktualizovaného setup.py pro pip install -e . (30.05.2025)
 **Problém:** GitHub Actions selhává na `pip install -e .` s chybou "does not appear to be a Python project: neither 'setup.py' nor 'pyproject.toml' found"
 **Příčina:** Deployment workflow na řádku 27 v langgraph-platform-deploy.yml používá `pip install -e .` ale setup.py neexistuje
