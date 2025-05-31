@@ -1,9 +1,4 @@
-# Development a testing závislosti
-pytest==8.3.5
-pytest-cov==5.0.0
-python-dotenv==1.0.1
-pre-commit==3.5.0
-ruff==0.2.0
-mypy==1.7.0
-black==24.1.0
-ipykernel==6.29.0  # Pro Jupyter notebook integrace
+# Development dependencies pro GitHub Actions
+black>=23.0.0
+ruff>=0.1.0
+pytest-cov>=4.0.0
