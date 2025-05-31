@@ -7,10 +7,8 @@ import json
 import os
 import glob
 import asyncio
-import warnings
-from functools import wraps
 from pathlib import Path
-from typing import Annotated, Dict, Any, Optional, List, ClassVar, Callable, TypeVar, cast
+from typing import Annotated, Dict, Any, Optional, List, ClassVar
 from pydantic import BaseModel, Field
 
 from langchain_core.runnables import RunnableConfig
@@ -22,31 +20,6 @@ import re
 import time
 
 logger = logging.getLogger(__name__)
-
-# Vytvoření generického typu pro funkce
-F = TypeVar('F', bound=Callable[..., Any])
-
-def deprecated(message: str) -> Callable[[F], F]:
-    """
-    Označuje funkce nebo třídy jako zastaralé s varováním.
-    
-    Args:
-        message: Zpráva popisující důvod pro zastarání a doporučenou alternativu
-    
-    Returns:
-        Dekorovaná funkce, která při volání vydá varování
-    """
-    def decorator(func: F) -> F:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> Any:
-            warnings.warn(
-                f"{func.__name__} je zastaralá a bude v budoucnu odstraněna. {message}",
-                category=DeprecationWarning,
-                stacklevel=2
-            )
-            return func(*args, **kwargs)
-        return cast(F, wrapper)
-    return decorator
 
 
 # Výjimky pro práci s MCP connector
