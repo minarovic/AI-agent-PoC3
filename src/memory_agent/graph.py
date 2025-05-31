@@ -4,7 +4,7 @@ Minimální implementace podle LangGraph dokumentace.
 """
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
-from memory_agent.analyzer import analyze_company
+from .analyzer import analyze_company
 
 
 def create_memory_agent():
@@ -31,7 +31,14 @@ def create_memory_agent():
     return agent
 
 
-# Vytvoření agenta pro nasazení na LangGraph Platform
+# Lazy initialization pro development/testing
+def get_memory_agent():
+    """Vrátí memory agent s lazy initialization."""
+    if not hasattr(get_memory_agent, '_agent'):
+        get_memory_agent._agent = create_memory_agent()
+    return get_memory_agent._agent
+
+# Pro LangGraph Platform deployment
 memory_agent = create_memory_agent()
 
 # Alias pro kompatibilitu s langgraph.json
