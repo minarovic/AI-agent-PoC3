@@ -7,8 +7,10 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from .analyzer import analyze_company
 
-# Temporary OpenAI API key for testing - DELETE AFTER TESTING
-os.environ["OPENAI_API_KEY"] = "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"
+# Retrieve OpenAI API key from environment variables
+openai_api_key = os.environ.get("OPENAI_API_KEY")
+if not openai_api_key:
+    raise EnvironmentError("OPENAI_API_KEY environment variable is not set.")
 
 
 def create_memory_agent():
