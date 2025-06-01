@@ -21,7 +21,7 @@ from memory_agent.tools import (
 )
 
 from memory_agent.state import State
-from memory_agent.analyzer import analyze_query_sync
+from memory_agent.analyzer import analyze_company_query
 from memory_agent import utils
 
 # Import prompt registry
@@ -112,8 +112,8 @@ def route_query(state: State) -> State:
         logger.error("Nebyl nalezen žádný dotaz k analýze")
         return {"query_type": "error", "error_state": {"error": "Nebyl nalezen žádný dotaz k analýze"}}
     
-    # Standardní analýza pomocí analyze_query_sync
-    query_type = analyze_query_sync(state.current_query)
+    # Standardní analýza pomocí analyze_company_query
+    company_name, query_type = analyze_company_query(state.current_query)
     logger.info(f"Dotaz '{state.current_query[:30]}...' klasifikován jako typ: {query_type}")
     
     # Určení typu analýzy
