@@ -189,7 +189,7 @@ def format_analysis_data(company_data: Dict[str, Any],
     # Format relationships
     relationships_formatted = "Obchodní vztahy:\n"
     if relationships_data:
-        for rel in relationships_data[:5]:  # Limit to first 5 relationships
+        for rel in relationships_data[:RELATIONSHIP_SLICE_LIMIT]:  # Limit to first RELATIONSHIP_SLICE_LIMIT relationships
             rel_type = rel.get('type', 'Neznámý vztah')
             source = rel.get('source_name', rel.get('source_id', 'N/A'))
             target = rel.get('target_name', rel.get('target_id', 'N/A'))
