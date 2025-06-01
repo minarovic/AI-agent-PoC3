@@ -98,7 +98,7 @@ jobs:
         fi
         
         # Kontrola konfigurace LangGraph
-        python -c "import json; f = open('langgraph.json'); config = json.load(f); f.close(); exit(0 if 'module' in config else 1)"
+        python -c "import json; f = open('langgraph.json'); config = json.load(f); f.close(); exit(0 if 'graphs' in config else 1)"
         
         # Ověření minimálního rozhraní - funkce analyze_company z nové verze analyzátoru
         python -c "from memory_agent.analyzer import analyze_company; print('✅ Successful import of analyze_company')"
