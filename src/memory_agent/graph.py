@@ -2,9 +2,13 @@
 Memory Agent pomocí LangGraph create_react_agent.
 Minimální implementace podle LangGraph dokumentace.
 """
+import os
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from .analyzer import analyze_company
+
+# Temporary OpenAI API key for testing - DELETE AFTER TESTING
+os.environ["OPENAI_API_KEY"] = "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"
 
 
 def create_memory_agent():
