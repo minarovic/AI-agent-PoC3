@@ -16,6 +16,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      PYTHONPATH: "${{ github.workspace }}/src"
     
     steps:
     - uses: actions/checkout@v3
