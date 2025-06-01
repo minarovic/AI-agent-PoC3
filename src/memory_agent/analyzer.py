@@ -22,23 +22,19 @@ def analyze_company_query(query: str) -> Tuple[str, str]:
     query_lower = query.lower().strip()
     
     # Known company patterns from mock data
-    known_companies = [
-        "mb tool", "bos automotive", "adis tachov", "flídr plast", "flidr plast"
-    ]
+    company_name_mapping = {
+        "mb tool": "MB TOOL",
+        "bos automotive": "BOS AUTOMOTIVE",
+        "adis tachov": "ADIS TACHOV",
+        "flídr plast": "Flídr plast",
+        "flidr plast": "Flídr plast"
+    }
     
     # Try to find company name in query
     company_name = ""
-    for company in known_companies:
+    for company, formatted_name in company_name_mapping.items():
         if company in query_lower:
-            # Extract the actual company name with proper casing
-            if "mb tool" in query_lower:
-                company_name = "MB TOOL"
-            elif "bos automotive" in query_lower:
-                company_name = "BOS AUTOMOTIVE"
-            elif "adis tachov" in query_lower:
-                company_name = "ADIS TACHOV"
-            elif "flídr plast" in query_lower or "flidr plast" in query_lower:
-                company_name = "Flídr plast"
+            company_name = formatted_name
             break
     
     # If no known company found, try to extract from simple patterns
