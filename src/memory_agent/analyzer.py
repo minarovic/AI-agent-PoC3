@@ -7,6 +7,9 @@ import json
 import re
 from .tools import MockMCPConnector
 
+# Constants
+RELATIONSHIP_SLICE_LIMIT = 100  # Limit the number of relationships to process
+
 
 def analyze_company_query(query: str) -> Tuple[str, str]:
     """
