@@ -8,7 +8,7 @@ import re
 from .tools import MockMCPConnector
 
 
-def parse_company_query(query: str) -> Tuple[str, str]:
+def analyze_company_query(query: str) -> Tuple[str, str]:
     """
     Parse user query to extract company name and analysis type.
     
@@ -217,7 +217,7 @@ def analyze_company(query: str) -> str:
     """
     try:
         # Parse query to extract company name and analysis type
-        company_name, analysis_type = parse_company_query(query)
+        company_name, analysis_type = analyze_company_query(query)
         
         if not company_name:
             return json.dumps({

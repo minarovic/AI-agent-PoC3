@@ -1,6 +1,8 @@
 # tests/test_analyzer_minimal.py - NOVÝ TEST
 """Test minimální funkcionality pro LangGraph deployment."""
 
+from memory_agent.analyzer import analyze_company_query
+
 def test_company_extraction_simple():
     """Test že analyzer zvládne jednoduchou větu."""
     test_cases = [
