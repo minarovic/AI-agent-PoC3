@@ -23,7 +23,6 @@ except ImportError:
 from typing_extensions import Annotated
 
 # Import pro MockMCPConnector
-from memory_agent.tools import MockMCPConnector
 
 # Nastavení loggeru
 logger = logging.getLogger(__name__)

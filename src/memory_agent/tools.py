@@ -1,23 +1,16 @@
 """Define the agent's tools."""
 
 import logging
-import traceback
-import uuid
 import json
 import os
 import glob
-import asyncio
 from pathlib import Path
-from typing import Annotated, Dict, Any, Optional, List, ClassVar
-from pydantic import BaseModel, Field
+from typing import Dict, Any, Optional, List, ClassVar
+from pydantic import BaseModel
 
-from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import InjectedToolArg, ToolException, BaseTool
-from langgraph.store.base import BaseStore
 
 from unidecode import unidecode
 import re
-import time
 
 logger = logging.getLogger(__name__)
 
@@ -653,7 +646,7 @@ class MockMCPConnector:
                     for entity in general_data["results"]:
                         if entity.get("id") == company_id:
                             logger.info(
-                                f"Nalezena základní data společnosti v obecném souboru"
+                                "Nalezena základní data společnosti v obecném souboru"
                             )
                             return entity
             except Exception as e:

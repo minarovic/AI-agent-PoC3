@@ -5,7 +5,6 @@ Tento test nevyžaduje API klíče a může běžet na CI.
 
 import importlib
 import os
-import pkgutil
 import sys
 import pytest
 
@@ -46,7 +45,8 @@ def test_all_modules_importable():
 def test_package_imports():
     """Test, že základní balíček lze importovat."""
     try:
-        import memory_agent
+        import memory_agent  # noqa: F401
+        assert memory_agent is not None
     except ImportError as e:
         pytest.fail(f"Nelze importovat memory_agent: {str(e)}")
 
@@ -54,7 +54,9 @@ def test_package_imports():
 def test_graph_exports():
     """Test, že graph.py exportuje potřebné objekty."""
     try:
-        from memory_agent.graph import memory_agent, graph
+        from memory_agent.graph import memory_agent, graph  # noqa: F401
+        assert memory_agent is not None
+        assert graph is not None
     except ImportError as e:
         pytest.fail(
             f"Nelze importovat memory_agent a graph z memory_agent.graph: {str(e)}"

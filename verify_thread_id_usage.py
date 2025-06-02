@@ -7,7 +7,6 @@ konfiguraci s thread_id při volání grafu.
 """
 
 import os
-import sys
 import re
 import logging
 import argparse
@@ -75,7 +74,7 @@ def print_report(
                 f"  Problém: {'thread_id chybí v konfiguraci' if not has_thread_id else 'jiný problém'}"
             )
             logger.warning(
-                f"  Doporučení: přidejte config={{'configurable': {{'thread_id': 'unikátní-id'}}}}"
+                "  Doporučení: přidejte config={'configurable': {'thread_id': 'unikátní-id'}}"
             )
             logger.warning("  ----------")
 
@@ -116,7 +115,7 @@ def process_files(file_paths: List[str], auto_fix: bool = False) -> Dict[str, An
         except Exception as e:
             logger.error(f"❌ Chyba při zpracování souboru {file_path}: {str(e)}")
 
-    logger.info(f"\n===== SOUHRN =====")
+    logger.info("\n===== SOUHRN =====")
     logger.info(f"Zkontrolováno souborů: {results['total_files']}")
     logger.info(f"Souborů s problémy: {results['files_with_issues']}")
     logger.info(f"Celkem nalezeno problémů: {results['total_issues']}")

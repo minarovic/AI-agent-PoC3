@@ -5,7 +5,6 @@ Podporuje detekci typu analýzy a extrakci názvu společnosti z dotazů.
 
 from typing import Dict, Any, Tuple
 import json
-import re
 from .tools import MockMCPConnector
 
 # Constants

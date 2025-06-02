@@ -5,7 +5,7 @@ Tento soubor definuje náhradní implementace pro langgraph moduly,
 které mohou být potřebné pro testování.
 """
 
-from typing import Any, Callable, Dict, List, Optional, TypeVar
+from typing import Any, List, Optional
 
 
 # Mock pro langgraph.graph.add_messages

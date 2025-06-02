@@ -5,7 +5,7 @@ Tento modul obsahuje pomocné funkce pro práci s modely, konfigurací
 a dalšími komponentami Memory Agenta.
 """
 
-from typing import Dict, Any, Tuple, Optional, Union
+from typing import Dict, Any, Tuple, Union
 from memory_agent.schema import MockMCPConnectorConfig
 from memory_agent.tools import MockMCPConnector
 

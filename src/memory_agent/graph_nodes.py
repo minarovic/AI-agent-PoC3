@@ -6,18 +6,11 @@ Tento modul obsahuje implementaci uzlů grafu pro StateGraph, které využívaj�
 MockMCPConnector pro získávání dat pro různé typy analýz.
 """
 
-from typing import Dict, Any, List, Optional, Literal
-from typing_extensions import TypedDict
 import logging
 import traceback
 
 from memory_agent.tools import (
     MockMCPConnector,
-    CompanyQueryParams,
-    EntityNotFoundError,
-    DataFormatError,
-    ConnectionError,
-    MockMCPConnectorError,
 )
 
 from memory_agent.state import State
@@ -25,12 +18,6 @@ from memory_agent.analyzer import analyze_company_query
 from memory_agent import utils
 
 # Import prompt registry
-from memory_agent.prompts import (
-    PromptRegistry,
-    PromptDataFormatter,
-    PromptChainBuilder,
-    format_state_for_prompt,
-)
 
 # Nastavení loggeru
 logger = logging.getLogger("memory_agent.graph_nodes")
@@ -729,14 +716,14 @@ def retrieve_additional_company_data(state: State) -> State:
         if analysis_type == "general":
             try:
                 search_info = mcp_connector.get_company_search_data(company_id)
-                logger.info(f"✅ Načtena vyhledávací data pro general analýzu")
+                logger.info("✅ Načtena vyhledávací data pro general analýzu")
             except Exception as e:
                 logger.warning(f"⚠️ Nelze načíst vyhledávací data: {str(e)}")
 
         elif analysis_type == "risk_comparison":
             try:
                 risk_factors_data = mcp_connector.get_risk_factors_data(company_id)
-                logger.info(f"✅ Načtena riziková data pro risk_comparison analýzu")
+                logger.info("✅ Načtena riziková data pro risk_comparison analýzu")
 
                 # Záložní plán pro search_info, pokud ho potřebujeme pro kontext
                 try:
@@ -759,7 +746,7 @@ def retrieve_additional_company_data(state: State) -> State:
             try:
                 relationships = mcp_connector.get_company_relationships(company_id)
                 relationships_data = {company_id: relationships}
-                logger.info(f"✅ Načteny vztahové údaje pro supplier_analysis analýzu")
+                logger.info("✅ Načteny vztahové údaje pro supplier_analysis analýzu")
             except Exception as e:
                 logger.warning(f"⚠️ Nelze načíst data o vztazích: {str(e)}")
                 relationships_data = {company_id: []}
@@ -769,7 +756,7 @@ def retrieve_additional_company_data(state: State) -> State:
                 supply_chain = mcp_connector.get_supply_chain_data(company_id)
                 supply_chain_data = {company_id: supply_chain}
                 logger.info(
-                    f"✅ Načtena data dodavatelského řetězce pro supplier_analysis analýzu"
+                    "✅ Načtena data dodavatelského řetězce pro supplier_analysis analýzu"
                 )
             except Exception as e:
                 logger.warning(f"⚠️ Nelze načíst data dodavatelského řetězce: {str(e)}")

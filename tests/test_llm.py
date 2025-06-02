@@ -15,7 +15,6 @@ sys.path.insert(
 
 # Import for proper MockChatModel base class
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.messages import BaseMessage, AIMessage
 from langchain_core.outputs import ChatResult
 
 

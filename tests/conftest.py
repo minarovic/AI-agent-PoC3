@@ -2,7 +2,6 @@
 Pytest konfigurace pro AI-agent-Ntier testy.
 """
 
-import pytest
 import os
 import sys
 

@@ -3,7 +3,6 @@ Test pro ověření správné funkčnosti API volání OpenAI modelu.
 Tento test předpokládá, že API klíče jsou dostupné v GitHub secrets.
 """
 
-import os
 import pytest
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
