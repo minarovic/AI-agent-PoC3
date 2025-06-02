@@ -449,7 +449,6 @@ class MockMCPConnector:
             List[Dict[str, Any]]: Seznam vztahů společnosti
         """
         results = []
-        company_detail = None
         company_name = None
 
         # Nejprve zkusíme získat detail společnosti, abychom měli její název
@@ -459,7 +458,6 @@ class MockMCPConnector:
             ):
                 detail_data = self._load_json_file(file_path)
                 if detail_data.get("id") == company_id:
-                    company_detail = detail_data
                     company_name = (
                         detail_data.get("label", "").split(" ")[0].lower()
                     )  # První část názvu pro hledání souboru
@@ -783,7 +781,6 @@ class MockMCPConnector:
         """
         # Nejprve získáme detail společnosti, který obsahuje rizikové faktory
         company_detail = None
-        company_name = None
 
         try:
             # Zkusíme najít detail společnosti podle ID
@@ -794,9 +791,6 @@ class MockMCPConnector:
                     detail_data = self._load_json_file(file_path)
                     if detail_data.get("id") == company_id:
                         company_detail = detail_data
-                        company_name = (
-                            detail_data.get("label", "").split(" ")[0].lower()
-                        )
                         logger.info(f"Nalezen detail společnosti pro ID: {company_id}")
                         break
                 except Exception as e:
