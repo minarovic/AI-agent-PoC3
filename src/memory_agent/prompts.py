@@ -24,10 +24,11 @@ Při zpracování dotazů dodržuj tyto pokyny:
 
 Tvým cílem je poskytnout jasnou, přesnou a užitečnou analýzu na základě dostupných dat."""
 
+
 # Třída pro registry promptů
 class PromptRegistry:
     """Registr promptů pro různé části workflow."""
-    
+
     _prompts: Dict[str, str] = {
         "company_analysis": """Proveď analýzu společnosti na základě dostupných dat.
         
@@ -47,7 +48,6 @@ class PromptRegistry:
         2. Klíčové finanční ukazatele a trendy
         3. Významné vztahy a propojení
         4. Potenciální rizika nebo příležitosti""",
-        
         "person_analysis": """Proveď analýzu osoby na základě dostupných dat.
         
         Osoba: {person_name}
@@ -63,7 +63,6 @@ class PromptRegistry:
         2. Klíčové role a pozice
         3. Významné vztahy a propojení
         4. Potenciální oblasti zájmu""",
-        
         "relationship_analysis": """Proveď analýzu vztahů mezi entitami na základě dostupných dat.
         
         Entity: {entity_names}
@@ -79,7 +78,6 @@ class PromptRegistry:
         2. Sílu a významnost vztahů
         3. Časový vývoj vztahů (pokud je k dispozici)
         4. Potenciální implikace a důsledky vztahů""",
-        
         "error_handling": """Omlouvám se, při zpracování Vašeho dotazu došlo k chybě.
         
         Typ chyby: {error_type}
@@ -92,47 +90,47 @@ class PromptRegistry:
         Zkuste prosím:
         1. Přeformulovat svůj dotaz
         2. Poskytnout více specifických informací
-        3. Rozdělit složitý dotaz na více jednodušších"""
+        3. Rozdělit složitý dotaz na více jednodušších""",
     }
-    
+
     @classmethod
     def get_prompt(cls, prompt_id: str) -> Optional[str]:
         """
         Získá prompt podle ID.
-        
+
         Args:
             prompt_id: Identifikátor promptu
-            
+
         Returns:
             Optional[str]: Text promptu nebo None, pokud prompt neexistuje
         """
         if prompt_id in cls._prompts:
             return cls._prompts[prompt_id]
-        
+
         logger.warning(f"Prompt s ID '{prompt_id}' nebyl nalezen")
         return None
-    
+
     @classmethod
     def add_prompt(cls, prompt_id: str, prompt_text: str) -> None:
         """
         Přidá nový prompt do registru.
-        
+
         Args:
             prompt_id: Identifikátor promptu
             prompt_text: Text promptu
         """
         cls._prompts[prompt_id] = prompt_text
         logger.info(f"Přidán nový prompt s ID '{prompt_id}'")
-    
+
     @classmethod
     def update_prompt(cls, prompt_id: str, prompt_text: str) -> bool:
         """
         Aktualizuje existující prompt.
-        
+
         Args:
             prompt_id: Identifikátor promptu
             prompt_text: Nový text promptu
-            
+
         Returns:
             bool: True pokud byl prompt aktualizován, False pokud neexistuje
         """
@@ -140,7 +138,7 @@ class PromptRegistry:
             cls._prompts[prompt_id] = prompt_text
             logger.info(f"Aktualizován prompt s ID '{prompt_id}'")
             return True
-        
+
         logger.warning(f"Nelze aktualizovat - prompt s ID '{prompt_id}' neexistuje")
         return False
 
@@ -148,23 +146,23 @@ class PromptRegistry:
 # Třída pro formátování dat pro prompty
 class PromptDataFormatter:
     """Formátuje data ze stavu pro použití v promptech."""
-    
+
     @staticmethod
     def format_company_data(company_data: Dict[str, Any]) -> str:
         """
         Formátuje data o společnosti pro použití v promptu.
-        
+
         Args:
             company_data: Data společnosti
-            
+
         Returns:
             str: Formátovaná data
         """
         if not company_data:
             return "Nejsou k dispozici žádná data o společnosti."
-        
+
         result = []
-        
+
         # Základní informace
         basic_info = company_data.get("basic_info", {})
         if basic_info:
@@ -174,7 +172,7 @@ class PromptDataFormatter:
             result.append(f"Země: {basic_info.get('country', 'N/A')}")
             result.append(f"Odvětví: {basic_info.get('industry', 'N/A')}")
             result.append("")
-        
+
         # Finanční data
         financials = company_data.get("financials", {})
         if financials:
@@ -183,57 +181,57 @@ class PromptDataFormatter:
             result.append(f"Zisk: {financials.get('profit', 'N/A')}")
             result.append(f"Rok: {financials.get('year', 'N/A')}")
             result.append("")
-        
+
         return "\n".join(result)
-    
+
     @staticmethod
     def format_relationships(relationships_data: Dict[str, Any]) -> str:
         """
         Formátuje data o vztazích pro použití v promptu.
-        
+
         Args:
             relationships_data: Data o vztazích
-            
+
         Returns:
             str: Formátovaná data
         """
         if not relationships_data:
             return "Nejsou k dispozici žádná data o vztazích."
-        
+
         result = ["## Vztahy"]
-        
+
         for entity_id, relationships in relationships_data.items():
             result.append(f"### Entity ID: {entity_id}")
-            
+
             if not relationships:
                 result.append("Žádné vztahy nenalezeny.")
                 continue
-            
+
             for rel in relationships:
                 rel_type = rel.get("type", "Neznámý typ")
                 source = rel.get("source_name", rel.get("source_id", "Neznámý zdroj"))
                 target = rel.get("target_name", rel.get("target_id", "Neznámý cíl"))
                 strength = rel.get("strength", "N/A")
-                
+
                 result.append(f"- {rel_type}: {source} -> {target} (Síla: {strength})")
-            
+
             result.append("")
-        
+
         return "\n".join(result)
 
 
 # Třída pro skládání řetězců promptů
 class PromptChainBuilder:
     """Vytváří řetězce promptů pro zpracování workflow."""
-    
+
     @classmethod
     def build_company_analysis_prompt(cls, state: State) -> str:
         """
         Vytvoří prompt pro analýzu společnosti.
-        
+
         Args:
             state: Aktuální stav workflow
-            
+
         Returns:
             str: Sestavený prompt
         """
@@ -242,11 +240,15 @@ class PromptChainBuilder:
         if not base_prompt:
             logger.error("Nelze najít prompt pro analýzu společnosti")
             return "Nelze provést analýzu společnosti - chybí šablona promptu."
-        
+
         # Formátování dat
-        company_name = state.company_data.get("basic_info", {}).get("name", "Neznámá společnost")
-        company_data_formatted = PromptDataFormatter.format_company_data(state.company_data)
-        
+        company_name = state.company_data.get("basic_info", {}).get(
+            "name", "Neznámá společnost"
+        )
+        company_data_formatted = PromptDataFormatter.format_company_data(
+            state.company_data
+        )
+
         # Získání dat o vztazích
         company_id = state.company_data.get("basic_info", {}).get("id")
         relationships_formatted = ""
@@ -254,13 +256,13 @@ class PromptChainBuilder:
             relationships_formatted = PromptDataFormatter.format_relationships(
                 {company_id: state.relationships_data[company_id]}
             )
-        
+
         # Sestavení promptu
         return base_prompt.format(
             company_name=company_name,
             company_data=company_data_formatted,
             financial_data="Nejsou k dispozici",  # Placeholder - ve skutečné implementaci by zde byla data
-            relationships=relationships_formatted
+            relationships=relationships_formatted,
         )
 
 
@@ -268,10 +270,10 @@ class PromptChainBuilder:
 def format_state_for_prompt(state: State) -> Dict[str, Any]:
     """
     Formátuje stav pro použití v promptech.
-    
+
     Args:
         state: Aktuální stav workflow
-        
+
     Returns:
         Dict[str, Any]: Formátovaná data ze stavu
     """
@@ -279,5 +281,5 @@ def format_state_for_prompt(state: State) -> Dict[str, Any]:
         "company_data": state.company_data,
         "relationships": state.relationships_data,
         "query": state.current_query,
-        "error": state.error_state
+        "error": state.error_state,
     }

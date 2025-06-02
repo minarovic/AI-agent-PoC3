@@ -3,6 +3,7 @@
 
 from memory_agent.analyzer import analyze_company_query
 
+
 def test_company_extraction_simple():
     """Test že analyzer zvládne jednoduchou větu."""
     test_cases = [
@@ -10,7 +11,7 @@ def test_company_extraction_simple():
         ("Tell me about MB TOOL", "MB TOOL"),
         ("What is BOS AUTOMOTIVE", "BOS AUTOMOTIVE"),
     ]
-    
+
     for input_text, expected in test_cases:
         company, analysis_type = analyze_company_query(input_text)
         assert company == expected
