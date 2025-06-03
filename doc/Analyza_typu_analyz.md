@@ -8,7 +8,7 @@ Memory Agent nyní podporuje tři základní typy analýz:
 
 1. **General** - Obecná analýza společnosti zaměřená na základní informace
 2. **Risk Comparison** - Analýza rizik a compliance pro společnosti
-3. **Supplier Analysis** - Analýza dodavatelských vztahů a řetězců
+3. **Supplier Analysis** - Analýza dodavatelských vztahů a řetězců.
 
 ## Detekce typů analýz
 
