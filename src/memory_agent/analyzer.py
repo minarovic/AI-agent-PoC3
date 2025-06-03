@@ -33,12 +33,12 @@ def analyze_company(query: str) -> str:
         if company_id:
             try:
                 internal_data = connector.get_company_financials(company_id)
-            except:
+            except Exception:
                 internal_data = {"message": "Financial data not available"}
                 
             try:
                 relationships_data = connector.get_company_relationships(company_id)
-            except:
+            except Exception:
                 relationships_data = []
         
         # Strukturované vrácení dat
