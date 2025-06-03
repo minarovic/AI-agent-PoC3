@@ -1,109 +1,102 @@
 """Define the agent's tools."""
 
 import logging
-import traceback
-import uuid
 import json
 import os
 import glob
-import asyncio
 from pathlib import Path
-from typing import Annotated, Dict, Any, Optional, List, ClassVar
-from pydantic import BaseModel, Field
-
-from langchain_core.runnables import RunnableConfig
-from langchain_core.tools import InjectedToolArg, ToolException, BaseTool
-from langgraph.store.base import BaseStore
+from typing import Dict, Any, Optional, List, ClassVar
+from pydantic import BaseModel
 
 from unidecode import unidecode
 import re
-import time
 
 logger = logging.getLogger(__name__)
-
 
 # Výjimky pro práci s MCP connector
 class MockMCPConnectorError(Exception):
     """Základní výjimka pro chyby MCP Connectoru."""
+
     pass
 
 class ConnectionError(MockMCPConnectorError):
     """Výjimka vyvolaná při chybě připojení k MCP."""
+
     pass
 
 class DataFormatError(MockMCPConnectorError):
     """Výjimka vyvolaná při chybě formátu dat z MCP."""
+
     pass
 
 class EntityNotFoundError(MockMCPConnectorError):
     """Výjimka vyvolaná, když entita není nalezena v MCP."""
-    pass
 
+    pass
 
 # Parametry dotazu pro vyhledávání firem
 class CompanyQueryParams(BaseModel):
     """Parametry pro dotazy na firmy."""
+
     name: Optional[str] = None
     id: Optional[str] = None
     country: Optional[str] = None
     industry: Optional[List[str]] = None
 
-
 # Třída pro přístup k mock datům
 class MockMCPConnector:
     """
     Connector pro přístup k mock datům pro Memory Agent.
-    
+
     Tato třída poskytuje jednotné rozhraní pro přístup k různým typům dat
     (firmy, osoby, vztahy) v simulovaném prostředí Model Context Protocol (MCP).
     """
-    
+
     # Třídní proměnné pro konfiguraci
     MOCK_DATA_PATH: ClassVar[str] = os.environ.get(
-        "MOCK_DATA_PATH", 
-        str(Path(__file__).parent.parent.parent / "mock_data_2")
+        "MOCK_DATA_PATH", str(Path(__file__).parent.parent.parent / "mock_data_2")
     )
-    
+
     def __init__(self, data_path: Optional[str] = None):
         """
         Inicializuje MockMCPConnector.
-        
+
         Args:
             data_path: Volitelná cesta k mock datům.
                        Pokud není poskytnuta, použije se výchozí cesta.
         """
         self.data_path = data_path or self.MOCK_DATA_PATH
         logger.info(f"Inicializace MockMCPConnector s cestou k datům: {self.data_path}")
-    
+
     def read_resource(self, company_name: str) -> Dict[str, Any]:
         """
         Načte JSON pro firmu podle názvu souboru.
-        
+
         Args:
             company_name: Název společnosti (bez přípony .json)
-            
+
         Returns:
             Dict[str, Any]: Data společnosti
-            
+
         Raises:
             EntityNotFoundError: Pokud soubor společnosti nebyl nalezen
         """
         # Sestavení cesty k souboru
         file_path = os.path.join(self.data_path, f"{company_name}.json")
-        
+
         # Načtení a parsování JSON souboru
         return self._load_json_file(file_path)
-    
+
     def _load_json_file(self, file_path: str) -> Dict[str, Any]:
         """
         Načte a parsuje JSON soubor.
-        
+
         Args:
             file_path: Cesta k JSON souboru
-            
+
         Returns:
             Dict[str, Any]: Parsovaný obsah JSON souboru
-            
+
         Raises:
             DataFormatError: Pokud soubor není validní JSON
             ConnectionError: Pokud soubor nelze načíst
@@ -111,82 +104,87 @@ class MockMCPConnector:
         try:
             with open(file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
-        except Exception json.JSONDecodeError:
+        except json.JSONDecodeError:
             logger.error(f"Chyba při parsování JSON souboru: {file_path}")
             raise DataFormatError(f"Soubor {file_path} není validní JSON")
-        except Exception FileNotFoundError:
+        except FileNotFoundError:
             logger.error(f"Soubor nenalezen: {file_path}")
             raise ConnectionError(f"Soubor {file_path} nebyl nalezen")
         except Exception as e:
             logger.error(f"Chyba při čtení souboru {file_path}: {str(e)}")
             raise ConnectionError(f"Nelze načíst soubor {file_path}: {str(e)}")
-    
+
     def _normalize_name(self, name: str) -> str:
         """
         Normalizuje název pro porovnávání (odstraní diakritiku, převede na malá písmena).
-        
+
         Args:
             name: Název k normalizaci
-            
+
         Returns:
             str: Normalizovaný název
         """
         # Odstranit diakritiku a převést na malá písmena
         normalized = unidecode(name).lower()
         # Odstranit nadbytečné mezery a speciální znaky
-        normalized = re.sub(r'[^a-z0-9]', ' ', normalized)
-        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        normalized = re.sub(r"[^a-z0-9]", " ", normalized)
+        normalized = re.sub(r"\s+", " ", normalized).strip()
         return normalized
-    
+
     def _fuzzy_name_match(self, name1: str, name2: str, threshold: float = 0.8) -> bool:
         """
         Porovná dva názvy s tolerancí (fuzzy matching).
-        
+
         Args:
             name1: První název
             name2: Druhý název
             threshold: Práh podobnosti pro shodu (0-1)
-            
+
         Returns:
             bool: True pokud jsou názvy dostatečně podobné
         """
         norm1 = self._normalize_name(name1)
         norm2 = self._normalize_name(name2)
-        
+
         # Jednoduchá implementace - pokud jeden je podřetězcem druhého
         # V reálném systému by zde byla sofistikovanější metrika
         return (norm1 in norm2) or (norm2 in norm1)
-    
+
     def get_company_by_name(self, name: str) -> Dict[str, Any]:
         """
         Najde společnost podle názvu v mock datech.
-        
+
         Args:
             name: Název společnosti
-            
+
         Returns:
             Dict[str, Any]: Data společnosti
-            
+
         Raises:
             EntityNotFoundError: Pokud společnost nebyla nalezena
         """
         # Hledáme v souborech entity_detail_*.json
-        for file_path in glob.glob(os.path.join(self.data_path, "entity_detail_*.json")):
+        for file_path in glob.glob(
+            os.path.join(self.data_path, "entity_detail_*.json")
+        ):
             try:
                 company_data = self._load_json_file(file_path)
                 # V nových datech se používá "label" místo "name"
                 company_name = company_data.get("label", "")
-                
+
                 if self._fuzzy_name_match(name, company_name):
-                    logger.info(f"Nalezena společnost: {company_name} (hledáno: {name})")
+                    logger.info(
+                        f"Nalezena společnost: {company_name} (hledáno: {name})"
+                    )
                     return company_data
             except Exception as e:
                 logger.warning(f"Chyba při zpracování souboru {file_path}: {str(e)}")
                 continue
-        
+
         logger.error(f"Společnost s názvem '{name}' nebyla nalezena")
         raise EntityNotFoundError(f"Společnost s názvem '{name}' nebyla nalezena")
-    
+
+    # ... (další metody zůstávají beze změny, můžeš je vložit dle potřeby)
     def get_company_by_id(self, company_id: str) -> Dict[str, Any]:
         """
         Najde společnost podle ID v mock datech.
