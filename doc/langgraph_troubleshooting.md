@@ -185,7 +185,12 @@ class RobustModel(BaseModel):
 **Kontrola**:
 ```bash
 # Ověření syntax
-python -c "import json; print(json.load(open('langgraph.json')))"
+python3 -c "
+import json
+with open('langgraph.json') as f:
+    json.load(f)
+print('langgraph.json je validní JSON')
+" || (echo "langgraph.json není validní JSON!" && exit 1)
 
 # Ověření, že graf existuje
 python -c "from src.memory_agent.graph import memory_agent; print('Graph OK')"
