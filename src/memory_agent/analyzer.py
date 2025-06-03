@@ -272,12 +272,12 @@ def analyze_company(query: str) -> str:
         if company_id:
             try:
                 internal_data = connector.get_company_financials(company_id)
-            except:
+            except Exception:
                 internal_data = {"message": "Financial data not available"}
 
             try:
                 relationships_data = connector.get_company_relationships(company_id)
-            except:
+            except Exception:
                 relationships_data = []
 
         # Format data for analysis
@@ -309,7 +309,7 @@ def analyze_company(query: str) -> str:
 
         return json.dumps(result, indent=2)
 
-    except Exception as e:
+    except Exception as e: copilot/fix-8
         return json.dumps(
             {
                 "error": str(e),
@@ -319,3 +319,4 @@ def analyze_company(query: str) -> str:
                 "query": query,
             }
         )
+  main
