@@ -8,11 +8,6 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from .analyzer import analyze_company
 
-# Retrieve OpenAI API key from environment variables
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-if not openai_api_key:
-    raise EnvironmentError("OPENAI_API_KEY environment variable is not set.")
-
 
 def create_memory_agent():
     """
@@ -21,6 +16,11 @@ def create_memory_agent():
     Returns:
         Nakonfigurovaný agent připravený k použití
     """
+    # Retrieve OpenAI API key from environment variables
+    openai_api_key = os.environ.get("OPENAI_API_KEY")
+    if not openai_api_key:
+        raise EnvironmentError("OPENAI_API_KEY environment variable is not set.")
+
     # Nastavení modelu pomocí string syntax (preferovaný způsob podle dokumentace)
     model = "openai:gpt-4"
 
@@ -46,8 +46,12 @@ def get_memory_agent():
     return get_memory_agent._agent
 
 
-# Pro LangGraph Platform deployment
-memory_agent = create_memory_agent()
-
-# Alias pro kompatibilitu s langgraph.json
-graph = memory_agent
+# Para LangGraph Platform deployment - solo intentar crear si el API key está disponible
+try:
+    memory_agent = create_memory_agent()
+    # Alias para compatibilidad con langgraph.json
+    graph = memory_agent
+except EnvironmentError:
+    # Durante testing o cuando no hay API key, usar None
+    memory_agent = None
+    graph = None
