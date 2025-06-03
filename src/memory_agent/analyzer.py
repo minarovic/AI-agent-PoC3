@@ -54,9 +54,12 @@ def analyze_company(query: str) -> str:
         return json.dumps(result, indent=2)
         
     except Exception as e:
-        return json.dumps({
-            "error": str(e), 
-            "query_type": "company",
-            "analysis_complete": False,
-            "query": query
-        })
+        return json.dumps(
+            {
+                "error": str(e),
+                "query_type": "company",
+                "analysis_type": "general",
+                "analysis_complete": False,
+                "query": query,
+            }
+        )
