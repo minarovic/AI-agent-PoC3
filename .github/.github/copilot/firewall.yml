@@ -1,0 +1,3 @@
+allow:
+  urls:
+    - api.openai.com
