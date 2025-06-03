@@ -111,10 +111,10 @@ class MockMCPConnector:
         try:
             with open(file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
-        except json.JSONDecodeError:
+        except Exception json.JSONDecodeError:
             logger.error(f"Chyba při parsování JSON souboru: {file_path}")
             raise DataFormatError(f"Soubor {file_path} není validní JSON")
-        except FileNotFoundError:
+        except Exception FileNotFoundError:
             logger.error(f"Soubor nenalezen: {file_path}")
             raise ConnectionError(f"Soubor {file_path} nebyl nalezen")
         except Exception as e:
@@ -268,7 +268,7 @@ class MockMCPConnector:
                                                 break
                                     if not industry_match:
                                         matches = False
-                            except:
+                            except Exception:
                                 # Pokud nelze načíst detaily, předpokládáme neshodu
                                 matches = False
                         
