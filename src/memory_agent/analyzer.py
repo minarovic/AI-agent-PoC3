@@ -307,16 +307,15 @@ def analyze_company(query: str) -> str:
             "query": query,
         }
 
-        return json.dumps(result, indent=2)
+      return json.dumps(result, indent=2)
 
-    except Exception as e: copilot/fix-8
-        return json.dumps(
-            {
-                "error": str(e),
-                "query_type": "company",
-                "analysis_type": "general",
-                "analysis_complete": False,
-                "query": query,
-            }
-        )
-  main
+  except Exception as e:
+      return json.dumps(
+          {
+              "error": str(e),
+              "query_type": "company",
+              "analysis_type": "general",
+              "analysis_complete": False,
+              "query": query,
+          }
+      )

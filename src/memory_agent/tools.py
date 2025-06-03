@@ -8,12 +8,10 @@ from pathlib import Path
 from typing import Dict, Any, Optional, List, ClassVar
 from pydantic import BaseModel
 
-
 from unidecode import unidecode
 import re
 
 logger = logging.getLogger(__name__)
-
 
 # Výjimky pro práci s MCP connector
 class MockMCPConnectorError(Exception):
@@ -39,7 +37,6 @@ class EntityNotFoundError(MockMCPConnectorError):
 
     pass
 
-
 # Parametry dotazu pro vyhledávání firem
 class CompanyQueryParams(BaseModel):
     """Parametry pro dotazy na firmy."""
@@ -48,7 +45,6 @@ class CompanyQueryParams(BaseModel):
     id: Optional[str] = None
     country: Optional[str] = None
     industry: Optional[List[str]] = None
-
 
 # Třída pro přístup k mock datům
 class MockMCPConnector:
@@ -111,10 +107,10 @@ class MockMCPConnector:
         try:
             with open(file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
-        except Exception json.JSONDecodeError:
+        except json.JSONDecodeError:
             logger.error(f"Chyba při parsování JSON souboru: {file_path}")
             raise DataFormatError(f"Soubor {file_path} není validní JSON")
-        except Exception FileNotFoundError:
+        except FileNotFoundError:
             logger.error(f"Soubor nenalezen: {file_path}")
             raise ConnectionError(f"Soubor {file_path} nebyl nalezen")
         except Exception as e:
@@ -190,6 +186,7 @@ class MockMCPConnector:
 
         logger.error(f"Společnost s názvem '{name}' nebyla nalezena")
         raise EntityNotFoundError(f"Společnost s názvem '{name}' nebyla nalezena")
+
 
     def get_company_by_id(self, company_id: str) -> Dict[str, Any]:
         """
