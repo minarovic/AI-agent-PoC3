@@ -13,6 +13,7 @@ import re
 
 logger = logging.getLogger(__name__)
 
+
 # Výjimky pro práci s MCP connector
 class MockMCPConnectorError(Exception):
     """Základní výjimka pro chyby MCP Connectoru."""
@@ -37,6 +38,7 @@ class EntityNotFoundError(MockMCPConnectorError):
 
     pass
 
+
 # Parametry dotazu pro vyhledávání firem
 class CompanyQueryParams(BaseModel):
     """Parametry pro dotazy na firmy."""
@@ -45,6 +47,7 @@ class CompanyQueryParams(BaseModel):
     id: Optional[str] = None
     country: Optional[str] = None
     industry: Optional[List[str]] = None
+
 
 # Třída pro přístup k mock datům
 class MockMCPConnector:
@@ -186,7 +189,6 @@ class MockMCPConnector:
 
         logger.error(f"Společnost s názvem '{name}' nebyla nalezena")
         raise EntityNotFoundError(f"Společnost s názvem '{name}' nebyla nalezena")
-
 
     def get_company_by_id(self, company_id: str) -> Dict[str, Any]:
         """
