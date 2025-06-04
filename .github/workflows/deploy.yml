@@ -16,6 +16,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    env:
+      PYTHONPATH: "${{ github.workspace }}/src"
     
     steps:
     - uses: actions/checkout@v3
@@ -39,7 +41,7 @@ jobs:
         fi
         
         # Kontrola konfigurace LangGraph
-        python -c "import json; f = open('langgraph.json'); config = json.load(f); f.close(); exit(0 if 'module' in config else 1)"
+        python -c "import json; f = open('langgraph.json'); config = json.load(f); f.close(); exit(0 if 'graphs' in config else 1)"
         
         # Ověření analýzy typů
         python -c "from memory_agent.analyzer import analyze_company_query; analyze_company_query('Test query')"

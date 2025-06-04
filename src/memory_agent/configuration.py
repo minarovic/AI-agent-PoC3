@@ -10,6 +10,7 @@ from typing_extensions import Annotated
 # from memory_agent import prompts
 SYSTEM_PROMPT = """You are an AI assistant designed to find connections between companies and people."""
 
+
 @dataclass(kw_only=True)
 class Configuration:
     """Main configuration class for the memory graph system."""
@@ -41,8 +42,10 @@ class Configuration:
 
         return cls(**{k: v for k, v in values.items() if v})
 
+
 # Alias for backwards compatibility
 Config = Configuration
+
 
 def get_config() -> Config:
     """Get the current configuration."""
