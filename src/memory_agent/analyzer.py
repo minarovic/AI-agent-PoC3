@@ -234,7 +234,7 @@ def analyze_company(query: str) -> str:
     """
     Analyze company data and return structured information.
     Enhanced to support analysis type detection and company name parsing.
-    
+
     Args:
         query: User query about company
 
@@ -262,9 +262,7 @@ def analyze_company(query: str) -> str:
 
         # Načtení dat pomocí různých metod podle potřeby
 
-
         company_data = connector.get_company_by_name(query)
-
 
         # Získání ID společnosti pro další dotazy
         company_id = company_data.get("id") if company_data else None
@@ -283,7 +281,6 @@ def analyze_company(query: str) -> str:
             except Exception:
                 relationships_data = []
 
-
         # Format data for analysis
         formatted_data = format_analysis_data(
             company_data, internal_data, relationships_data
@@ -296,7 +293,6 @@ def analyze_company(query: str) -> str:
         analysis_prompt = prompt_template.format(
             company_name=company_name, **formatted_data
         )
-
 
         # Strukturované vrácení dat
         result = {
