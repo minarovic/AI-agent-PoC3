@@ -234,7 +234,7 @@ def analyze_company(query: str) -> str:
     """
     Analyze company data and return structured information.
     Enhanced to support analysis type detection and company name parsing.
-
+    
     Args:
         query: User query about company
 
@@ -261,7 +261,10 @@ def analyze_company(query: str) -> str:
         connector = MockMCPConnector()
 
         # Načtení dat pomocí různých metod podle potřeby
-        company_data = connector.get_company_by_name(company_name)
+
+
+        company_data = connector.get_company_by_name(query)
+
 
         # Získání ID společnosti pro další dotazy
         company_id = company_data.get("id") if company_data else None
@@ -280,6 +283,7 @@ def analyze_company(query: str) -> str:
             except Exception:
                 relationships_data = []
 
+
         # Format data for analysis
         formatted_data = format_analysis_data(
             company_data, internal_data, relationships_data
@@ -292,6 +296,7 @@ def analyze_company(query: str) -> str:
         analysis_prompt = prompt_template.format(
             company_name=company_name, **formatted_data
         )
+
 
         # Strukturované vrácení dat
         result = {
@@ -307,15 +312,15 @@ def analyze_company(query: str) -> str:
             "query": query,
         }
 
-      return json.dumps(result, indent=2)
+        return json.dumps(result, indent=2)
 
-  except Exception as e:
-      return json.dumps(
-          {
-              "error": str(e),
-              "query_type": "company",
-              "analysis_type": "general",
-              "analysis_complete": False,
-              "query": query,
-          }
-      )
+    except Exception as e:
+        return json.dumps(
+            {
+                "error": str(e),
+                "query_type": "company",
+                "analysis_type": "general",
+                "analysis_complete": False,
+                "query": query,
+            }
+        )
