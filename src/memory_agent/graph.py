@@ -7,6 +7,7 @@ import os
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from .analyzer import analyze_company
+from .api_validation import get_validated_openai_api_key, diagnose_api_key_issue
 
 
 def create_memory_agent():
@@ -16,10 +17,13 @@ def create_memory_agent():
     Returns:
         Nakonfigurovaný agent připravený k použití
     """
-    # Retrieve OpenAI API key from environment variables
-    openai_api_key = os.environ.get("OPENAI_API_KEY")
-    if not openai_api_key:
-        raise EnvironmentError("OPENAI_API_KEY environment variable is not set.")
+    # Validate and retrieve OpenAI API key from environment variables
+    try:
+        openai_api_key = get_validated_openai_api_key()
+    except EnvironmentError as e:
+        # Provide detailed diagnosis
+        diagnosis = diagnose_api_key_issue()
+        raise EnvironmentError(f"{str(e)}\n\n{diagnosis}")
 
     # Nastavení modelu pomocí string syntax (preferovaný způsob podle dokumentace)
     model = "openai:gpt-4"
