@@ -23,7 +23,7 @@ def test_api_key_validation():
         assert not is_valid, "Validace by měla odhalit chybějící klíč"
         assert "not set" in message, f"Neočekávaná chybová zpráva: {message}"
         
-        print("✅ API key validation testy prošly")
+        # Test passed successfully; no need for stdout output.
     except ImportError:
         pytest.skip("API validation modul není dostupný")
 
