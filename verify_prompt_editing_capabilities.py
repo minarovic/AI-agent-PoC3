@@ -18,8 +18,9 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-# Set dummy API key for testing
-os.environ["OPENAI_API_KEY"] = "dummy_key_for_testing"
+# Set dummy API key for testing (only if not in CI environment)
+if not (os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"):
+    os.environ["OPENAI_API_KEY"] = "dummy_key_for_testing"
 
 from memory_agent.graph import memory_agent
 from memory_agent.graph_with_configurable_prompts import (

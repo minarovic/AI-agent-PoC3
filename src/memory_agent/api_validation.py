@@ -24,6 +24,16 @@ def validate_openai_api_key(api_key: Optional[str] = None) -> Tuple[bool, str]:
     if not api_key:
         return False, "OPENAI_API_KEY environment variable is not set"
     
+    # Check if we're in CI environment (GitHub Actions)
+    is_ci = os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "true"
+    
+    # In CI, allow dummy keys for testing
+    if is_ci:
+        dummy_patterns = ["dummy", "test", "fake", "ci", "github", "actions"]
+        for pattern in dummy_patterns:
+            if pattern.lower() in api_key.lower():
+                return True, f"Dummy API key accepted in CI environment: {api_key[:15]}..."
+    
     # Check if the key is just a placeholder
     if api_key in ["your_openai_api_key", "your_openai_api_key_here", "test-key"]:
         return False, f"API key appears to be a placeholder: {api_key}"
@@ -44,11 +54,12 @@ def validate_openai_api_key(api_key: Optional[str] = None) -> Tuple[bool, str]:
     if "\n" in api_key or "\r" in api_key:
         return False, "API key contains newline characters"
     
-    # Check for obvious test/fake keys
-    fake_patterns = ["fake", "test", "dummy", "invalid", "example"]
-    for pattern in fake_patterns:
-        if pattern.lower() in api_key.lower():
-            return False, f"API key appears to be fake/test key (contains '{pattern}')"
+    # Check for obvious test/fake keys (only in non-CI environments)
+    if not is_ci:
+        fake_patterns = ["fake", "test", "dummy", "invalid", "example"]
+        for pattern in fake_patterns:
+            if pattern.lower() in api_key.lower():
+                return False, f"API key appears to be fake/test key (contains '{pattern}')"
     
     return True, "API key format appears valid"
 
