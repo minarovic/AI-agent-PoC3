@@ -11,6 +11,7 @@ import traceback
 
 from memory_agent.tools import (
     MockMCPConnector,
+    AsyncMockMCPConnector,
 )
 
 from memory_agent.state import State
@@ -814,10 +815,10 @@ def retrieve_additional_company_data(state: State) -> State:
 
 
 async def analyze_node(state: State) -> State:
-    # Použití nové analyze_company funkce z analyzer.py
-    from .analyzer import analyze_company
+    # Použití nové analyze_company_async funkce z analyzer.py
+    from .analyzer import analyze_company_async
 
-    result = analyze_company(state.input)
+    result = await analyze_company_async(state.input)
     # Parsování JSON výsledku
     import json
 
@@ -828,8 +829,8 @@ async def analyze_node(state: State) -> State:
 
 
 async def load_data_node(state: State) -> State:
-    connector = MockMCPConnector()
-    state.company_data = connector.read_resource(state.company_name)
+    connector = AsyncMockMCPConnector()
+    state.company_data = await connector.read_resource(state.company_name)
     return state
 
 

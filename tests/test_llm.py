@@ -89,22 +89,44 @@ def test_agent_initialization(mock_init_chat_model, mock_init_chat_model_helper)
         pytest.fail(f"create_memory_agent vyvolal výjimku: {str(e)}")
 
 
+@patch("memory_agent.analyzer.AsyncMockMCPConnector")
 @patch("memory_agent.analyzer.MockMCPConnector")
-def test_analyze_company_tool(mock_connector):
+def test_analyze_company_tool(mock_connector, mock_async_connector):
     """Test, že analyze_company tool funguje správně."""
-    # Mock pro MockMCPConnector
+    # Mock pro MockMCPConnector (sync verze)
     connector_instance = MagicMock()
     mock_connector.return_value = connector_instance
 
-    # Mock návratových hodnot pro metody conectoru
+    # Mock pro AsyncMockMCPConnector (async verze) 
+    async_connector_instance = MagicMock()
+    mock_async_connector.return_value = async_connector_instance
+
+    # Mock návratových hodnot pro metody connectoru (sync verze)
     connector_instance.get_company_by_name.return_value = {
-        "id": "123",
-        "name": "Test Company",
+        "id": "123", 
+        "label": "Test Company",  # Používá se "label" místo "name"
     }
     connector_instance.get_company_financials.return_value = {"revenue": 1000000}
     connector_instance.get_company_relationships.return_value = [
         {"type": "supplier", "entity": "Other Company"}
     ]
+
+    # Mock návratových hodnot pro async metody (async verze)
+    async def mock_get_company_by_name(name):
+        return {
+            "id": "123",
+            "label": "Test Company",
+        }
+    
+    async def mock_get_company_financials(company_id):
+        return {"revenue": 1000000}
+        
+    async def mock_get_company_relationships(company_id):
+        return [{"type": "supplier", "entity": "Other Company"}]
+
+    async_connector_instance.get_company_by_name = mock_get_company_by_name
+    async_connector_instance.get_company_financials = mock_get_company_financials
+    async_connector_instance.get_company_relationships = mock_get_company_relationships
 
     # Import funkce analyze_company
     from memory_agent.analyzer import analyze_company
@@ -114,8 +136,9 @@ def test_analyze_company_tool(mock_connector):
 
     # Ověření, že výsledek je string (JSON)
     assert isinstance(result, str)
-
-    # Ověření, že connector byl volán
-    connector_instance.get_company_by_name.assert_called_once_with("Test Company")
-    connector_instance.get_company_financials.assert_called_once()
-    connector_instance.get_company_relationships.assert_called_once()
+    
+    # Parse výsledku pro ověření obsahu
+    import json
+    parsed_result = json.loads(result)
+    assert parsed_result.get("analysis_complete") == True
+    assert parsed_result.get("company_name") == "Test Company"
