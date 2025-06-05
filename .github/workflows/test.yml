@@ -2,9 +2,9 @@ name: Test AI-agent-Ntier
 
 on:
   push:
-    branches: [ main, deployment-fix ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ main ]
+    branches: [ "*" ]
 
 jobs:
   test:
