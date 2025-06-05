@@ -1,122 +1,134 @@
-````instructions
-# AI## ❌ NIKDY
-- **Nepřidávaj funkce během oprav**
-- **Netestuj a neměň kód podle testů**
-- **Nedeployuj automaticky**
-- **Nepřidávej složité error handling**
-- **Neoslavuj předčasně** - URL ještě neznamená funkční aplikaci
-- **Nepřeháněj s pozitivitou** - čekáme na výsledky testůt-Ntier: Minimální instrukce pro nasazení
+# AI-agent-Ntier - LangGraph Development Guide
 
-## 🎯 JEDINÝ CÍL
-**Zprovoznit nejjednodušší možnou verzi na LangGraph Platform**
+## 🎯 PROJEKT OVERVIEW
+**AI-agent-Ntier** - LangGraph aplikace s pokročilou analýzou dat hostovaná na LangGraph Platform
 
-## ✅ Aktuální checklist
-- [x] Zjednodušit analyzer.py na minimum
-- [x] Opravit Python verze v GitHub Actions
-- [x] Opravit langgraph.json konfigurace ✅
-- [x] Přidat ANTHROPIC_API_KEY do GitHub Secrets
-- [ ] Úspěšné testy v GitHub Actions
-- [ ] Nasazení na LangGraph Platform
+### Základní Info:
+- **Platform:** LangGraph Platform (cloud hosting)
+- **Framework:** LangGraph StateGraph pro multi-agent workflows
+- **Data Access:** MockMCPConnector pro přístup k mock datům
+- **Status:** Ve vývoji - fázovaná implementace
+- **CI/CD:** GitHub Actions pipeline
 
-## 🚨 KRITICKÉ - Dělej pouze toto
-1. **Minimální kód** - Žádné extra funkce, pouze základní flow
-2. **Oprav chyby z logů** - Přesně podle chybových zpráv
-3. **Commit pouze nutné soubory** - src/, requirements.txt, langgraph.json
-4. **NETESTUJ LOKÁLNĚ** - Push a čekej na GitHub Actions
-5. **ZEPTEJ SE PŘED ZMĚNAMI** - Před opravou kódu nebo přidáním features se vždy zeptat uživatele na potvrzení
-6. **UČIT SE Z HISTORIE** - Vždy přečti posledních 5 iterací před akcí
-
-## ❌ NIKDY
-- **Nepřidávej funkce během oprav**
-- **Netestuj a neměň kód podle testů**
-- **Nedeployuj automaticky**
-- **Nepřidávej složité error handling**
-
-## 📁 Struktura pro nasazení
+## 📁 STRUKTURA PROJEKTU
 ```
-Produkční soubory:
-src/memory_agent/
-├── analyzer.py      # HOTOVO - 40 řádků
-├── graph.py         # TODO - zjednodušit
-├── graph_nodes.py   # TODO - zjednodušit
-├── tools.py         # TODO - zjednodušit
-├── state.py         # TODO - minimalizovat
-└── __init__.py
-
-Konfigurace:
-├── langgraph.json   # OPRAVIT - změnit "agent" na "memory_agent"
-├── requirements.txt # HOTOVO
-└── .env            # Lokální API klíče
+AI-agent-Ntier/
+├── src/
+│   └── memory_agent/
+│       ├── __init__.py
+│       ├── analyzer.py          # Analýza dotazů a detekce typu analýzy
+│       ├── graph.py             # Hlavní StateGraph workflow
+│       ├── prompts.py           # PromptRegistry - specializované prompty
+│       └── tools.py             # MockMCPConnector pro přístup k datům
+├── mock_data/                   # Testovací data
+│   ├── companies/               # Data o společnostech
+│   ├── internal_data/           # Interní data
+│   ├── people/                  # Data o osobách
+│   └── relationships/           # Data o vztazích
+├── tests/                       # Unit a integrační testy
+├── doc/                         # Dokumentace projektu
+├── langgraph.json               # Platform konfigurace
+├── requirements.txt             # Dependencies
+└── run_langgraph_dev.sh         # Dev server script
 ```
 
-## 🔧 Aktuální problémy k řešení
-1. **langgraph.json** - Špatná reference grafu
-2. ~~**GitHub Secrets** - Chybí ANTHROPIC_API_KEY~~ ✅ HOTOVO
-3. **Záložní soubory** - Přesunout do ./old
+## 🧩 KLÍČOVÉ KOMPONENTY
 
-## 🚦 Prioritizace chyb z GitHub Actions
-1. **Blokující chyby** (workflow se zastaví) → Opravit ihned
-   - Syntax errors, import errors, missing dependencies
-2. **Test failures** → IGNOROVAT pro nasazení
-   - Podle instrukcí: "Netestuj a neměň kód podle testů"
-3. **Warnings** → Ignorovat
+### StateGraph Workflow (`graph.py`)
+- **Pydantic BaseModel** pro definici State
+- **Podmíněné větvení** podle typu analýzy
+- **Thread-based persistence** pro memory
 
-## 📝 Dokumentace iterací
-Při každé opravě zapiš do `deploy_logs/testing_iteration_log.md`:
-- Co bylo opraveno
-- Proč (ne "aby to fungovalo", ale konkrétní důvod)
-- Co očekáváš (ne "bude fungovat", ale "projde validation fáze")
+### Analyzer (`analyzer.py`)
+- **Few-shot prompting** s reasoning procesem
+- **Detekce typu analýzy** z uživatelských dotazů
+- **Error handling** a fallback mechanismy
 
-## 🧠 SAMOUČÍCÍ PROCES
-### Před každou akcí:
-1. **Přečti posledních 5 iterací** z testing_iteration_log.md
-2. **Identifikuj podobné situace** - stejné chyby, podobné problémy
-3. **Aplikuj naučené vzory** - co fungovalo, co ne
-4. **Formuluj konkrétní očekávání** - ne obecné "bude fungovat"
+### MockMCPConnector (`tools.py`)
+- **JSON data loading** z mock_data adresářů
+- **Company name normalization** 
+- **Structured data access** pro různé entity
 
-### Po každé akci:
-1. **Zhodnoť přesnost odhadu** - byl očekávaný výsledek správný?
-2. **Zapiš lesson learned** - co se potvrdilo, co bylo špatně
-3. **Aktualizuj decision tree** - nové if/then pravidlo
-4. **Trackuj confidence level** - jak moc si byl jistý
+### PromptRegistry (`prompts.py`)
+- **Centralizovaná správa promptů**
+- **Specializované prompty** pro každý typ analýzy
+- **Data formatters** pro prompt injection
 
-### Pattern Recognition:
-- **ModuleNotFoundError + grep nepoužívaný** → Odstranit import (Iterace 21,30)
-- **"No configuration schema"** → Přidat ConfigSchema (Iterace 60)
-- **Prázdné objekty {}** → Naplnit return hodnoty (Iterace 60)
-- **sed selhává** → Python skript (Iterace 39)
-- **URL existuje ≠ aplikace funguje** → Čekat na skutečné testy
+## 🚀 DEVELOPMENT WORKFLOW
 
-### Anti-patterns (NEDĚLAT):
-- **Předčasné oslavování** - URL není funkčnost
-- **Optimistické odhady** - raději pesimisticky
-- **Ignorování instrukcí** - NETESTUJ LOKÁLNĚ znamená NETESTUJ LOKÁLNĚ
+### Fázovaný přístup:
+1. **Core komponenty** - Analyzer, MockMCPConnector, PromptRegistry
+2. **StateGraph workflow** - Podmíněné větvení a error handling
+3. **Testing & Debug** - Unit testy + end-to-end testy
+4. **Deploy & Monitor** - Platform nasazení a dokumentace
 
-## ⚙️ Řešení chyb v GitHub Actions
-graph TD
-    A[Chyba z Actions] --> B{Blokuje deploy?}
-    B -->|Ano| C[Opravit ihned]
-    B -->|Ne| D{Blokuje další vývoj?}
-    D -->|Ano| E[Opravit teď]
-    D -->|Ne| F[Zalogovat a pokračovat]
-    
-    F --> G[Dokončit větší celek]
-    G --> H[Vrátit se k opravám]
+### Deployment Process:
+1. **Změna kódu** → Push to GitHub
+2. **GitHub Actions** → Automatické testy
+3. **LangGraph Platform** → Automatický deploy (při úspěchu)
 
-## 🎯 DECISION FRAMEWORK pro samoučení
-### Před opravou:
-```
-1. Čti testing_iteration_log.md (posledních 5 iterací)
-2. Hledej pattern: "Stejná chyba byla v iteraci X"
-3. Zkontroluj: "Co tehdy fungovalo/nefungovalo?"
-4. Odhad confidence: Jistý 90% / Nejistý 50% / Nevím 10%
-5. Konkrétní očekávání: "Projde X fáze" místo "bude fungovat"
-```
+### Klíčové soubory pro deployment:
+- `langgraph.json` - Platform konfigurace
+- `requirements.txt` - Dependencies  
+- `src/memory_agent/graph.py` - StateGraph entry point
 
-### Po opravě:
-```
-1. Skutečný výsledek vs. odhad
-2. Confidence level se potvrdil? (90% → skutečně prošlo?)
-3. Lesson learned pro další iterace
-4. Aktualizuj pattern recognition
-````
+## ⚙️ DEVELOPMENT PRINCIPY
+- **Mock-first development** - Používej mock_data pro testování
+- **StateGraph patterns** - Následuj LangGraph best practices
+- **Platform-optimized** - Optimalizováno pro LangGraph Platform hosting
+- **Fázovaná implementace** - Postupné přidávání features
+
+## 🔧 BĚŽNÉ ÚKOLY
+
+### Přidat nový typ analýzy:
+1. Přidej prompt do `prompts.py` (PromptRegistry)
+2. Uprav detekci v `analyzer.py` 
+3. Rozšiř StateGraph podmínky v `graph.py`
+4. Přidej mock data pokud potřeba
+
+### Upravit data access:
+1. Uprav MockMCPConnector v `tools.py`
+2. Přidaj/uprav JSON soubory v `mock_data/`
+3. Aktualizuj normalizaci názvů
+
+### Debugging workflow:
+1. Zkontroluj StateGraph flow v `graph.py`
+2. Ověř prompt formatting v `prompts.py`
+3. Otestuj data access přes MockMCPConnector
+4. Použij unit testy v `tests/`
+
+### Aktualizovat dependencies:
+1. Uprav `requirements.txt`
+2. Test přes GitHub Actions
+3. Deploy na LangGraph Platform
+
+## 🚦 TROUBLESHOOTING
+
+### GitHub Actions selhání:
+- Zkontroluj Python syntax v všech `.py` souborech
+- Ověř dependencies v `requirements.txt`
+- Zkontroluj import paths (`src.memory_agent.graph:memory_agent`)
+
+### LangGraph Platform selhání:
+- Zkontroluj `langgraph.json` konfiguraci
+- Ověř StateGraph export v `graph.py`
+- Zkontroluj Pydantic model definitions
+
+### MockMCPConnector issues:
+- Ověř JSON struktura v `mock_data/`
+- Zkontroluj file paths a normalizaci názvů
+- Test data loading v unit testech
+
+### StateGraph debugging:
+- Zkontroluj State model definici (Pydantic BaseModel)
+- Ověř podmíněné hrany a node transitions
+- Test thread persistence a memory
+
+## 📝 QUICK REFERENCE
+- **Entry point:** `src.memory_agent.graph:memory_agent` 
+- **Platform config:** `langgraph.json`
+- **StateGraph:** `src/memory_agent/graph.py`
+- **Data access:** `src/memory_agent/tools.py` (MockMCPConnector)
+- **Prompts:** `src/memory_agent/prompts.py` (PromptRegistry)
+- **Mock data:** `mock_data/companies|people|relationships/`
+- **Tests:** `tests/unit/` a `tests/integration/`

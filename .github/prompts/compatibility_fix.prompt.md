@@ -1,118 +1,120 @@
-# Řešení problémů s kompatibilitou na LangGraph Platform
+# AI-agent-Ntier: Řešení kompatibility
 
-## Instrukce pro Copilot
+## 🎯 JEDINÝ CÍL
+**Zajistit kompatibilitu kódu s LangGraph Platform**
 
-Pokud se vyskytly specifické problémy s kompatibilitou při nasazení na LangGraph Platform, je třeba je řešit systematicky. Tento prompt tě provede procesem identifikace a řešení problémů s kompatibilitou. Postupuj podle následujících kroků:
+## 🚨 KLÍČOVÉ POZNATKY Z DEPLOYMENTU
+1. **LangGraph.json musí používat Python import syntax**
+   - ✅ SPRÁVNĚ: `"src.memory_agent.graph:memory_agent"` (Python import s tečkami)
+   - ❌ ŠPATNĚ: `"./src/memory_agent/graph.py:memory_agent"` (filesystem path s lomítky)
 
-1. **Analýza chybových zpráv:**
-   - Projdi logy z nasazení na LangGraph Platform
-   - Identifikuj konkrétní chybové zprávy
-   - Zaměř se na:
-     - ImportError - chybějící nebo nekompatibilní závislosti
-     - AttributeError - změny v API
-     - TypeError - nekompatibilní typy
-     - KeyError - chybějící konfigurace
+2. **String syntax a dependencies**
+   - String syntax (`model = "openai:gpt-4"`) je preferovaná, ALE:
+   - Stále vyžaduje `langchain-openai>=0.3.18` v requirements.txt
+   - `init_chat_model()` interně stále potřebuje langchain_openai balíček
 
-2. **Izolace problému:**
-   - Vytvoř minimální reprodukci problému:
-     ```bash
-     mkdir -p sandbox/compatibility_test
-     touch sandbox/compatibility_test/test_issue.py
-     ```
-   - Implementuj minimální test reprodukující problém
-   - Ověř, že problém se vyskytuje i v izolovaném prostředí
+3. **Struktura projektu musí být standardní**
+   - setup.py musí existovat pro `pip install -e .`
+   - requirements-dev.txt musí existovat pokud je v workflow
+   - src struktura musí odpovídat Python importům
 
-3. **Ověření kompatibility závislostí:**
-   - Zkontroluj verze závislostí v `requirements.txt`
-   - Porovnej s verzemi podporovanými na LangGraph Platform
-   - Zaměř se zejména na:
-     - langgraph
-     - langchain
-     - openai (pokud používáme)
-     - anthropic (pokud používáme)
+## 📋 KOMPATIBILITA CHECKLIST
+- [ ] langgraph.json používá Python import syntax?
+- [ ] requirements.txt obsahuje všechny přímé i nepřímé závislosti?
+- [ ] setup.py existuje a je minimální?
+- [ ] String syntax pro modely je správně použita?
+- [ ] Nejsou v kódu nepoužívané importy?
+- [ ] GitHub Secrets obsahují správné API klíče?
 
-4. **Použití Context7 pro API dokumentaci:**
-   - Nejprve zjisti přesné ID knihovny:
-     ```
-     # Použij nástroj resolve-library-id pro zjištění ID knihovny
-     resolve-library-id "langgraph"
-     ```
-   - Získej aktuální dokumentaci k problematické části API:
-     ```
-     # Použij nástroj get-library-docs pro získání dokumentace
-     get-library-docs "context7CompatibleLibraryID" --topic "workflow API"
-     ```
-   - Prozkoumej dokumentaci pro správný způsob použití API
-   - Porovnej s aktuální implementací v kódu
+## 🔧 ŘEŠENÍ TYPICKÝCH PROBLÉMŮ
 
-5. **Systematické promýšlení problému:**
-   - Použij nástroj `think` pro strukturované promýšlení problému:
-     ```
-     # Použij nástroj think pro analýzu problému
-     think "Analýza kompatibility s LangGraph Platform:
-     1. Jaký je přesný problém? ImportError na langgraph.graph.Graph.
-     2. Co způsobuje problém? Pravděpodobně změna API v nové verzi.
-     3. Jaké jsou možnosti řešení?
-       a) Downgrade na kompatibilní verzi
-       b) Úprava kódu podle nového API
-       c) Implementace adaptéru
-     4. Který přístup je nejbezpečnější? Závisí na rozsahu změn..."
-     ```
-   - Na základě strukturované analýzy zvol nejlepší přístup k řešení
+### ImportError: Unable to import langchain_openai
+- **Příčina:** String syntax není "dependency-free"
+- **Řešení:** Přidat `langchain-openai>=0.3.18` do requirements.txt
+- **Pattern Recognition:** Iterace 67
 
-6. **Implementace oprav:**
-   - Vytvoř branch pro opravu:
-     ```bash
-     git checkout -b fix/platform-compatibility
-     ```
-   - Implementuj minimální změny:
-     - Aktualizace verzí závislostí
-     - Úprava importů
-     - Úprava volání API
-     - Zjednodušení komplexních funkcí
+### Error: does not appear to be a Python project
+- **Příčina:** Chybí setup.py pro `pip install -e .` 
+- **Řešení:** Vytvořit minimální setup.py
+- **Pattern Recognition:** Iterace 70
 
-5. **Testování oprav:**
-   - Nejprve lokálně:
-     ```bash
-     python sandbox/compatibility_test/test_issue.py
-     ```
-   - Poté pomocí GitHub Actions:
-     ```bash
-     git add src/ requirements.txt
-     git commit -m "Fix: Kompatibilita s LangGraph Platform"
-     git push -u origin fix/platform-compatibility
-     ```
+### ModuleNotFoundError pro vlastní moduly
+- **Příčina:** Špatný PYTHONPATH nebo struktura importů
+- **Řešení:** Opravit relativní/absolutní importy nebo nastavit PYTHONPATH
+- **Pattern Recognition:** Iterace 66
 
-6. **Ověření kompatibility s dokumentací:**
-   - Pro složitější API problémy použij znovu Context7:
-     ```
-     # Ověř, že nová implementace odpovídá aktuální dokumentaci
-     get-library-docs "context7CompatibleLibraryID" --topic "graph implementation" --tokens 5000
-     ```
-   - Porovnej implementaci s příklady z dokumentace
-   - Ověř, že všechny požadované parametry a typy jsou správně
+### ValidationError: No configuration schema found
+- **Příčina:** Chybí ConfigSchema v kódu
+- **Řešení:** Přidat minimální ConfigSchema
+- **Pattern Recognition:** Iterace 60
 
-7. **Dokumentace řešení:**
-   - Vytvoř záznam o řešení problému:
-     ```
-     docs/platform_compatibility/<datum>_<název_problému>.md
-     ```
-   - Zahrň:
-     - Popis problému
-     - Příčina problému
-     - Implementované řešení
-     - Doporučení pro budoucí vývoj
+## 🧰 MINIMÁLNÍ SETUP.PY
+```python
+from setuptools import setup, find_packages
 
-## Důležité principy
+setup(
+    name="ai-agent-ntier",
+    version="0.1.0",
+    description="AI agent for LangGraph Platform",
+    author="AI-agent-Ntier Team",
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
+    install_requires=[
+        # Zkopírovat z requirements.txt
+    ],
+    python_requires=">=3.11",
+)
+```
 
-- **Minimální změny** - měň pouze to, co je potřeba k vyřešení problému
-- **Zachovej funkcionalitu** - řešení kompatibility nesmí změnit funkcionalitu
-- **Preferuj zjednodušení** - v případě pochybností odstraň komplexní funkce
-- **Dokumentuj workaroundy** - pokud používáš dočasné řešení, jasně to zdokumentuj
-- **Testuj v prostředí podobném produkci** - ne jen lokálně
-- **Využívej oficiální dokumentaci** - používej Context7 pro přístup k aktuální dokumentaci
-- **Systematicky analyzuj problém** - používej nástroj think pro strukturované promýšlení
+## 🧪 OPTIMÁLNÍ MODEL DEFINICE
+```python
+# Preferovaná string syntax
+model = "openai:gpt-4"
 
-## Další kroky
+# NEBO explicitní definice pokud je potřeba více kontroly
+from langchain_openai import ChatOpenAI
+model = ChatOpenAI(
+    model="gpt-4",
+    temperature=0,
+)
+```
 
-Po vyřešení problémů s kompatibilitou je čas na nasazení opravené verze. Použij prompt `deploy.prompt.md` pro nasazení kompatibilní verze aplikace.
+## 📄 SPRÁVNÝ FORMÁT LANGGRAPH.JSON
+```json
+{
+  "graphs": {
+    "memory_agent": "src.memory_agent.graph:memory_agent"
+  }
+}
+```
+
+## 🔑 API KLÍČE A FORMÁTY
+```
+OPENAI_API_KEY: Prefix "sk-" (např. sk-abc123...)
+ANTHROPIC_API_KEY: Prefix "sk-ant-" (např. sk-ant-abc123...)
+LANGSMITH_API_KEY: Prefix "ls-" (volitelné, např. ls-abc123...)
+```
+
+## ❌ ANTI-PATTERNS V ŘEŠENÍ KOMPATIBILITY
+- **NETESTOVAT** lokálně a ignorovat GitHub Actions
+- **NESIMULOVAT** řešení (string syntax bez závislostí)
+- **NEPOUŽÍVAT** filesystem cesty v langgraph.json
+- **NEPŘIDÁVAT** zbytečné závislosti "pro jistotu"
+- **NEPŘEHLÍŽET** warning zprávy - často indikují budoucí chyby
+
+## 🔄 ITERAČNÍ CYKLUS OPRAV
+```
+1. ANALYZUJ chybovou zprávu detailně (ne jen první řádek)
+2. IDENTIFIKUJ přesnou příčinu (ne symptom)
+3. POROVNEJ s předchozími iteracemi
+4. NAVRHNI minimální opravu
+5. OTESTUJ v GitHub Actions (ne lokálně)
+6. ZHODNOŤ výsledek
+```
+
+## 🎯 DECISION FRAMEWORK
+- **Chyba v importu modulu?** → Zkontroluj requirements.txt
+- **Chyba v importu vlastního kódu?** → Zkontroluj langgraph.json formát
+- **Chyba při instalaci projektu?** → Zkontroluj setup.py
+- **Chyba při inicializaci modelu?** → Zkontroluj string syntax a dependencies
+- **Chyba v API volání?** → Zkontroluj GitHub Secrets a formáty klíčů
