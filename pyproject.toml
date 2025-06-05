@@ -1,0 +1,28 @@
+[tool.ruff]
+# Exclude patterns for files to ignore
+exclude = []
+
+# Allow line lengths up to 88 (black's default)
+line-length = 88
+
+[tool.ruff.lint]
+# Enable specific rule groups
+select = ["E", "F", "I", "N", "W"]
+
+# Ignore specific rules
+ignore = ["E501"]  # Ignore line too long for now
+
+# Allow imports in try/except blocks for availability testing
+[tool.ruff.lint.per-file-ignores]
+"syntax.py" = ["F401"]  # Ignore unused imports in syntax test file
+"test_*.py" = ["F401"]  # Ignore unused imports in test files that check availability 
+"*prompt_editing*.py" = ["F401"]  # Ignore unused imports in prompt editing demo files
+"verify_*.py" = ["F401"]  # Ignore unused imports in verification files
+"tests/*.py" = ["F401"]  # Ignore unused imports in all test files
+"**/test_*.py" = ["F401"]  # Ignore unused imports in nested test files
+"demo_*.py" = ["F401"]  # Ignore unused imports in demo files
+"troubleshoot_*.py" = ["F401"]  # Ignore unused imports in troubleshooting files
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
