@@ -30,6 +30,7 @@ class PromptRegistry:
     """Registr promptů pro různé části workflow."""
 
     _prompts: Dict[str, str] = {
+        "system_prompt": SYSTEM_PROMPT,  # Add system prompt to registry
         "company_analysis": """Proveď analýzu společnosti na základě dostupných dat.
         
         Společnost: {company_name}
