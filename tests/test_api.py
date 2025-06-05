@@ -25,10 +25,20 @@ def test_api_key_validation():
         assert not is_valid, "Validace by měla odhalit neplatný klíč"
         assert "should start with 'sk-'" in message, f"Neočekávaná chybová zpráva: {message}"
         
-        # Test s chybějícím klíčem
-        is_valid, message = validate_openai_api_key(None)
-        assert not is_valid, "Validace by měla odhalit chybějící klíč"
-        assert "not set" in message, f"Neočekávaná chybová zpráva: {message}"
+        # Test s chybějícím klíčem - temporarily store original env var
+        original_key = os.environ.get("OPENAI_API_KEY")
+        try:
+            # Temporarily remove the env var for this test
+            if "OPENAI_API_KEY" in os.environ:
+                del os.environ["OPENAI_API_KEY"]
+            
+            is_valid, message = validate_openai_api_key(None)
+            assert not is_valid, "Validace by měla odhalit chybějící klíč"
+            assert "not set" in message, f"Neočekávaná chybová zpráva: {message}"
+        finally:
+            # Restore original env var
+            if original_key is not None:
+                os.environ["OPENAI_API_KEY"] = original_key
         
         # Test passed successfully; no need for stdout output.
     except ImportError:

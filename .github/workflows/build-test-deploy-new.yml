@@ -79,7 +79,7 @@ jobs:
     # Tento krok pouze ověří, že kód je sestavitelný, ale nevytváří Docker image
     - name: Verify project buildability
       run: |
-        langgraph build --local
+        langgraph build --tag test-build:latest --local
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
