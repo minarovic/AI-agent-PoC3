@@ -5,7 +5,8 @@ Podporuje detekci typu analýzy a extrakci názvu společnosti z dotazů.
 
 from typing import Dict, Any, Tuple
 import json
-from .tools import MockMCPConnector
+import asyncio
+from .tools import MockMCPConnector, AsyncMockMCPConnector
 
 # Constants
 RELATIONSHIP_SLICE_LIMIT = 100  # Limit the number of relationships to process
@@ -230,8 +231,9 @@ def format_analysis_data(
     }
 
 
-def analyze_company(query: str) -> str:
+async def analyze_company_async(query: str) -> str:
     """
+    Asynchronní verze analyze_company pro použití v async kontextech.
     Analyze company data and return structured information.
     Enhanced to support analysis type detection and company name parsing.
 
@@ -257,12 +259,11 @@ def analyze_company(query: str) -> str:
                 }
             )
 
-        # Inicializace mock MCP connectoru
-        connector = MockMCPConnector()
+        # Inicializace async mock MCP connectoru
+        connector = AsyncMockMCPConnector()
 
-        # Načtení dat pomocí různých metod podle potřeby
-
-        company_data = connector.get_company_by_name(query)
+        # Načtení dat pomocí async metod
+        company_data = await connector.get_company_by_name(query)
 
         # Získání ID společnosti pro další dotazy
         company_id = company_data.get("id") if company_data else None
@@ -272,12 +273,12 @@ def analyze_company(query: str) -> str:
 
         if company_id:
             try:
-                internal_data = connector.get_company_financials(company_id)
+                internal_data = await connector.get_company_financials(company_id)
             except Exception:
                 internal_data = {"message": "Financial data not available"}
 
             try:
-                relationships_data = connector.get_company_relationships(company_id)
+                relationships_data = await connector.get_company_relationships(company_id)
             except Exception:
                 relationships_data = []
 
@@ -320,3 +321,108 @@ def analyze_company(query: str) -> str:
                 "query": query,
             }
         )
+
+
+def analyze_company(query: str) -> str:
+    """
+    Synchronní wrapper pro analyze_company_async.
+    Analyze company data and return structured information.
+    Enhanced to support analysis type detection and company name parsing.
+
+    Args:
+        query: User query about company
+
+    Returns:
+        JSON string with company analysis results
+    """
+    try:
+        # Pokusíme se spustit async verzi
+        try:
+            # Pokud již běží event loop, použijeme to_thread
+            loop = asyncio.get_running_loop()
+            # Spustíme async verzi v thread poolu
+            future = asyncio.run_coroutine_threadsafe(analyze_company_async(query), loop)
+            return future.result(timeout=30)  # 30s timeout
+        except RuntimeError:
+            # Pokud neběží event loop, spustíme nový
+            return asyncio.run(analyze_company_async(query))
+    except Exception as e:
+        # Fallback na synchronní verzi při chybě
+        try:
+            # Parse query to extract company name and analysis type
+            company_name, analysis_type = analyze_company_query(query)
+
+            if not company_name:
+                return json.dumps(
+                    {
+                        "error": "Could not extract company name from query",
+                        "query_type": "company",
+                        "analysis_type": analysis_type,
+                        "analysis_complete": False,
+                        "query": query,
+                        "suggestion": "Please specify a company name or use format: 'Company Name; analysis_type'",
+                    }
+                )
+
+            # Inicializace synchronní mock MCP connectoru
+            connector = MockMCPConnector()
+
+            # Načtení dat pomocí různých metod podle potřeby
+            company_data = connector.get_company_by_name(query)
+
+            # Získání ID společnosti pro další dotazy
+            company_id = company_data.get("id") if company_data else None
+
+            internal_data = {}
+            relationships_data = []
+
+            if company_id:
+                try:
+                    internal_data = connector.get_company_financials(company_id)
+                except Exception:
+                    internal_data = {"message": "Financial data not available"}
+
+                try:
+                    relationships_data = connector.get_company_relationships(company_id)
+                except Exception:
+                    relationships_data = []
+
+            # Format data for analysis
+            formatted_data = format_analysis_data(
+                company_data, internal_data, relationships_data
+            )
+
+            # Get specialized prompt based on analysis type
+            prompt_template = get_analysis_prompt(analysis_type)
+
+            # Generate analysis prompt
+            analysis_prompt = prompt_template.format(
+                company_name=company_name, **formatted_data
+            )
+
+            # Strukturované vrácení dat
+            result = {
+                "query_type": "company",
+                "analysis_type": analysis_type,
+                "company_name": company_name,
+                "company_data": company_data,
+                "internal_data": internal_data,
+                "relationships_data": relationships_data,
+                "analysis_prompt": analysis_prompt,
+                "formatted_data": formatted_data,
+                "analysis_complete": True,
+                "query": query,
+            }
+
+            return json.dumps(result, indent=2)
+
+        except Exception as e:
+            return json.dumps(
+                {
+                    "error": str(e),
+                    "query_type": "company",
+                    "analysis_type": "general",
+                    "analysis_complete": False,
+                    "query": query,
+                }
+            )

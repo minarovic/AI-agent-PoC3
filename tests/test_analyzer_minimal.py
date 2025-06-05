@@ -1,6 +1,14 @@
 # tests/test_analyzer_minimal.py - NOVÝ TEST
 """Test minimální funkcionality pro LangGraph deployment."""
 
+import os
+import sys
+
+# Přidání src do pythonpath pro import
+sys.path.insert(
+    0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src")
+)
+
 from memory_agent.analyzer import analyze_company_query
 
 
