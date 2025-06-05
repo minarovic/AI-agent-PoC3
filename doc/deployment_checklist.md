@@ -2,6 +2,11 @@
 
 ### Před nahráním na LangGraph Platform:
 
+#### 0. ✅ Python Version Requirements:
+- **Python 3.11 nebo vyšší** - LangGraph Platform vyžaduje minimálně Python 3.11
+- Zkontroluj `setup.py`: `python_requires=">=3.11"` ✅
+- Zkontroluj `.github/workflows/deploy.yml`: `python-version: '3.11'` ✅
+
 #### 1. ✅ Environment Variables nastavení:
 ```
 V LangGraph Platform Dashboard → Environment Variables:

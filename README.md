@@ -30,6 +30,12 @@ AI-agent-Ntier/
 └── run_langgraph_dev.sh      # Skript pro spuštění vývojového serveru
 ```
 
+## Požadavky
+
+- **Python 3.11 nebo vyšší** - Vyžadováno pro kompatibilitu s LangGraph Platform
+- OpenAI API klíč
+- LangSmith API klíč (pro produkční nasazení)
+
 ## Začínáme
 
 ### Instalace
