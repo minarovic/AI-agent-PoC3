@@ -7,6 +7,7 @@ import os
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from .analyzer import analyze_company
+from .configuration import Configuration
 from .prompts import PromptRegistry, SYSTEM_PROMPT
 
 
@@ -34,7 +35,7 @@ def create_memory_agent():
 
     # Získání system promptu z PromptRegistry pro centralizovanou správu
     system_prompt = PromptRegistry.get_prompt("system_prompt") or SYSTEM_PROMPT
-    
+
     # Kombinace s business intelligence instrukcemi
     enhanced_prompt = (
         f"{system_prompt}\n\n"
@@ -48,6 +49,7 @@ def create_memory_agent():
         tools=[analyze_company],
         prompt=enhanced_prompt,
         checkpointer=checkpointer,
+        config_schema=Configuration,
     )
 
     return agent
@@ -61,12 +63,39 @@ def get_memory_agent():
     return get_memory_agent._agent
 
 
+# Para LangGraph Platform deployment - crear un graf que expone el schema incluso sin API keys
+def create_schema_graph():
+    """
+    Crear un graph básico que expone el configuration schema sin necesidad de API keys.
+    Usado por LangGraph Platform para introspección del schema.
+    """
+    try:
+        # Intenta crear el agent completo
+        return create_memory_agent()
+    except EnvironmentError:
+        # Si faltan API keys, crear un graph minimal solo para exponer el schema
+        from langchain_core.runnables import RunnableLambda
+        from langgraph.graph import StateGraph, MessagesState
+        from typing import Literal
+        
+        def placeholder_node(state: MessagesState) -> MessagesState:
+            """Placeholder node for schema introspection."""
+            return {"messages": []}
+        
+        # Crear un StateGraph básico con configuration schema
+        workflow = StateGraph(MessagesState, config_schema=Configuration)
+        workflow.add_node("placeholder", placeholder_node)
+        workflow.set_entry_point("placeholder")
+        workflow.set_finish_point("placeholder")
+        
+        return workflow.compile()
+
 # Para LangGraph Platform deployment - solo intentar crear si el API key está disponible
 try:
     memory_agent = create_memory_agent()
     # Alias para compatibilidad con langgraph.json
     graph = memory_agent
 except EnvironmentError:
-    # Durante testing o cuando no hay API key, usar None
-    memory_agent = None
-    graph = None
+    # Durante schema introspection o cuando no hay API key, usar schema graph
+    memory_agent = create_schema_graph()
+    graph = memory_agent
