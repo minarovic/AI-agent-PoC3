@@ -885,31 +885,45 @@ class AsyncMockMCPConnector:
 
     async def get_company_by_id(self, company_id: str) -> Dict[str, Any]:
         """Asynchronní verze get_company_by_id."""
-        return await asyncio.to_thread(self._sync_connector.get_company_by_id, company_id)
+        return await asyncio.to_thread(
+            self._sync_connector.get_company_by_id, company_id
+        )
 
-    async def search_companies(self, params: CompanyQueryParams) -> List[Dict[str, Any]]:
+    async def search_companies(
+        self, params: CompanyQueryParams
+    ) -> List[Dict[str, Any]]:
         """Asynchronní verze search_companies."""
         return await asyncio.to_thread(self._sync_connector.search_companies, params)
 
     async def get_company_financials(self, company_id: str) -> Dict[str, Any]:
         """Asynchronní verze get_company_financials."""
-        return await asyncio.to_thread(self._sync_connector.get_company_financials, company_id)
+        return await asyncio.to_thread(
+            self._sync_connector.get_company_financials, company_id
+        )
 
     async def get_company_relationships(self, company_id: str) -> List[Dict[str, Any]]:
         """Asynchronní verze get_company_relationships."""
-        return await asyncio.to_thread(self._sync_connector.get_company_relationships, company_id)
+        return await asyncio.to_thread(
+            self._sync_connector.get_company_relationships, company_id
+        )
 
     async def get_company_search_data(self, company_id: str) -> Dict[str, Any]:
         """Asynchronní verze get_company_search_data."""
-        return await asyncio.to_thread(self._sync_connector.get_company_search_data, company_id)
+        return await asyncio.to_thread(
+            self._sync_connector.get_company_search_data, company_id
+        )
 
     async def get_supply_chain_data(self, company_id: str) -> List[Dict[str, Any]]:
         """Asynchronní verze get_supply_chain_data."""
-        return await asyncio.to_thread(self._sync_connector.get_supply_chain_data, company_id)
+        return await asyncio.to_thread(
+            self._sync_connector.get_supply_chain_data, company_id
+        )
 
     async def get_risk_factors_data(self, company_id: str) -> Dict[str, Any]:
         """Asynchronní verze get_risk_factors_data."""
-        return await asyncio.to_thread(self._sync_connector.get_risk_factors_data, company_id)
+        return await asyncio.to_thread(
+            self._sync_connector.get_risk_factors_data, company_id
+        )
 
     async def read_resource(self, company_name: str) -> Dict[str, Any]:
         """Asynchronní verze read_resource."""

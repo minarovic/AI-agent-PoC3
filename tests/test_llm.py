@@ -97,13 +97,13 @@ def test_analyze_company_tool(mock_connector, mock_async_connector):
     connector_instance = MagicMock()
     mock_connector.return_value = connector_instance
 
-    # Mock pro AsyncMockMCPConnector (async verze) 
+    # Mock pro AsyncMockMCPConnector (async verze)
     async_connector_instance = MagicMock()
     mock_async_connector.return_value = async_connector_instance
 
     # Mock návratových hodnot pro metody connectoru (sync verze)
     connector_instance.get_company_by_name.return_value = {
-        "id": "123", 
+        "id": "123",
         "label": "Test Company",  # Používá se "label" místo "name"
     }
     connector_instance.get_company_financials.return_value = {"revenue": 1000000}
@@ -117,10 +117,10 @@ def test_analyze_company_tool(mock_connector, mock_async_connector):
             "id": "123",
             "label": "Test Company",
         }
-    
+
     async def mock_get_company_financials(company_id):
         return {"revenue": 1000000}
-        
+
     async def mock_get_company_relationships(company_id):
         return [{"type": "supplier", "entity": "Other Company"}]
 
@@ -136,9 +136,10 @@ def test_analyze_company_tool(mock_connector, mock_async_connector):
 
     # Ověření, že výsledek je string (JSON)
     assert isinstance(result, str)
-    
+
     # Parse výsledku pro ověření obsahu
     import json
+
     parsed_result = json.loads(result)
-    assert parsed_result.get("analysis_complete") == True
+    assert parsed_result.get("analysis_complete")
     assert parsed_result.get("company_name") == "Test Company"

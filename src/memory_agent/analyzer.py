@@ -278,7 +278,9 @@ async def analyze_company_async(query: str) -> str:
                 internal_data = {"message": "Financial data not available"}
 
             try:
-                relationships_data = await connector.get_company_relationships(company_id)
+                relationships_data = await connector.get_company_relationships(
+                    company_id
+                )
             except Exception:
                 relationships_data = []
 
@@ -341,12 +343,14 @@ def analyze_company(query: str) -> str:
             # Pokud již běží event loop, použijeme to_thread
             loop = asyncio.get_running_loop()
             # Spustíme async verzi v thread poolu
-            future = asyncio.run_coroutine_threadsafe(analyze_company_async(query), loop)
+            future = asyncio.run_coroutine_threadsafe(
+                analyze_company_async(query), loop
+            )
             return future.result(timeout=30)  # 30s timeout
         except RuntimeError:
             # Pokud neběží event loop, spustíme nový
             return asyncio.run(analyze_company_async(query))
-    except Exception as e:
+    except Exception:
         # Fallback na synchronní verzi při chybě
         try:
             # Parse query to extract company name and analysis type

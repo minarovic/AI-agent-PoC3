@@ -10,7 +10,6 @@ import os
 from typing import Sequence, Dict, Any
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import ConfigurableField, RunnableConfig
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
@@ -24,6 +23,7 @@ from .prompts import PromptRegistry, SYSTEM_PROMPT
 
 class ConfigurableState(TypedDict):
     """State for configurable agent with message history."""
+
     messages: Annotated[Sequence[BaseMessage], add_messages]
 
 
@@ -52,12 +52,12 @@ def create_configurable_memory_agent():
         openai_api_key=openai_api_key,
     ).configurable_fields(
         model_name=ConfigurableField(id="model_name"),
-        temperature=ConfigurableField(id="temperature")
+        temperature=ConfigurableField(id="temperature"),
     )
 
     # Create agent with configurable components
     checkpointer = InMemorySaver()
-    
+
     # Using the enhanced prompt system
     enhanced_prompt = (
         "You are a helpful business intelligence assistant specializing in company analysis. "
@@ -79,74 +79,88 @@ def create_configurable_memory_agent():
 def create_advanced_configurable_agent():
     """
     Create an advanced configurable agent with explicit prompt management.
-    
+
     This version provides more granular control over prompt editing.
     """
     # Create StateGraph for more control
     workflow = StateGraph(ConfigurableState)
-    
+
     def get_configurable_prompt(config: RunnableConfig = None) -> str:
         """Get prompt from configuration or default."""
         if config and config.get("configurable", {}).get("system_prompt"):
             return config["configurable"]["system_prompt"]
         return PromptRegistry.get_prompt("company_analysis") or SYSTEM_PROMPT
-    
-    def agent_node(state: ConfigurableState, config: RunnableConfig = None) -> Dict[str, Any]:
+
+    def agent_node(
+        state: ConfigurableState, config: RunnableConfig = None
+    ) -> Dict[str, Any]:
         """Agent node with configurable prompt."""
         # Get current prompt configuration
         current_prompt = get_configurable_prompt(config)
-        
+
         # Create LLM with current configuration
         llm = ChatOpenAI(
-            model=config.get("configurable", {}).get("model_name", "gpt-4") if config else "gpt-4",
-            temperature=config.get("configurable", {}).get("temperature", 0.1) if config else 0.1,
+            model=(
+                config.get("configurable", {}).get("model_name", "gpt-4")
+                if config
+                else "gpt-4"
+            ),
+            temperature=(
+                config.get("configurable", {}).get("temperature", 0.1)
+                if config
+                else 0.1
+            ),
         )
-        
+
         # Bind tools to LLM
         llm_with_tools = llm.bind_tools([analyze_company])
-        
+
         # Process messages with current prompt
         messages = state["messages"]
         if not any(msg.type == "system" for msg in messages):
             from langchain_core.messages import SystemMessage
+
             messages = [SystemMessage(content=current_prompt)] + list(messages)
-        
+
         response = llm_with_tools.invoke(messages)
         return {"messages": [response]}
-    
+
     def tools_node(state: ConfigurableState) -> Dict[str, Any]:
         """Tools execution node."""
         from langgraph.prebuilt import ToolNode
+
         tool_node = ToolNode([analyze_company])
         return tool_node.invoke(state)
-    
+
     def should_continue(state: ConfigurableState) -> str:
         """Determine if we should continue or end."""
         last_message = state["messages"][-1]
-        if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools"
         return "__end__"
-    
+
     # Add nodes
     workflow.add_node("agent", agent_node)
     workflow.add_node("tools", tools_node)
-    
+
     # Add edges
     workflow.set_entry_point("agent")
-    workflow.add_conditional_edges("agent", should_continue, {"tools": "tools", "__end__": "__end__"})
+    workflow.add_conditional_edges(
+        "agent", should_continue, {"tools": "tools", "__end__": "__end__"}
+    )
     workflow.add_edge("tools", "agent")
-    
+
     # Compile with checkpointer
     checkpointer = InMemorySaver()
     app = workflow.compile(checkpointer=checkpointer)
-    
+
     return app
 
 
 def create_prompt_editable_agent():
     """
     Create agent optimized for LangGraph Studio prompt editing.
-    
+
     This combines the simplicity of create_react_agent with configurability.
     """
     openai_api_key = os.environ.get("OPENAI_API_KEY")
@@ -169,30 +183,32 @@ def create_prompt_editable_agent():
     )
 
     # Add configuration metadata for Studio
-    if hasattr(agent, 'config'):
+    if hasattr(agent, "config"):
         agent.config = agent.config or {}
-        agent.config.update({
-            "configurable": {
-                "system_prompt": {
-                    "id": "system_prompt",
-                    "name": "System Prompt",
-                    "description": "Main system prompt for the agent",
-                    "default": default_prompts["system_prompt"],
-                },
-                "analysis_style": {
-                    "id": "analysis_style", 
-                    "name": "Analysis Style",
-                    "description": "Style of analysis (detailed, summary, technical)",
-                    "default": "detailed",
-                },
-                "response_format": {
-                    "id": "response_format",
-                    "name": "Response Format", 
-                    "description": "Format for responses (markdown, plain, json)",
-                    "default": "markdown",
-                },
+        agent.config.update(
+            {
+                "configurable": {
+                    "system_prompt": {
+                        "id": "system_prompt",
+                        "name": "System Prompt",
+                        "description": "Main system prompt for the agent",
+                        "default": default_prompts["system_prompt"],
+                    },
+                    "analysis_style": {
+                        "id": "analysis_style",
+                        "name": "Analysis Style",
+                        "description": "Style of analysis (detailed, summary, technical)",
+                        "default": "detailed",
+                    },
+                    "response_format": {
+                        "id": "response_format",
+                        "name": "Response Format",
+                        "description": "Format for responses (markdown, plain, json)",
+                        "default": "markdown",
+                    },
+                }
             }
-        })
+        )
 
     return agent
 
@@ -200,7 +216,7 @@ def create_prompt_editable_agent():
 # Create the configurable agent instances
 try:
     configurable_memory_agent = create_configurable_memory_agent()
-    advanced_configurable_agent = create_advanced_configurable_agent() 
+    advanced_configurable_agent = create_advanced_configurable_agent()
     prompt_editable_agent = create_prompt_editable_agent()
 except EnvironmentError:
     # During testing when API key is not available
@@ -213,11 +229,11 @@ except EnvironmentError:
 def update_agent_prompt(agent, new_prompt: str) -> bool:
     """
     Update agent prompt dynamically.
-    
+
     Args:
         agent: The agent instance
         new_prompt: New system prompt text
-        
+
     Returns:
         bool: True if update was successful
     """
@@ -233,7 +249,7 @@ def update_agent_prompt(agent, new_prompt: str) -> bool:
 def get_agent_configuration_schema() -> Dict[str, Any]:
     """
     Get the configuration schema for LangGraph Studio.
-    
+
     Returns:
         Dict containing the configuration schema
     """
@@ -246,7 +262,7 @@ def get_agent_configuration_schema() -> Dict[str, Any]:
                 "default": SYSTEM_PROMPT,
             },
             "model_name": {
-                "type": "string", 
+                "type": "string",
                 "title": "Model Name",
                 "description": "OpenAI model to use",
                 "default": "gpt-4",
@@ -254,7 +270,7 @@ def get_agent_configuration_schema() -> Dict[str, Any]:
             },
             "temperature": {
                 "type": "number",
-                "title": "Temperature", 
+                "title": "Temperature",
                 "description": "Temperature for response generation",
                 "default": 0.1,
                 "minimum": 0.0,
@@ -276,11 +292,11 @@ def demonstrate_prompt_editing():
     Demonstrate prompt editing capabilities for verification.
     """
     print("=== Demonstrating Prompt Editing Capabilities ===")
-    
+
     # Show original prompt
     original_prompt = PromptRegistry.get_prompt("company_analysis")
     print(f"Original prompt (truncated): {original_prompt[:100]}...")
-    
+
     # Update prompt
     new_prompt = """
     Provide a BRIEF executive summary analysis for company {company_name}.
@@ -292,21 +308,21 @@ def demonstrate_prompt_editing():
     
     Keep response under 200 words.
     """
-    
+
     success = PromptRegistry.update_prompt("company_analysis", new_prompt)
     print(f"Prompt update successful: {success}")
-    
+
     # Verify update
     updated_prompt = PromptRegistry.get_prompt("company_analysis")
     print(f"Updated prompt (truncated): {updated_prompt[:100]}...")
-    
+
     return success
 
 
 if __name__ == "__main__":
     # Demonstration of prompt editing
     demonstrate_prompt_editing()
-    
+
     # Show configuration schema
     schema = get_agent_configuration_schema()
     print(f"\nConfiguration schema: {schema}")

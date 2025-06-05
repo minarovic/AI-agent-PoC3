@@ -18,20 +18,25 @@ sys.path.insert(
 def test_api_key_validation():
     """Test, že validace API klíčů funguje správně."""
     try:
-        from memory_agent.api_validation import validate_openai_api_key, diagnose_api_key_issue
-        
+        from memory_agent.api_validation import (
+            validate_openai_api_key,
+            diagnose_api_key_issue,
+        )
+
         # Test s neplatným klíčem
         is_valid, message = validate_openai_api_key("invalid-key")
         assert not is_valid, "Validace by měla odhalit neplatný klíč"
-        assert "should start with 'sk-'" in message, f"Neočekávaná chybová zpráva: {message}"
-        
+        assert (
+            "should start with 'sk-'" in message
+        ), f"Neočekávaná chybová zpráva: {message}"
+
         # Test s chybějícím klíčem - temporarily store original env var
         original_key = os.environ.get("OPENAI_API_KEY")
         try:
             # Temporarily remove the env var for this test
             if "OPENAI_API_KEY" in os.environ:
                 del os.environ["OPENAI_API_KEY"]
-            
+
             is_valid, message = validate_openai_api_key(None)
             assert not is_valid, "Validace by měla odhalit chybějící klíč"
             assert "not set" in message, f"Neočekávaná chybová zpráva: {message}"
@@ -39,7 +44,7 @@ def test_api_key_validation():
             # Restore original env var
             if original_key is not None:
                 os.environ["OPENAI_API_KEY"] = original_key
-        
+
         # Test passed successfully; no need for stdout output.
     except ImportError:
         pytest.skip("API validation modul není dostupný")
@@ -49,13 +54,16 @@ def test_openai_api_connection():
     """Test, že můžeme úspěšně volat OpenAI API."""
     try:
         # First validate the API key format
-        from memory_agent.api_validation import validate_openai_api_key, diagnose_api_key_issue
-        
+        from memory_agent.api_validation import (
+            validate_openai_api_key,
+            diagnose_api_key_issue,
+        )
+
         is_valid, message = validate_openai_api_key()
         if not is_valid:
             diagnosis = diagnose_api_key_issue()
             pytest.fail(f"API key validation failed: {message}\n{diagnosis}")
-        
+
         # Předpokládá se, že OPENAI_API_KEY je nastaven v prostředí
         # V GitHub Actions to bude nastaveno z secrets
         chat_model = ChatOpenAI(model="gpt-3.5-turbo")
@@ -84,11 +92,12 @@ def test_memory_agent_imports():
     try:
         from memory_agent.graph import memory_agent
         from memory_agent.api_validation import validate_openai_api_key
-        
+
         # Check if API key is available and valid
         import os
+
         api_key = os.environ.get("OPENAI_API_KEY")
-        
+
         if not api_key:
             # Without API key, memory_agent should be None (expected behavior)
             assert memory_agent is None, "memory_agent by měl být None bez API klíče"
@@ -96,21 +105,27 @@ def test_memory_agent_imports():
         else:
             # Check if the API key is valid
             is_valid, message = validate_openai_api_key(api_key)
-            
+
             if not is_valid:
                 # With invalid API key, memory_agent should be None
-                assert memory_agent is None, f"memory_agent by měl být None s neplatným API klíčem: {message}"
-                print(f"✅ memory_agent is correctly None with invalid API key: {message}")
+                assert (
+                    memory_agent is None
+                ), f"memory_agent by měl být None s neplatným API klíčem: {message}"
+                print(
+                    f"✅ memory_agent is correctly None with invalid API key: {message}"
+                )
             else:
                 # With valid API key, memory_agent should have expected methods
                 # Note: This will only work with a real, working OpenAI API key
                 if memory_agent is not None:
-                    assert hasattr(memory_agent, "invoke"), "memory_agent nemá metodu invoke"
+                    assert hasattr(
+                        memory_agent, "invoke"
+                    ), "memory_agent nemá metodu invoke"
                     print("✅ memory_agent má očekávané metody")
                 else:
                     # Even with valid format, may still be None due to other validation
                     print("⚠️ memory_agent is None even with valid API key format")
-            
+
     except ImportError as e:
         pytest.fail(f"Nelze importovat memory_agent: {str(e)}")
 

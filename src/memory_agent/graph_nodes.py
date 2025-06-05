@@ -10,7 +10,6 @@ import logging
 import traceback
 
 from memory_agent.tools import (
-    MockMCPConnector,
     AsyncMockMCPConnector,
 )
 
