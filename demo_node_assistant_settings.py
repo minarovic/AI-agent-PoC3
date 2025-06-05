@@ -8,12 +8,12 @@ This script answers the LangGraph Studio question:
 The answer is: YES - this script demonstrates the node-specific assistant configurations.
 """
 
-import os
 import json
-from pathlib import Path
+import os
 
 # Add src to path for local testing
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 

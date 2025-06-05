@@ -6,8 +6,9 @@ as required by LangGraph Studio.
 """
 
 import os
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 
 def test_node_assistant_settings_available():
@@ -59,7 +60,7 @@ def test_studio_config_format():
 
 def test_node_config_validation():
     """Test that node configurations are valid."""
-    from memory_agent.node_config import validate_node_configs, list_configured_nodes
+    from memory_agent.node_config import list_configured_nodes, validate_node_configs
 
     # Get list of configured nodes
     nodes = list_configured_nodes()

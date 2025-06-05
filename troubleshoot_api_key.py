@@ -21,8 +21,8 @@ def main():
 
     try:
         from memory_agent.api_validation import (
-            validate_openai_api_key,
             diagnose_api_key_issue,
+            validate_openai_api_key,
         )
 
         print("\n1. Checking API key environment variable...")
@@ -53,8 +53,8 @@ def main():
 
         print("\n3. Testing basic OpenAI API connection...")
         try:
-            from langchain_openai import ChatOpenAI
             from langchain_core.messages import HumanMessage
+            from langchain_openai import ChatOpenAI
 
             chat_model = ChatOpenAI(model="gpt-3.5-turbo", max_tokens=10)
             response = chat_model.invoke([HumanMessage(content="Say 'Hello'")])

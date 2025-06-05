@@ -5,8 +5,8 @@ Tento modul obsahuje registry promptů a pomocné funkce pro generování
 a správu promptů pro různé části workflow.
 """
 
-from typing import Dict, Any, Optional
 import logging
+from typing import Any, Dict, Optional
 
 from memory_agent.state import State
 
@@ -32,62 +32,62 @@ class PromptRegistry:
     _prompts: Dict[str, str] = {
         "system_prompt": SYSTEM_PROMPT,  # Add system prompt to registry
         "company_analysis": """Proveď analýzu společnosti na základě dostupných dat.
-        
+
         Společnost: {company_name}
-        
+
         Dostupná data:
         {company_data}
-        
+
         Finanční data:
         {financial_data}
-        
+
         Vztahy:
         {relationships}
-        
+
         Poskytni stručnou, ale informativní analýzu, která zahrnuje:
         1. Základní informace o společnosti
         2. Klíčové finanční ukazatele a trendy
         3. Významné vztahy a propojení
         4. Potenciální rizika nebo příležitosti""",
         "person_analysis": """Proveď analýzu osoby na základě dostupných dat.
-        
+
         Osoba: {person_name}
-        
+
         Dostupná data:
         {person_data}
-        
+
         Vztahy:
         {relationships}
-        
+
         Poskytni stručnou, ale informativní analýzu, která zahrnuje:
         1. Základní informace o osobě
         2. Klíčové role a pozice
         3. Významné vztahy a propojení
         4. Potenciální oblasti zájmu""",
         "relationship_analysis": """Proveď analýzu vztahů mezi entitami na základě dostupných dat.
-        
+
         Entity: {entity_names}
-        
+
         Dostupná data:
         {entities_data}
-        
+
         Vztahy:
         {relationships}
-        
+
         Poskytni stručnou, ale informativní analýzu, která zahrnuje:
         1. Typy identifikovaných vztahů
         2. Sílu a významnost vztahů
         3. Časový vývoj vztahů (pokud je k dispozici)
         4. Potenciální implikace a důsledky vztahů""",
         "error_handling": """Omlouvám se, při zpracování Vašeho dotazu došlo k chybě.
-        
+
         Typ chyby: {error_type}
-        
+
         Detaily: {error_message}
-        
+
         Doporučení:
         {recommendations}
-        
+
         Zkuste prosím:
         1. Přeformulovat svůj dotaz
         2. Poskytnout více specifických informací

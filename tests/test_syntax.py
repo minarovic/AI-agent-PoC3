@@ -6,6 +6,7 @@ Tento test nevyžaduje API klíče a může běžet na CI.
 import importlib
 import os
 import sys
+
 import pytest
 
 
@@ -55,7 +56,7 @@ def test_package_imports():
 def test_graph_exports():
     """Test, že graph.py exportuje potřebné objekty."""
     try:
-        from memory_agent.graph import memory_agent, graph  # noqa: F401
+        from memory_agent.graph import graph, memory_agent  # noqa: F401
 
         assert memory_agent is not None
         assert graph is not None

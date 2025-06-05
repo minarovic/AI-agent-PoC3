@@ -5,8 +5,9 @@ Test simuluje LLM volání bez potřeby skutečných API klíčů.
 
 import os
 import sys
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 # Přidání src do pythonpath pro import
 sys.path.insert(
@@ -48,7 +49,7 @@ class MockResponse:
 
 def test_agent_structure():
     """Test, že agent má správnou strukturu a může být vytvořen."""
-    from memory_agent.graph import create_memory_agent, memory_agent, graph
+    from memory_agent.graph import create_memory_agent, graph, memory_agent
 
     # Ověření, že agent a graph objekty existují
     assert memory_agent is not None

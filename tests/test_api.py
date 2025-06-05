@@ -5,9 +5,10 @@ Tento test předpokládá, že API klíče jsou dostupné v GitHub secrets.
 
 import os
 import sys
+
 import pytest
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
+from langchain_openai import ChatOpenAI
 
 # Přidání src do pythonpath pro import
 sys.path.insert(
@@ -19,8 +20,8 @@ def test_api_key_validation():
     """Test, že validace API klíčů funguje správně."""
     try:
         from memory_agent.api_validation import (
-            validate_openai_api_key,
             diagnose_api_key_issue,
+            validate_openai_api_key,
         )
 
         # Test s neplatným klíčem
@@ -55,8 +56,8 @@ def test_openai_api_connection():
     try:
         # First validate the API key format
         from memory_agent.api_validation import (
-            validate_openai_api_key,
             diagnose_api_key_issue,
+            validate_openai_api_key,
         )
 
         is_valid, message = validate_openai_api_key()
@@ -90,11 +91,11 @@ def test_openai_api_connection():
 def test_memory_agent_imports():
     """Test, že memory_agent lze importovat a má očekávaná rozhraní."""
     try:
-        from memory_agent.graph import memory_agent
-        from memory_agent.api_validation import validate_openai_api_key
-
         # Check if API key is available and valid
         import os
+
+        from memory_agent.api_validation import validate_openai_api_key
+        from memory_agent.graph import memory_agent
 
         api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -133,8 +134,9 @@ def test_memory_agent_imports():
 def test_analyze_company_tool():
     """Test, že funkce analyze_company existuje a má správnou signaturu."""
     try:
-        from memory_agent.analyzer import analyze_company
         import inspect
+
+        from memory_agent.analyzer import analyze_company
 
         # Ověření, že analyze_company je funkce s jedním parametrem
         sig = inspect.signature(analyze_company)

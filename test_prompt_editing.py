@@ -87,8 +87,9 @@ def test_prompt_editing_support():
 
     try:
         # Create agent with updated prompt
-        from langgraph.prebuilt import create_react_agent
         from langgraph.checkpoint.memory import InMemorySaver
+        from langgraph.prebuilt import create_react_agent
+
         from memory_agent.analyzer import analyze_company
 
         updated_agent = create_react_agent(

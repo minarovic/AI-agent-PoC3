@@ -3,10 +3,11 @@ Enhanced analyzer pro Memory Agent podle LangGraph dokumentace.
 Podporuje detekci typu analýzy a extrakci názvu společnosti z dotazů.
 """
 
-from typing import Dict, Any, Tuple
-import json
 import asyncio
-from .tools import MockMCPConnector, AsyncMockMCPConnector
+import json
+from typing import Any, Dict, Tuple
+
+from .tools import AsyncMockMCPConnector, MockMCPConnector
 
 # Constants
 RELATIONSHIP_SLICE_LIMIT = 100  # Limit the number of relationships to process

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Setup script for AI-agent-Ntier package."""
 
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 setup(
     name="ai-agent-ntier",

@@ -6,8 +6,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 try:
     from memory_agent.api_validation import (
-        validate_openai_api_key,
         diagnose_api_key_issue,
+        validate_openai_api_key,
     )
 
     validation_available = True

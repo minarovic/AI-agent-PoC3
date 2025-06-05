@@ -5,7 +5,7 @@ Tento modul obsahuje modely použité pro serializaci
 objektů, které jsou součástí stavového grafu LangGraph.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class MockMCPConnectorConfig:

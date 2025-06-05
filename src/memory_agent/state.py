@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any
+from typing import Any, Dict, List, Optional
 
 from langchain_core.messages import AnyMessage
 
@@ -79,7 +79,7 @@ class State:
     messages: Annotated[list[AnyMessage], add_messages]
     """
     Zprávy v konverzaci.
-    
+
     Toto pole používá reducer add_messages z LangGraph k správnému
     připojení nových zpráv k historii konverzace při zachování
     jejich správného pořadí a vztahů. Reducer zpracovává různé
@@ -91,7 +91,7 @@ class State:
     )
     """
     Výsledek analýzy společností z uživatelského dotazu.
-    
+
     Obsahuje výsledky analýzy entit společností extrahovaných z uživatelských dotazů,
     včetně identifikovaných názvů společností, asociací a případných disambiguací.
     Používá reducer merge_dict_values pro akumulaci informací z různých zdrojů analýzy.
@@ -103,8 +103,8 @@ class State:
     )
     """
     Strukturovaná data o společnostech získaná z různých zdrojů.
-    
-    Obsahuje detailní informace o společnostech včetně identifikátorů, 
+
+    Obsahuje detailní informace o společnostech včetně identifikátorů,
     metadat a informací o zdroji. Používá reducer merge_dict_values
     pro správné kombinování informací z více zdrojů nebo analytických kroků.
     """
@@ -114,7 +114,7 @@ class State:
     )
     """
     Interní data používaná workflow, která nejsou přímo součástí výstupu.
-    
+
     Zahrnuje informace pro interní správu stavu, dočasné výsledky výpočtů
     a další data potřebná během provádění workflow, ale nezahrnutá do konečných výstupů.
     """
@@ -124,7 +124,7 @@ class State:
     ] = field(default_factory=dict)
     """
     Data o vztazích mezi entitami identifikovanými ve workflow.
-    
+
     Mapuje identifikátory entit na seznamy dat o vztazích, což umožňuje workflow
     sledovat komplexní sítě vztahů mezi společnostmi a dalšími entitami.
     """
@@ -132,7 +132,7 @@ class State:
     error_state: Dict[str, Any] = field(default_factory=dict)
     """
     Informace o chybách, když workflow narazí na problémy.
-    
+
     Obsahuje detailní informace o chybách včetně typu chyby, zprávy,
     komponenty, která chybu vygenerovala, a případných pokusů o zotavení.
     """
@@ -140,7 +140,7 @@ class State:
     output: Dict[str, Any] = field(default_factory=dict)
     """
     Finální zpracovaný výstup workflow.
-    
+
     Obsahuje strukturovaná výstupní data připravená k prezentaci uživateli,
     včetně zpracovaných informací o společnostech, dat o vztazích a případně
     vygenerovaných postřehů nebo doporučení.
@@ -149,7 +149,7 @@ class State:
     mcp_connector_config: Optional[Any] = None
     """
     Konfigurace pro MockMCPConnector.
-    
+
     Místo přímé instance používáme serializovatelnou konfiguraci.
     To umožňuje správné generování JSON schématu pro LangGraph Platform.
     """
@@ -157,7 +157,7 @@ class State:
     mcp_connector: Annotated[Any, merge_dict_values] = field(default=None)
     """
     Instance MockMCPConnector pro přístup k datům.
-    
+
     Tato instance je dostupná přímo jako atribut state objektu.
     Při deploymentu na LangGraph Platform je inicializována v uzlech grafu.
     """
@@ -177,8 +177,8 @@ class State:
             return self.mcp_connector
 
         # Pokud ne, vytvořit novou instanci
-        from memory_agent.tools import MockMCPConnector
         from memory_agent.schema import MockMCPConnectorConfig
+        from memory_agent.tools import MockMCPConnector
 
         if self.mcp_connector_config is None:
             self.mcp_connector_config = MockMCPConnectorConfig()

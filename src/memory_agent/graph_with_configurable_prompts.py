@@ -7,18 +7,19 @@ This implementation demonstrates how to make prompts editable in LangGraph Studi
 """
 
 import os
-from typing import Sequence, Dict, Any
+from typing import Any, Dict, Sequence
+
 from langchain_core.messages import BaseMessage
 from langchain_core.runnables import ConfigurableField, RunnableConfig
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
+from langgraph.prebuilt import create_react_agent
 from typing_extensions import Annotated, TypedDict
 
 from .analyzer import analyze_company
-from .prompts import PromptRegistry, SYSTEM_PROMPT
+from .prompts import SYSTEM_PROMPT, PromptRegistry
 
 
 class ConfigurableState(TypedDict):
@@ -300,12 +301,12 @@ def demonstrate_prompt_editing():
     # Update prompt
     new_prompt = """
     Provide a BRIEF executive summary analysis for company {company_name}.
-    
+
     Focus on:
     - Key business metrics
-    - Major risks and opportunities  
+    - Major risks and opportunities
     - Strategic recommendations
-    
+
     Keep response under 200 words.
     """
 

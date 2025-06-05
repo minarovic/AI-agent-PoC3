@@ -6,9 +6,9 @@ This script shows practical examples of how to edit prompts using both
 supported methods: direct node editing and LangSmith Playground integration.
 """
 
+import json
 import os
 import sys
-import json
 from pathlib import Path
 
 # Add src to path for imports
@@ -35,7 +35,7 @@ def demonstrate_direct_prompt_editing():
     prompt_variations = {
         "financial_analyst": """You are a senior financial analyst with expertise in:
 - Financial statement analysis and ratio calculations
-- Risk assessment and credit evaluation  
+- Risk assessment and credit evaluation
 - Investment recommendations and portfolio analysis
 - Market trend analysis and forecasting
 
@@ -262,7 +262,7 @@ def create_practical_examples():
             "system_prompt": """You are a venture capital analyst specializing in startup evaluation.
 Focus on:
 - Business model viability and scalability
-- Market opportunity and competitive advantages  
+- Market opportunity and competitive advantages
 - Team capability and execution track record
 - Financial projections and funding requirements
 - Risk factors specific to early-stage companies
@@ -309,7 +309,7 @@ Provide acquisition-focused recommendations with risk assessment.""",
         """
     # Update system prompt for startup analysis:
     PromptRegistry.update_prompt("system_prompt", examples["startup_analysis"]["system_prompt"])
-    
+
     # Or use as configuration:
     config = {
         "configurable": {

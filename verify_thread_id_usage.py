@@ -6,11 +6,11 @@ Tento skript projde zadané soubory a ověří, zda správně používají
 konfiguraci s thread_id při volání grafu.
 """
 
+import argparse
+import logging
 import os
 import re
-import logging
-import argparse
-from typing import List, Tuple, Dict, Any
+from typing import Any, Dict, List, Tuple
 
 # Nastavení loggeru
 logging.basicConfig(

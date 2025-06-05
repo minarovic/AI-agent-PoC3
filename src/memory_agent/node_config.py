@@ -5,8 +5,8 @@ This module defines assistant settings that are specific to individual nodes
 in the graph, as required by LangGraph Studio for proper operation.
 """
 
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

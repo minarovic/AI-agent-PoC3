@@ -5,15 +5,14 @@ Minimální implementace podle LangGraph dokumentace s podporou pro node-specifi
 
 """
 
-from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.prebuilt import create_react_agent
+
 from .analyzer import analyze_company
-from .api_validation import get_validated_openai_api_key, diagnose_api_key_issue
-
-from .node_config import export_studio_config, validate_node_configs
-
+from .api_validation import diagnose_api_key_issue, get_validated_openai_api_key
 from .configuration import Configuration
-from .prompts import PromptRegistry, SYSTEM_PROMPT
+from .node_config import export_studio_config, validate_node_configs
+from .prompts import SYSTEM_PROMPT, PromptRegistry
 
 
 def create_memory_agent():
@@ -127,7 +126,7 @@ def create_schema_graph():
         return create_memory_agent()
     except EnvironmentError:
         # Si faltan API keys, crear un graph minimal solo para exponer el schema
-        from langgraph.graph import StateGraph, MessagesState
+        from langgraph.graph import MessagesState, StateGraph
 
         def placeholder_node(state: MessagesState) -> MessagesState:
             """Placeholder node for schema introspection."""

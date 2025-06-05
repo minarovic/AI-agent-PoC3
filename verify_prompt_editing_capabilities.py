@@ -10,9 +10,9 @@ This script validates:
 5. Graph structure compatibility with Studio
 """
 
+import json
 import os
 import sys
-import json
 from pathlib import Path
 
 # Add src to path for imports
@@ -24,11 +24,11 @@ if not (os.environ.get("CI") == "true" or os.environ.get("GITHUB_ACTIONS") == "t
 
 from memory_agent.graph import memory_agent
 from memory_agent.graph_with_configurable_prompts import (
-    configurable_memory_agent,
     advanced_configurable_agent,
+    configurable_memory_agent,
     get_agent_configuration_schema,
 )
-from memory_agent.prompts import PromptRegistry, SYSTEM_PROMPT
+from memory_agent.prompts import SYSTEM_PROMPT, PromptRegistry
 
 
 def test_direct_node_editing():

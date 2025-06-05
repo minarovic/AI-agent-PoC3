@@ -9,13 +9,10 @@ MockMCPConnector pro získávání dat pro různé typy analýz.
 import logging
 import traceback
 
-from memory_agent.tools import (
-    AsyncMockMCPConnector,
-)
-
-from memory_agent.state import State
-from memory_agent.analyzer import analyze_company_query
 from memory_agent import utils
+from memory_agent.analyzer import analyze_company_query
+from memory_agent.state import State
+from memory_agent.tools import AsyncMockMCPConnector
 
 # Import prompt registry
 
