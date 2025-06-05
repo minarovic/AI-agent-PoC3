@@ -36,7 +36,9 @@ def test_current_graph_structure():
     # Check if graph is using create_react_agent pattern
     print(f"Graph is compiled: {hasattr(memory_agent, 'compiled')}")
     
-    return True
+    # Add assertions
+    assert memory_agent is not None
+    assert hasattr(memory_agent, 'nodes')
 
 
 def test_prompt_registry_functionality():
@@ -63,7 +65,11 @@ def test_prompt_registry_functionality():
     final_prompt = PromptRegistry.get_prompt(test_prompt_id)
     print(f"Updated prompt retrieved correctly: {final_prompt == updated_text}")
     
-    return True
+    # Add assertions
+    assert company_prompt is not None
+    assert retrieved_prompt == test_prompt_text
+    assert update_success == True
+    assert final_prompt == updated_text
 
 
 def test_prompt_editing_support():
@@ -93,11 +99,12 @@ def test_prompt_editing_support():
         print("✅ Can create agent with different prompt")
         print(f"Updated agent type: {type(updated_agent)}")
         
+        # Add assertions
+        assert updated_agent is not None
+        
     except Exception as e:
         print(f"❌ Error creating agent with updated prompt: {e}")
-        return False
-    
-    return True
+        assert False, f"Failed to create agent with updated prompt: {e}"
 
 
 def test_langgraph_studio_compatibility():
@@ -116,11 +123,14 @@ def test_langgraph_studio_compatibility():
         print(f"Graph schema available: {graph_schema is not None}")
         print(f"Graph nodes in schema: {list(graph_schema.nodes.keys()) if graph_schema else 'None'}")
         
+        # Add assertions
+        assert hasattr(memory_agent, 'nodes')
+        assert memory_agent is not None
+        assert graph_schema is not None
+        
     except Exception as e:
         print(f"Graph introspection error: {e}")
-        return False
-    
-    return True
+        assert False, f"Graph introspection failed: {e}"
 
 
 def test_langsmith_integration():
@@ -138,11 +148,11 @@ def test_langsmith_integration():
     try:
         from langsmith import Client
         print("✅ LangSmith client available")
+        # Add assertion
+        assert True  # LangSmith client is available
     except ImportError:
         print("❌ LangSmith client not available")
-        return False
-    
-    return True
+        assert False, "LangSmith client not available"
 
 
 def main():
@@ -150,22 +160,29 @@ def main():
     print("Testing LangGraph Studio Prompt Editing Capabilities")
     print("=" * 60)
     
-    test_results = []
+    test_functions = [
+        test_current_graph_structure,
+        test_prompt_registry_functionality,
+        test_prompt_editing_support,
+        test_langgraph_studio_compatibility,
+        test_langsmith_integration,
+    ]
     
-    # Run all tests
-    test_results.append(test_current_graph_structure())
-    test_results.append(test_prompt_registry_functionality())
-    test_results.append(test_prompt_editing_support())
-    test_results.append(test_langgraph_studio_compatibility())
-    test_results.append(test_langsmith_integration())
+    passed = 0
+    total = len(test_functions)
+    
+    # Run all tests and count successes
+    for test_func in test_functions:
+        try:
+            test_func()
+            passed += 1
+        except Exception as e:
+            print(f"❌ Test {test_func.__name__} failed: {e}")
     
     # Summary
     print("\n" + "=" * 60)
     print("TEST SUMMARY")
     print("=" * 60)
-    
-    passed = sum(test_results)
-    total = len(test_results)
     
     print(f"Tests passed: {passed}/{total}")
     
