@@ -1,6 +1,6 @@
 """
 Memory Agent pomocí LangGraph create_react_agent.
-Minimální implementace podle LangGraph dokumentace.
+Minimální implementace podle LangGraph dokumentace s podporou prompt editace.
 """
 
 import os
@@ -8,11 +8,16 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import InMemorySaver
 from .analyzer import analyze_company
 from .configuration import Configuration
+from .prompts import PromptRegistry, SYSTEM_PROMPT
 
 
 def create_memory_agent():
     """
     Vytvoří Memory Agent pomocí LangGraph create_react_agent.
+    
+    Podporuje editaci promptů v LangGraph Studio:
+    1. Přímou editaci uzlů
+    2. LangSmith Playground integraci
 
     Returns:
         Nakonfigurovaný agent připravený k použití
@@ -28,11 +33,21 @@ def create_memory_agent():
     # Nastavení checkpointeru pro persistenci
     checkpointer = InMemorySaver()
 
-    # Vytvoření agenta s tool funkcí, string syntax pro model a config schema
+    # Získání system promptu z PromptRegistry pro centralizovanou správu
+    system_prompt = PromptRegistry.get_prompt("system_prompt") or SYSTEM_PROMPT
+
+    # Kombinace s business intelligence instrukcemi
+    enhanced_prompt = (
+        f"{system_prompt}\n\n"
+        "Use the analyze_company tool to get detailed information about companies "
+        "and provide structured, insightful analysis based on the retrieved data."
+    )
+
+    # Vytvoření agenta s tool funkcí a enhanced prompt
     agent = create_react_agent(
         model=model,
         tools=[analyze_company],
-        prompt="You are a helpful business intelligence assistant. Use the analyze_company tool to get information about companies and provide detailed, structured analysis based on the retrieved data.",
+        prompt=enhanced_prompt,
         checkpointer=checkpointer,
         config_schema=Configuration,
     )
