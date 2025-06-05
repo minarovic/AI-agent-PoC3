@@ -30,8 +30,11 @@ jobs:
             exit 1
           fi
 
+      - name: Set PYTHONPATH
+        run: echo "PYTHONPATH=${{ github.workspace }}/src" >> $GITHUB_ENV
+
       - name: Run basic import test
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          python -c "from src.memory_agent.graph import memory_agent; print('Import memory_agent OK')"
+          python -c "from memory_agent.graph import memory_agent; print('Import memory_agent OK')"
