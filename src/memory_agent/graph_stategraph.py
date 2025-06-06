@@ -157,7 +157,7 @@ def get_graph_for_deployment():
     try:
         return get_memory_agent_stategraph()
     except Exception as e:
-        logger.error(f"❌ Nelze vytvořit graf pro deployment: {str(e)}")
+        logger.error(f"Nelze vytvořit graf pro deployment: {str(e)}")
         # Vytvoříme minimální placeholder graf pro schema introspection
         return create_placeholder_graph()
 
