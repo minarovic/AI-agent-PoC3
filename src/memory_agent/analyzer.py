@@ -13,6 +13,40 @@ from .tools import AsyncMockMCPConnector, MockMCPConnector
 RELATIONSHIP_SLICE_LIMIT = 100  # Limit the number of relationships to process
 
 
+def detect_analysis_type(query: str) -> str:
+    """
+    Detekuje typ analýzy na základě klíčových slov v dotazu.
+
+    Args:
+        query: Uživatelský dotaz
+
+    Returns:
+        str: Typ analýzy (general, risk_comparison, supplier_analysis)
+    """
+    query_lower = query.lower()
+
+    # Risk analysis keywords
+    risk_keywords = [
+        "risk", "rizik", "rizic", "compliance", "sanctions", "sankce", 
+        "bezpečnost", "security", "regulace", "regulation", "aml", "kyc",
+        "fatf", "ofac", "embargo", "reputace"
+    ]
+
+    # Supplier analysis keywords  
+    supplier_keywords = [
+        "supplier", "dodavatel", "supply chain", "relationships", "vztahy",
+        "dodávky", "tier", "odběratel", "procurement", "logistics", 
+        "logistika", "distributor", "vendor", "nákup"
+    ]
+
+    if any(keyword in query_lower for keyword in risk_keywords):
+        return "risk_comparison"
+    elif any(keyword in query_lower for keyword in supplier_keywords):
+        return "supplier_analysis"
+    else:
+        return "general"
+
+
 def analyze_company_query(query: str) -> Tuple[str, str]:
     """
     Parse user query to extract company name and analysis type.

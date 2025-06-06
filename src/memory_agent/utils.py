@@ -5,10 +5,21 @@ Tento modul obsahuje pomocné funkce pro práci s modely, konfigurací
 a dalšími komponentami Memory Agenta.
 """
 
+from datetime import datetime
 from typing import Any, Dict, Tuple, Union
 
 from memory_agent.schema import MockMCPConnectorConfig
 from memory_agent.tools import MockMCPConnector
+
+
+def get_current_timestamp() -> str:
+    """
+    Vrátí aktuální timestamp ve formátu ISO.
+
+    Returns:
+        str: Aktuální timestamp
+    """
+    return datetime.now().isoformat()
 
 
 def split_model_and_provider(model_name: str) -> Tuple[str, str]:
