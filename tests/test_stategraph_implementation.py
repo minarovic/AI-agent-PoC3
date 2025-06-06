@@ -5,22 +5,25 @@ Tyto testy ověřují funkcionalnost explicitního StateGraph workflow
 bez závislosti na externích API klíčích.
 """
 
-import pytest
-from unittest.mock import Mock, patch
-import sys
 import os
+import sys
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Přidání src do path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../src"))
 
-from memory_agent.state import State
-from memory_agent.graph_stategraph import (
-    create_explicit_stategraph,
-    create_placeholder_graph,
-    handle_error_state,
-    get_error_suggestions,
-)
 from langchain_core.messages import HumanMessage
+
+from memory_agent.graph_stategraph import (
+    create_placeholder_graph,
+    create_react_agent_legacy,
+    get_error_suggestions,
+    get_memory_agent_stategraph,
+    handle_error_state,
+)
+from memory_agent.state import State
 
 
 class TestStateGraphImplementation:
@@ -94,6 +97,7 @@ class TestStateGraphImplementation:
     def test_stategraph_structure_without_compilation(self, mock_legacy):
         """Test struktury StateGraph bez kompilace (aby se předešlo API key errors)."""
         from langgraph.graph import StateGraph
+
         from memory_agent.graph_nodes import route_query
 
         # Vytvoření StateGraph struktury
@@ -128,8 +132,6 @@ class TestStateGraphImplementation:
 
     def test_conditional_branch_logic(self):
         """Test logiky podmíněného větvení."""
-        from memory_agent.graph_stategraph import create_explicit_stategraph
-
         # Test různých stavů pro podmíněné větvení
         test_cases = [
             {"analysis_type": "general", "error_state": {}, "expected_type": "general"},
@@ -158,23 +160,18 @@ class TestStateGraphImplementation:
     def test_import_completeness(self):
         """Test úplnosti importů."""
         # Ověření, že všechny potřebné moduly lze importovat
-        from memory_agent.graph_stategraph import (
-            create_explicit_stategraph,
-            create_react_agent_legacy,
-            get_memory_agent_stategraph,
-            create_placeholder_graph,
-            handle_error_state,
-            get_error_suggestions,
-        )
-
         from memory_agent.graph_nodes import (
-            route_query,
-            prepare_company_query,
-            retrieve_additional_company_data,
             analyze_company_data,
             format_response_node,
+            prepare_company_query,
+            retrieve_additional_company_data,
+            route_query,
         )
-
+        from memory_agent.graph_stategraph import (
+            create_placeholder_graph,
+            get_error_suggestions,
+            handle_error_state,
+        )
         from memory_agent.state import State
 
         # Všechny importy proběhly úspěšně
@@ -211,7 +208,6 @@ class TestStateGraphImplementation:
         assert handle_error_state is not None
 
         # 3. Ověření existence fallback funkce
-        from memory_agent.graph_stategraph import create_react_agent_legacy
 
         assert create_react_agent_legacy is not None
 

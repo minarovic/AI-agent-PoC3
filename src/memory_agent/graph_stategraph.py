@@ -27,9 +27,6 @@ from .state import State
 logger = logging.getLogger(__name__)
 
 
-
-
-
 def handle_error_state(state: State) -> State:
     """
     Uzel pro zpracování chybových stavů.
