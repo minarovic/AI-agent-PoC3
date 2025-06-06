@@ -10,6 +10,22 @@
 - **Status:** Ve vývoji - fázovaná implementace
 - **CI/CD:** GitHub Actions pipeline
 
+## 🤖 Doporučení pro Copilot/AI agenta a vývojáře
+- Tento projekt je optimalizovaný pro využití Copilot Coding Agenta a podobných AI nástrojů.
+- **Copilot může generovat, analyzovat i refaktorovat kód podle této dokumentace.**
+- Pro běžné úkoly (přidání typu analýzy, úprava dat, debugging) vždy postupuj podle níže uvedených kroků a struktur.
+- **API klíče a secrets:**  
+  Uchovávej runtime klíče (OpenAI, Anthropic atd.) v GitHub Secrets (`Settings → Secrets and variables → Actions`), případně v lokálním `.env` souboru (viz příklad níže).
+- **Testy a lintery** běží jen ve workflow `test.yml` (produkční běh není závislý na testech).
+- **Dev závislosti** (`requirements-dev.txt`) jsou určeny pouze pro CI a lokální vývoj.
+
+### Příklad .env souboru pro lokální vývoj:
+```
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=...
+LANGCHAIN_API_KEY=...
+```
+
 ## 📁 STRUKTURA PROJEKTU
 ```
 AI-agent-Ntier/
@@ -101,6 +117,16 @@ AI-agent-Ntier/
 1. Uprav `requirements.txt`
 2. Test přes GitHub Actions
 3. Deploy na LangGraph Platform
+
+### Praktické příkazy:
+- **Instalace production dependencies:**  
+  `pip install -r requirements.txt`
+- **Instalace dev dependencies:**  
+  `pip install -r requirements-dev.txt`
+- **Spuštění testů:**  
+  `pytest`
+- **Lokální spuštění/ladění:**  
+  `bash run_langgraph_dev.sh` nebo `python -m src.memory_agent.graph`
 
 ## 🚦 TROUBLESHOOTING
 
