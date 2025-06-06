@@ -125,7 +125,7 @@ def create_react_agent_legacy():
 
         return create_memory_agent()
     except Exception as e:
-        logger.error(f"❌ Chyba při vytváření fallback agenta: {str(e)}")
+        logger.error(f"Chyba při vytváření fallback agenta: {str(e)}")
         raise
 
 
