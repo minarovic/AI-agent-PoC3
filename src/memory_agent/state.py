@@ -210,6 +210,11 @@ class State:
     query_type: Optional[str] = None
     """Typ dotazu identifikovaný během analýzy."""
 
+    analysis_type: Optional[str] = None
+    """Typ analýzy identifikovaný z uživatelského dotazu (general, risk_comparison, supplier_analysis)."""
+
+    company_name: Optional[str] = None
+    """Název společnosti extrahovaný z uživatelského dotazu."""
 
 
 # AgentState pro přímou integraci s LangGraph Platform
