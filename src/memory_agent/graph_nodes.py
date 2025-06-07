@@ -386,7 +386,9 @@ def analyze_company_data(state: State) -> State:
                     f"Společnost {company_name} působí v zemích: {countries_str}"
                 )
             else:
-                key_findings.append(f"Společnost {company_name} - nerozpoznaný formát zemí")
+                key_findings.append(
+                    f"Společnost {company_name} - nerozpoznaný formát zemí"
+                )
         else:
             key_findings.append(f"Společnost {company_name} - země působení není známa")
 
@@ -398,7 +400,9 @@ def analyze_company_data(state: State) -> State:
             activities = financial_overview["identified_activities"]
             if isinstance(activities, list) and activities:
                 # Zajistit, že activities jsou stringy
-                activities_str = ", ".join(str(a) for a in activities[:3])  # První 3 aktivity
+                activities_str = ", ".join(
+                    str(a) for a in activities[:3]
+                )  # První 3 aktivity
                 key_findings.append(f"Hlavní aktivity: {activities_str}")
 
         # Sestavení analýzy pro general typ

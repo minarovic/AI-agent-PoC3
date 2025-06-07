@@ -64,47 +64,51 @@ def format_response_node(state: State) -> State:
         if analysis_type == "risk_comparison":
             risk_score = analysis_result.get("risk_score")
             risk_factors = analysis_result.get("risk_factors", [])
-            
+
             output = {
                 "status": "completed",
                 "analysis_type": analysis_type,
                 "company_name": company_name,
-                "summary": analysis_result.get("summary", f"Analýza rizik pro {company_name}"),
+                "summary": analysis_result.get(
+                    "summary", f"Analýza rizik pro {company_name}"
+                ),
                 "risk_score": risk_score,
                 "risk_factors_count": len(risk_factors),
                 "key_findings": analysis_result.get("key_findings", []),
                 "data_quality": analysis_result.get("data_quality", "unknown"),
             }
-            
+
         elif analysis_type == "supplier_analysis":
             suppliers = analysis_result.get("suppliers", [])
-            
+
             output = {
                 "status": "completed",
                 "analysis_type": analysis_type,
                 "company_name": company_name,
-                "summary": analysis_result.get("summary", f"Analýza dodavatelů pro {company_name}"),
+                "summary": analysis_result.get(
+                    "summary", f"Analýza dodavatelů pro {company_name}"
+                ),
                 "suppliers_count": len(suppliers),
                 "key_findings": analysis_result.get("key_findings", []),
                 "data_quality": analysis_result.get("data_quality", "unknown"),
             }
-            
+
         else:  # general analysis
             output = {
                 "status": "completed",
                 "analysis_type": analysis_type,
                 "company_name": company_name,
-                "summary": analysis_result.get("summary", f"Obecná analýza pro {company_name}"),
+                "summary": analysis_result.get(
+                    "summary", f"Obecná analýza pro {company_name}"
+                ),
                 "basic_info": analysis_result.get("basic_info", {}),
                 "key_findings": analysis_result.get("key_findings", []),
                 "data_quality": analysis_result.get("data_quality", "unknown"),
             }
 
     logger.info(f"Formátování dokončeno pro analýzu typu {analysis_type}")
-    
-    return {
-        "output": output
-    }
+
+    return {"output": output}
 
 
 def check_for_errors(state: State) -> Literal["error", "continue"]:
@@ -124,7 +128,9 @@ def check_for_errors(state: State) -> Literal["error", "continue"]:
     return "continue"
 
 
-def route_analysis_type(state: State) -> Literal["general", "risk_comparison", "supplier_analysis"]:
+def route_analysis_type(
+    state: State,
+) -> Literal["general", "risk_comparison", "supplier_analysis"]:
     """
     Funkce pro směrování podle typu analýzy.
 
@@ -136,7 +142,7 @@ def route_analysis_type(state: State) -> Literal["general", "risk_comparison", "
     """
     analysis_type = getattr(state, "analysis_type", "general")
     logger.info(f"Směrování podle typu analýzy: {analysis_type}")
-    
+
     if analysis_type in ["risk_comparison", "supplier_analysis", "general"]:
         return analysis_type
     else:
@@ -163,7 +169,7 @@ def create_explicit_stategraph():
 
         # === WRAPPER FUNKCE PRO UZLY ===
         # Vytvoříme wrapper funkce které zajistí správnou kompatibilitu s LangGraph
-        
+
         def safe_route_query(state: State) -> State:
             """Wrapper pro route_query s error handling."""
             try:
@@ -175,7 +181,7 @@ def create_explicit_stategraph():
             except Exception as e:
                 logger.error(f"Chyba v route_query: {str(e)}")
                 return {"error_state": {"error": str(e), "error_type": "route_error"}}
-        
+
         def safe_prepare_company_query(state: State) -> State:
             """Wrapper pro prepare_company_query s error handling."""
             try:
@@ -186,7 +192,7 @@ def create_explicit_stategraph():
             except Exception as e:
                 logger.error(f"Chyba v prepare_company_query: {str(e)}")
                 return {"error_state": {"error": str(e), "error_type": "prepare_error"}}
-        
+
         def safe_retrieve_additional_company_data(state: State) -> State:
             """Wrapper pro retrieve_additional_company_data s error handling."""
             try:
@@ -196,8 +202,10 @@ def create_explicit_stategraph():
                 return {}
             except Exception as e:
                 logger.error(f"Chyba v retrieve_additional_company_data: {str(e)}")
-                return {"error_state": {"error": str(e), "error_type": "retrieve_error"}}
-        
+                return {
+                    "error_state": {"error": str(e), "error_type": "retrieve_error"}
+                }
+
         def safe_analyze_company_data(state: State) -> State:
             """Wrapper pro analyze_company_data s error handling."""
             try:
@@ -207,25 +215,29 @@ def create_explicit_stategraph():
                 return {}
             except Exception as e:
                 logger.error(f"Chyba v analyze_company_data: {str(e)}")
-                return {"error_state": {"error": str(e), "error_type": "analysis_error"}}
+                return {
+                    "error_state": {"error": str(e), "error_type": "analysis_error"}
+                }
 
         # === PŘIDÁNÍ UZLŮ ===
-        
+
         # Krok 1: Analýza dotazu a určení typu
         workflow.add_node("route_query", safe_route_query)
-        
+
         # Krok 2: Příprava dotazu a načtení základních dat
         workflow.add_node("prepare_company_query", safe_prepare_company_query)
-        
+
         # Krok 3: Načtení dodatečných dat podle typu analýzy
-        workflow.add_node("retrieve_additional_company_data", safe_retrieve_additional_company_data)
-        
+        workflow.add_node(
+            "retrieve_additional_company_data", safe_retrieve_additional_company_data
+        )
+
         # Krok 4: Analýza dat podle typu
         workflow.add_node("analyze_company_data", safe_analyze_company_data)
-        
+
         # Krok 5: Formátování výsledné odpovědi
         workflow.add_node("format_response_node", format_response_node)
-        
+
         # Uzel pro zpracování chyb
         workflow.add_node("error_node", handle_error_state)
 
@@ -233,57 +245,45 @@ def create_explicit_stategraph():
         workflow.set_entry_point("route_query")
 
         # === PŘIDÁNÍ HRAN A PODMÍNĚNÉHO VĚTVENÍ ===
-        
+
         # Z route_query -> kontrola chyb -> prepare_company_query nebo error_node
         workflow.add_conditional_edges(
             "route_query",
             check_for_errors,
-            {
-                "error": "error_node",
-                "continue": "prepare_company_query"
-            }
+            {"error": "error_node", "continue": "prepare_company_query"},
         )
-        
+
         # Z prepare_company_query -> kontrola chyb -> retrieve_additional_company_data nebo error_node
         workflow.add_conditional_edges(
-            "prepare_company_query", 
+            "prepare_company_query",
             check_for_errors,
-            {
-                "error": "error_node",
-                "continue": "retrieve_additional_company_data"
-            }
+            {"error": "error_node", "continue": "retrieve_additional_company_data"},
         )
-        
+
         # Z retrieve_additional_company_data -> kontrola chyb -> analyze_company_data nebo error_node
         workflow.add_conditional_edges(
             "retrieve_additional_company_data",
             check_for_errors,
-            {
-                "error": "error_node", 
-                "continue": "analyze_company_data"
-            }
+            {"error": "error_node", "continue": "analyze_company_data"},
         )
-        
+
         # Z analyze_company_data -> kontrola chyb -> format_response_node nebo error_node
         workflow.add_conditional_edges(
             "analyze_company_data",
             check_for_errors,
-            {
-                "error": "error_node",
-                "continue": "format_response_node"
-            }
+            {"error": "error_node", "continue": "format_response_node"},
         )
-        
+
         # Z format_response_node a error_node -> END
         workflow.add_edge("format_response_node", END)
         workflow.add_edge("error_node", END)
 
         # Kompilace workflow
         compiled_graph = workflow.compile()
-        
+
         logger.info("✅ Explicitní StateGraph workflow úspěšně vytvořen")
         return compiled_graph
-        
+
     except Exception as e:
         logger.error(f"Chyba při vytváření StateGraph: {str(e)}")
         logger.error("Podrobnosti chyby:", exc_info=True)
@@ -464,7 +464,7 @@ graph_stategraph = None
 # Export pro externí použití
 __all__ = [
     "create_explicit_stategraph",
-    "create_react_agent_legacy", 
+    "create_react_agent_legacy",
     "get_memory_agent_stategraph",
     "get_graph_for_deployment",
     "create_placeholder_graph",

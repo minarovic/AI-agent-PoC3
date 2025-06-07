@@ -27,16 +27,40 @@ def detect_analysis_type(query: str) -> str:
 
     # Risk analysis keywords
     risk_keywords = [
-        "risk", "rizik", "rizic", "compliance", "sanctions", "sankce", 
-        "bezpečnost", "security", "regulace", "regulation", "aml", "kyc",
-        "fatf", "ofac", "embargo", "reputace"
+        "risk",
+        "rizik",
+        "rizic",
+        "compliance",
+        "sanctions",
+        "sankce",
+        "bezpečnost",
+        "security",
+        "regulace",
+        "regulation",
+        "aml",
+        "kyc",
+        "fatf",
+        "ofac",
+        "embargo",
+        "reputace",
     ]
 
-    # Supplier analysis keywords  
+    # Supplier analysis keywords
     supplier_keywords = [
-        "supplier", "dodavatel", "supply chain", "relationships", "vztahy",
-        "dodávky", "tier", "odběratel", "procurement", "logistics", 
-        "logistika", "distributor", "vendor", "nákup"
+        "supplier",
+        "dodavatel",
+        "supply chain",
+        "relationships",
+        "vztahy",
+        "dodávky",
+        "tier",
+        "odběratel",
+        "procurement",
+        "logistics",
+        "logistika",
+        "distributor",
+        "vendor",
+        "nákup",
     ]
 
     if any(keyword in query_lower for keyword in risk_keywords):
