@@ -20,15 +20,15 @@ Podporované typy analýz:
 import logging
 from typing import Literal
 
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END, StateGraph
 
-from .state import State
 from .graph_nodes import (
-    route_query,
+    analyze_company_data,
     prepare_company_query,
     retrieve_additional_company_data,
-    analyze_company_data,
+    route_query,
 )
+from .state import State
 
 # Nastavení loggeru
 logger = logging.getLogger(__name__)
