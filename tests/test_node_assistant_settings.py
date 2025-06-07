@@ -102,7 +102,10 @@ def test_memory_agent_has_node_settings():
     """Test that memory agent node settings are available via API functions."""
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         try:
-            from memory_agent.graph import get_node_assistant_settings, get_studio_config
+            from memory_agent.graph import (
+                get_node_assistant_settings,
+                get_studio_config,
+            )
 
             # Test node assistant settings API
             settings = get_node_assistant_settings()
@@ -116,7 +119,7 @@ def test_memory_agent_has_node_settings():
             # Verify main_agent configuration exists in settings
             assert "main_agent" in settings
             main_config = settings["main_agent"]
-            
+
             # Verify required fields
             assert "model" in main_config
             assert "temperature" in main_config
