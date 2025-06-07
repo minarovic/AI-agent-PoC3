@@ -123,10 +123,12 @@ def route_query(state: State) -> State:
 
     if not state.current_query:
         logger.error("Nebyl nalezen žádný dotaz k analýze")
-        return ensure_serializable({
-            "query_type": "error",
-            "error_state": {"error": "Nebyl nalezen žádný dotaz k analýze"},
-        })
+        return ensure_serializable(
+            {
+                "query_type": "error",
+                "error_state": {"error": "Nebyl nalezen žádný dotaz k analýze"},
+            }
+        )
 
     # Standardní analýza pomocí analyze_company_query
     company_name, query_type = analyze_company_query(state.current_query)
@@ -138,7 +140,9 @@ def route_query(state: State) -> State:
     updated_state = determine_analysis_type(state)
     analysis_type = updated_state.get("analysis_type", "general")
 
-    return ensure_serializable({"query_type": query_type, "analysis_type": analysis_type})
+    return ensure_serializable(
+        {"query_type": query_type, "analysis_type": analysis_type}
+    )
 
 
 def prepare_company_query(state: State) -> State:
@@ -317,12 +321,14 @@ def analyze_company_data(state: State) -> State:
     # Pokud nemáme company_data, nemůžeme provést analýzu
     if not company_data or not isinstance(company_data, dict):
         logger.error("❌ Nelze provést analýzu - chybí data společnosti")
-        return ensure_serializable({
-            "error_state": {
-                "error": "Chybí data společnosti pro analýzu",
-                "error_type": "missing_data",
+        return ensure_serializable(
+            {
+                "error_state": {
+                    "error": "Chybí data společnosti pro analýzu",
+                    "error_type": "missing_data",
+                }
             }
-        })
+        )
 
     # Získání základních informací o společnosti
     company_name = company_data.get("label", "") or company_data.get(
@@ -656,7 +662,7 @@ def analyze_company_data(state: State) -> State:
             company_id: analysis_result.get("supplier_relationships", [])
         },
     }
-    
+
     # Zajištění serializovatelnosti všech dat před návratem
     return ensure_serializable(result)
 
@@ -680,12 +686,14 @@ def retrieve_additional_company_data(state: State) -> State:
         # Pokud nemáme company_data nebo nemáme company_name, vrátíme chybu
         if not company_data or not company_name:
             logger.error("❌ Chybí základní data o společnosti pro další zpracování")
-            return ensure_serializable({
-                "error_state": {
-                    "error": "Nedostatek dat o společnosti",
-                    "error_type": "missing_data",
+            return ensure_serializable(
+                {
+                    "error_state": {
+                        "error": "Nedostatek dat o společnosti",
+                        "error_type": "missing_data",
+                    }
                 }
-            })
+            )
 
         # Získání ID společnosti (mělo by být už nastaveno z prepare_company_query)
         company_id = company_data.get("id") or company_data.get("basic_info", {}).get(
@@ -817,12 +825,14 @@ def retrieve_additional_company_data(state: State) -> State:
     except Exception as e:
         logger.error(f"❌ Kritická chyba při zpracování dat: {str(e)}")
         logger.error(traceback.format_exc())
-        return ensure_serializable({
-            "error_state": {
-                "error": f"Chyba při získávání dat: {str(e)}",
-                "error_type": "data_access_error",
+        return ensure_serializable(
+            {
+                "error_state": {
+                    "error": f"Chyba při získávání dat: {str(e)}",
+                    "error_type": "data_access_error",
+                }
             }
-        })
+        )
 
 
 async def analyze_node(state: State) -> State:

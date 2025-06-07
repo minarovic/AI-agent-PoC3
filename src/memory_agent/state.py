@@ -54,7 +54,7 @@ def merge_dict_values(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, 
             f"Převádím objekt typu {type(left)} na dict pro zajištění serializovatelnosti"
         )
         left = dict(left)
-    
+
     if right is not None and hasattr(right, "items") and not isinstance(right, dict):
         logger.warning(
             f"Převádím objekt typu {type(right)} na dict pro zajištění serializovatelnosti"
@@ -81,36 +81,36 @@ def merge_dict_values(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, 
 def ensure_serializable(obj: Any) -> Any:
     """
     Zajistí, že objekt je serializovatelný do JSON.
-    
+
     Převádí dict-like objekty (včetně MapComposite) na standardní dict,
     aby se předešlo chybám serializace na LangGraph Platform.
-    
+
     Args:
         obj: Objekt k ověření a případné konverzi
-        
+
     Returns:
         Serializovatelný objekt
     """
     if obj is None:
         return obj
-    
+
     # Převod dict-like objektů na dict
     if hasattr(obj, "items") and not isinstance(obj, dict):
         logger.info(f"Převádím dict-like objekt typu {type(obj)} na dict")
         return dict(obj)
-    
+
     # Rekurzivní zpracování pro slovníky
     if isinstance(obj, dict):
         return {key: ensure_serializable(value) for key, value in obj.items()}
-    
+
     # Rekurzivní zpracování pro seznamy
     if isinstance(obj, list):
         return [ensure_serializable(item) for item in obj]
-    
+
     # Rekurzivní zpracování pro tuple (převést na list)
     if isinstance(obj, tuple):
         return [ensure_serializable(item) for item in obj]
-    
+
     # Ostatní typy vrátit beze změny
     return obj
 
