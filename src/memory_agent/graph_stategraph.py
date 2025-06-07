@@ -18,13 +18,276 @@ Podporované typy analýz:
 """
 
 import logging
+from typing import Literal
 
-from langgraph.graph import StateGraph
+from langgraph.graph import END, StateGraph
 
+from .graph_nodes import (
+    analyze_company_data,
+    prepare_company_query,
+    retrieve_additional_company_data,
+    route_query,
+)
 from .state import State
 
 # Nastavení loggeru
 logger = logging.getLogger(__name__)
+
+
+def format_response_node(state: State) -> State:
+    """
+    Uzel pro formátování finální odpovědi uživateli.
+
+    Args:
+        state: Aktuální stav s výsledky analýzy
+
+    Returns:
+        Aktualizovaný stav s formátovanou odpovědí
+    """
+    logger.info("Formátuji finální odpověď")
+
+    # Získání výsledků analýzy
+    analysis_result = getattr(state, "analysis_result", {})
+    analysis_type = getattr(state, "analysis_type", "general")
+    company_name = getattr(state, "company_name", "Neznámá společnost")
+
+    if not analysis_result:
+        # Fallback pokud nemáme výsledky analýzy
+        output = {
+            "status": "completed",
+            "analysis_type": analysis_type,
+            "company_name": company_name,
+            "message": f"Analýza společnosti {company_name} byla dokončena, ale nejsou k dispozici detailní výsledky.",
+        }
+    else:
+        # Formátování podle typu analýzy
+        if analysis_type == "risk_comparison":
+            risk_score = analysis_result.get("risk_score")
+            risk_factors = analysis_result.get("risk_factors", [])
+
+            output = {
+                "status": "completed",
+                "analysis_type": analysis_type,
+                "company_name": company_name,
+                "summary": analysis_result.get(
+                    "summary", f"Analýza rizik pro {company_name}"
+                ),
+                "risk_score": risk_score,
+                "risk_factors_count": len(risk_factors),
+                "key_findings": analysis_result.get("key_findings", []),
+                "data_quality": analysis_result.get("data_quality", "unknown"),
+            }
+
+        elif analysis_type == "supplier_analysis":
+            suppliers = analysis_result.get("suppliers", [])
+
+            output = {
+                "status": "completed",
+                "analysis_type": analysis_type,
+                "company_name": company_name,
+                "summary": analysis_result.get(
+                    "summary", f"Analýza dodavatelů pro {company_name}"
+                ),
+                "suppliers_count": len(suppliers),
+                "key_findings": analysis_result.get("key_findings", []),
+                "data_quality": analysis_result.get("data_quality", "unknown"),
+            }
+
+        else:  # general analysis
+            output = {
+                "status": "completed",
+                "analysis_type": analysis_type,
+                "company_name": company_name,
+                "summary": analysis_result.get(
+                    "summary", f"Obecná analýza pro {company_name}"
+                ),
+                "basic_info": analysis_result.get("basic_info", {}),
+                "key_findings": analysis_result.get("key_findings", []),
+                "data_quality": analysis_result.get("data_quality", "unknown"),
+            }
+
+    logger.info(f"Formátování dokončeno pro analýzu typu {analysis_type}")
+
+    return {"output": output}
+
+
+def check_for_errors(state: State) -> Literal["error", "continue"]:
+    """
+    Funkce pro kontrolu chybových stavů v workflow.
+
+    Args:
+        state: Aktuální stav workflow
+
+    Returns:
+        "error" pokud je v stavu chyba, jinak "continue"
+    """
+    error_state = getattr(state, "error_state", {})
+    if error_state and error_state.get("error"):
+        logger.warning(f"Detekována chyba: {error_state.get('error')}")
+        return "error"
+    return "continue"
+
+
+def route_analysis_type(
+    state: State,
+) -> Literal["general", "risk_comparison", "supplier_analysis"]:
+    """
+    Funkce pro směrování podle typu analýzy.
+
+    Args:
+        state: Aktuální stav s typem analýzy
+
+    Returns:
+        Typ analýzy pro podmíněné větvení
+    """
+    analysis_type = getattr(state, "analysis_type", "general")
+    logger.info(f"Směrování podle typu analýzy: {analysis_type}")
+
+    if analysis_type in ["risk_comparison", "supplier_analysis", "general"]:
+        return analysis_type
+    else:
+        logger.warning(f"Neznámý typ analýzy {analysis_type}, použiji general")
+        return "general"
+
+
+def create_explicit_stategraph():
+    """
+    Vytvoří explicitní StateGraph workflow pro Memory Agent.
+
+    Tento workflow nahrazuje ReAct agenta explicitním řízením toku
+    s podmíněným větvením podle typu analýzy. Každý krok je deterministicky
+    řízen stavem bez LLM rozhodování o použití nástrojů.
+
+    Returns:
+        Zkompilovaný StateGraph workflow
+    """
+    logger.info("Vytvářím explicitní StateGraph workflow")
+
+    try:
+        # Vytvoření StateGraph instance s explicitním typem
+        workflow = StateGraph(State)
+
+        # === WRAPPER FUNKCE PRO UZLY ===
+        # Vytvoříme wrapper funkce které zajistí správnou kompatibilitu s LangGraph
+
+        def safe_route_query(state: State) -> State:
+            """Wrapper pro route_query s error handling."""
+            try:
+                result = route_query(state)
+                # Ujistíme se, že result je dict a obsahuje jen povolená pole
+                if isinstance(result, dict):
+                    return {k: v for k, v in result.items() if hasattr(state, k)}
+                return {}
+            except Exception as e:
+                logger.error(f"Chyba v route_query: {str(e)}")
+                return {"error_state": {"error": str(e), "error_type": "route_error"}}
+
+        def safe_prepare_company_query(state: State) -> State:
+            """Wrapper pro prepare_company_query s error handling."""
+            try:
+                result = prepare_company_query(state)
+                if isinstance(result, dict):
+                    return {k: v for k, v in result.items() if hasattr(state, k)}
+                return {}
+            except Exception as e:
+                logger.error(f"Chyba v prepare_company_query: {str(e)}")
+                return {"error_state": {"error": str(e), "error_type": "prepare_error"}}
+
+        def safe_retrieve_additional_company_data(state: State) -> State:
+            """Wrapper pro retrieve_additional_company_data s error handling."""
+            try:
+                result = retrieve_additional_company_data(state)
+                if isinstance(result, dict):
+                    return {k: v for k, v in result.items() if hasattr(state, k)}
+                return {}
+            except Exception as e:
+                logger.error(f"Chyba v retrieve_additional_company_data: {str(e)}")
+                return {
+                    "error_state": {"error": str(e), "error_type": "retrieve_error"}
+                }
+
+        def safe_analyze_company_data(state: State) -> State:
+            """Wrapper pro analyze_company_data s error handling."""
+            try:
+                result = analyze_company_data(state)
+                if isinstance(result, dict):
+                    return {k: v for k, v in result.items() if hasattr(state, k)}
+                return {}
+            except Exception as e:
+                logger.error(f"Chyba v analyze_company_data: {str(e)}")
+                return {
+                    "error_state": {"error": str(e), "error_type": "analysis_error"}
+                }
+
+        # === PŘIDÁNÍ UZLŮ ===
+
+        # Krok 1: Analýza dotazu a určení typu
+        workflow.add_node("route_query", safe_route_query)
+
+        # Krok 2: Příprava dotazu a načtení základních dat
+        workflow.add_node("prepare_company_query", safe_prepare_company_query)
+
+        # Krok 3: Načtení dodatečných dat podle typu analýzy
+        workflow.add_node(
+            "retrieve_additional_company_data", safe_retrieve_additional_company_data
+        )
+
+        # Krok 4: Analýza dat podle typu
+        workflow.add_node("analyze_company_data", safe_analyze_company_data)
+
+        # Krok 5: Formátování výsledné odpovědi
+        workflow.add_node("format_response_node", format_response_node)
+
+        # Uzel pro zpracování chyb
+        workflow.add_node("error_node", handle_error_state)
+
+        # === NASTAVENÍ VSTUPNÍHO BODU ===
+        workflow.set_entry_point("route_query")
+
+        # === PŘIDÁNÍ HRAN A PODMÍNĚNÉHO VĚTVENÍ ===
+
+        # Z route_query -> kontrola chyb -> prepare_company_query nebo error_node
+        workflow.add_conditional_edges(
+            "route_query",
+            check_for_errors,
+            {"error": "error_node", "continue": "prepare_company_query"},
+        )
+
+        # Z prepare_company_query -> kontrola chyb -> retrieve_additional_company_data nebo error_node
+        workflow.add_conditional_edges(
+            "prepare_company_query",
+            check_for_errors,
+            {"error": "error_node", "continue": "retrieve_additional_company_data"},
+        )
+
+        # Z retrieve_additional_company_data -> kontrola chyb -> analyze_company_data nebo error_node
+        workflow.add_conditional_edges(
+            "retrieve_additional_company_data",
+            check_for_errors,
+            {"error": "error_node", "continue": "analyze_company_data"},
+        )
+
+        # Z analyze_company_data -> kontrola chyb -> format_response_node nebo error_node
+        workflow.add_conditional_edges(
+            "analyze_company_data",
+            check_for_errors,
+            {"error": "error_node", "continue": "format_response_node"},
+        )
+
+        # Z format_response_node a error_node -> END
+        workflow.add_edge("format_response_node", END)
+        workflow.add_edge("error_node", END)
+
+        # Kompilace workflow
+        compiled_graph = workflow.compile()
+
+        logger.info("✅ Explicitní StateGraph workflow úspěšně vytvořen")
+        return compiled_graph
+
+    except Exception as e:
+        logger.error(f"Chyba při vytváření StateGraph: {str(e)}")
+        logger.error("Podrobnosti chyby:", exc_info=True)
+        raise
 
 
 def handle_error_state(state: State) -> State:
@@ -132,15 +395,21 @@ def create_react_agent_legacy():
 # Lazy initialization to avoid immediate execution at import time
 def get_memory_agent_stategraph():
     """
-    Lazy inicializace Memory Agent s fallback na ReAct agenta.
+    Vytvoří a vrátí explicitní StateGraph workflow pro Memory Agent.
 
-    Tato funkce používá fallback na původního ReAct agenta.
+    Tato funkce používá nový explicitní StateGraph workflow místo ReAct agenta.
+    Při chybě se může fallback na původní ReAct agenta.
 
     Returns:
-        ReAct agent
+        Zkompilovaný StateGraph workflow
     """
-    logger.info("Používám fallback ReAct agenta")
-    return create_react_agent_legacy()
+    try:
+        logger.info("Vytvářím explicitní StateGraph workflow")
+        return create_explicit_stategraph()
+    except Exception as e:
+        logger.error(f"Chyba při vytváření explicitního StateGraph: {str(e)}")
+        logger.info("Používám fallback ReAct agenta")
+        return create_react_agent_legacy()
 
 
 # Pro LangGraph Platform deployment - lazy initialization
@@ -194,6 +463,7 @@ graph_stategraph = None
 
 # Export pro externí použití
 __all__ = [
+    "create_explicit_stategraph",
     "create_react_agent_legacy",
     "get_memory_agent_stategraph",
     "get_graph_for_deployment",

@@ -378,10 +378,17 @@ def analyze_company_data(state: State) -> State:
 
         # Přidání zjištění o zemi
         if "countries" in basic_info and basic_info["countries"]:
-            countries_str = ", ".join(basic_info["countries"])
-            key_findings.append(
-                f"Společnost {company_name} působí v zemích: {countries_str}"
-            )
+            countries = basic_info["countries"]
+            # Zajistit, že countries jsou stringy
+            if isinstance(countries, list):
+                countries_str = ", ".join(str(c) for c in countries)
+                key_findings.append(
+                    f"Společnost {company_name} působí v zemích: {countries_str}"
+                )
+            else:
+                key_findings.append(
+                    f"Společnost {company_name} - nerozpoznaný formát zemí"
+                )
         else:
             key_findings.append(f"Společnost {company_name} - země působení není známa")
 
@@ -392,7 +399,10 @@ def analyze_company_data(state: State) -> State:
         ):
             activities = financial_overview["identified_activities"]
             if isinstance(activities, list) and activities:
-                activities_str = ", ".join(activities[:3])  # První 3 aktivity
+                # Zajistit, že activities jsou stringy
+                activities_str = ", ".join(
+                    str(a) for a in activities[:3]
+                )  # První 3 aktivity
                 key_findings.append(f"Hlavní aktivity: {activities_str}")
 
         # Sestavení analýzy pro general typ
@@ -476,7 +486,7 @@ def analyze_company_data(state: State) -> State:
             high_risks = [r for r in risk_factors if r.get("level") == "high"]
             if high_risks:
                 high_risks_str = ", ".join(
-                    [r.get("factor", "") for r in high_risks[:3]]
+                    [str(r.get("factor", "")) for r in high_risks[:3]]
                 )
                 key_findings.append(f"Vysoká rizika: {high_risks_str}")
         else:
