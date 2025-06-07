@@ -99,19 +99,30 @@ def test_assistant_config_structure():
 
 
 def test_memory_agent_has_node_settings():
-    """Test that memory agent instance has node settings attached."""
+    """Test that memory agent node settings are available via API functions."""
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         try:
-            from memory_agent.graph import memory_agent
+            from memory_agent.graph import get_node_assistant_settings, get_studio_config
 
-            if memory_agent is not None:
-                # Check if node assistant settings are attached
-                assert hasattr(memory_agent, "_node_assistant_settings")
-                assert hasattr(memory_agent, "_studio_node_config")
+            # Test node assistant settings API
+            settings = get_node_assistant_settings()
+            assert isinstance(settings, dict)
+            assert len(settings) > 0
 
-                settings = memory_agent._node_assistant_settings
-                assert isinstance(settings, dict)
-                assert len(settings) > 0
+            # Test studio config API
+            studio_config = get_studio_config()
+            assert isinstance(studio_config, dict)
+
+            # Verify main_agent configuration exists in settings
+            assert "main_agent" in settings
+            main_config = settings["main_agent"]
+            
+            # Verify required fields
+            assert "model" in main_config
+            assert "temperature" in main_config
+            assert "system_prompt" in main_config
+            assert "tools" in main_config
+            assert "description" in main_config
 
         except Exception as e:
             # If agent can't be created due to missing API key, that's OK for this test
