@@ -11,7 +11,7 @@ import traceback
 
 from memory_agent import utils
 from memory_agent.analyzer import analyze_company_query
-from memory_agent.state import State
+from memory_agent.state import State, ensure_serializable
 from memory_agent.tools import AsyncMockMCPConnector
 
 # Import prompt registry
@@ -103,7 +103,7 @@ def determine_analysis_type(state: State) -> State:
         analysis_type = "general"
 
     logger.info(f"Dotaz '{query[:30]}...' určen jako typ analýzy: {analysis_type}")
-    return {"analysis_type": analysis_type}
+    return ensure_serializable({"analysis_type": analysis_type})
 
 
 def route_query(state: State) -> State:
@@ -123,10 +123,12 @@ def route_query(state: State) -> State:
 
     if not state.current_query:
         logger.error("Nebyl nalezen žádný dotaz k analýze")
-        return {
-            "query_type": "error",
-            "error_state": {"error": "Nebyl nalezen žádný dotaz k analýze"},
-        }
+        return ensure_serializable(
+            {
+                "query_type": "error",
+                "error_state": {"error": "Nebyl nalezen žádný dotaz k analýze"},
+            }
+        )
 
     # Standardní analýza pomocí analyze_company_query
     company_name, query_type = analyze_company_query(state.current_query)
@@ -138,7 +140,9 @@ def route_query(state: State) -> State:
     updated_state = determine_analysis_type(state)
     analysis_type = updated_state.get("analysis_type", "general")
 
-    return {"query_type": query_type, "analysis_type": analysis_type}
+    return ensure_serializable(
+        {"query_type": query_type, "analysis_type": analysis_type}
+    )
 
 
 def prepare_company_query(state: State) -> State:
@@ -273,11 +277,12 @@ def prepare_company_query(state: State) -> State:
         )
 
         # Vrácení stavu s načtenými daty
-        return {
+        result = {
             "company_name": company_name,
             "analysis_type": analysis_type,
             "company_data": company_data,
         }
+        return ensure_serializable(result)
 
     except Exception as e:
         # Zachycení všech chyb a vytvoření minimální struktury pro pokračování
@@ -291,11 +296,12 @@ def prepare_company_query(state: State) -> State:
             "id": company_id,
         }
 
-        return {
+        result = {
             "company_name": company_name,
             "analysis_type": analysis_type,
             "company_data": company_data,
         }
+        return ensure_serializable(result)
 
 
 def analyze_company_data(state: State) -> State:
@@ -315,12 +321,14 @@ def analyze_company_data(state: State) -> State:
     # Pokud nemáme company_data, nemůžeme provést analýzu
     if not company_data or not isinstance(company_data, dict):
         logger.error("❌ Nelze provést analýzu - chybí data společnosti")
-        return {
-            "error_state": {
-                "error": "Chybí data společnosti pro analýzu",
-                "error_type": "missing_data",
+        return ensure_serializable(
+            {
+                "error_state": {
+                    "error": "Chybí data společnosti pro analýzu",
+                    "error_type": "missing_data",
+                }
             }
-        }
+        )
 
     # Získání základních informací o společnosti
     company_name = company_data.get("label", "") or company_data.get(
@@ -632,7 +640,7 @@ def analyze_company_data(state: State) -> State:
 
     # Návratová hodnota musí naplnit všechny potřebné objekty state
     # Podle Testing Iteration Log jsou company_data, internal_data, relationships_data prázdné {}
-    return {
+    result = {
         "analysis_result": analysis_result,
         "company_data": {
             "name": company_name,
@@ -655,6 +663,9 @@ def analyze_company_data(state: State) -> State:
         },
     }
 
+    # Zajištění serializovatelnosti všech dat před návratem
+    return ensure_serializable(result)
+
 
 def retrieve_additional_company_data(state: State) -> State:
     """
@@ -675,12 +686,14 @@ def retrieve_additional_company_data(state: State) -> State:
         # Pokud nemáme company_data nebo nemáme company_name, vrátíme chybu
         if not company_data or not company_name:
             logger.error("❌ Chybí základní data o společnosti pro další zpracování")
-            return {
-                "error_state": {
-                    "error": "Nedostatek dat o společnosti",
-                    "error_type": "missing_data",
+            return ensure_serializable(
+                {
+                    "error_state": {
+                        "error": "Nedostatek dat o společnosti",
+                        "error_type": "missing_data",
+                    }
                 }
-            }
+            )
 
         # Získání ID společnosti (mělo by být už nastaveno z prepare_company_query)
         company_id = company_data.get("id") or company_data.get("basic_info", {}).get(
@@ -807,17 +820,19 @@ def retrieve_additional_company_data(state: State) -> State:
             result["supply_chain_data"] = supply_chain_data
 
         logger.info(f"✅ Úspěšně načtena data pro analýzu typu {analysis_type}")
-        return result
+        return ensure_serializable(result)
 
     except Exception as e:
         logger.error(f"❌ Kritická chyba při zpracování dat: {str(e)}")
         logger.error(traceback.format_exc())
-        return {
-            "error_state": {
-                "error": f"Chyba při získávání dat: {str(e)}",
-                "error_type": "data_access_error",
+        return ensure_serializable(
+            {
+                "error_state": {
+                    "error": f"Chyba při získávání dat: {str(e)}",
+                    "error_type": "data_access_error",
+                }
             }
-        }
+        )
 
 
 async def analyze_node(state: State) -> State:
